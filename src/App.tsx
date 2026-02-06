@@ -3,42 +3,42 @@ import { Canvas } from './components/Canvas'
 import { Frame } from './components/Frame'
 import { useFrames } from './hooks/useFrames'
 import { Agentation } from 'agentation'
+import { DashboardNavBar } from './components/DashboardNavBar'
 
-function SampleButton({ variant }: { variant: 'primary' | 'secondary' }) {
-  return (
-    <div style={{ padding: 24 }}>
-      <button
-        style={{
-          padding: '8px 16px',
-          background: variant === 'primary' ? '#3858e9' : 'transparent',
-          color: variant === 'primary' ? '#fff' : '#3858e9',
-          border: '2px solid #3858e9',
-          borderRadius: 6,
-          cursor: 'pointer',
-          fontSize: 14,
-        }}
-      >
-        {variant === 'primary' ? 'Primary' : 'Secondary'}
-      </button>
-    </div>
-  )
+const sampleSites = [
+  { id: 'site-1', name: 'My Blog', url: 'myblog.wordpress.com' },
+  { id: 'site-2', name: 'Portfolio', url: 'portfolio.design' },
+  { id: 'site-3', name: 'Company Site', url: 'acme.com' },
+]
+
+const sampleUser = {
+  name: 'Noam Almosnino',
+  email: 'noam@example.com',
 }
 
 function App() {
-  const { frames } = useFrames([
+  const { frames, updateFrame } = useFrames([
     {
-      id: 'btn-primary',
-      title: 'Button / Primary',
-      x: 100, y: 100, width: 200, height: 80,
-      component: SampleButton,
-      props: { variant: 'primary' },
+      id: 'navbar-default',
+      title: 'NavBar / Default',
+      x: 100, y: 100, width: 720, height: 60,
+      component: DashboardNavBar,
+      props: {
+        sites: sampleSites,
+        activeSiteId: 'site-1',
+        user: sampleUser,
+      },
     },
     {
-      id: 'btn-secondary',
-      title: 'Button / Secondary',
-      x: 340, y: 100, width: 200, height: 80,
-      component: SampleButton,
-      props: { variant: 'secondary' },
+      id: 'navbar-alt-site',
+      title: 'NavBar / Different Site',
+      x: 100, y: 200, width: 720, height: 60,
+      component: DashboardNavBar,
+      props: {
+        sites: sampleSites,
+        activeSiteId: 'site-2',
+        user: sampleUser,
+      },
     },
   ])
 
@@ -54,6 +54,7 @@ function App() {
             y={frame.y}
             width={frame.width}
             height={frame.height}
+            onMove={(id, newX, newY) => updateFrame(id, { x: newX, y: newY })}
           >
             <frame.component {...(frame.props ?? {})} />
           </Frame>
