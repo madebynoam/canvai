@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import type { CanvasFrame } from '../types'
+import type { CanvasFrame } from './types'
 
 const FRAME_GAP = 40
 

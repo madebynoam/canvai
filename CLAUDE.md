@@ -1,35 +1,52 @@
 # Canvai — Agent Instructions
 
-This is a Canvai design canvas project. You are working inside a spatial canvas where design components are rendered as live React code.
+Canvai is a design studio. A Figma-like infinite canvas where every design is live React code. The designer describes what they want, the agent builds it on the canvas, the designer annotates with Agentation to iterate, and the final code gets PR'd to a production repo.
+
+## User workflow
+
+1. **Clone** — `git clone` this repo once. It's the app.
+2. **`/install-canvai`** — First-time setup. Installs dependencies, configures the Agentation MCP server.
+3. **`/init <project-name>`** — Creates a new design project in `src/projects/<project-name>/`, wires it into the canvas, launches the dev server and MCP. Ready to design.
+4. **Describe** — The designer describes the component (or attaches a sketch). The agent generates the component with variations and states, places them as frames on the canvas.
+5. **Annotate** — The designer uses Agentation to annotate elements in the browser. The MCP feeds structured feedback (CSS selectors, component names, computed styles) to the agent, who applies the changes directly.
+6. **Ship** — PR the finished components to the production codebase.
 
 ## Project structure
 
-- `src/App.tsx` — main app, renders Canvas with Frames
-- `src/components/Canvas.tsx` — infinite canvas (pan, zoom, drag)
-- `src/components/Frame.tsx` — individual frame on the canvas
-- `src/hooks/useFrames.ts` — frame registry (add, update, remove)
-- `src/types.ts` — TypeScript types
+```
+src/
+  app/              ← platform (do not modify)
+    Canvas.tsx      ← infinite canvas (pan, zoom, drag)
+    Frame.tsx       ← draggable frame on the canvas
+    useFrames.ts    ← frame registry (add, update, remove)
+    types.ts        ← TypeScript types
+  projects/         ← design projects (one folder per project)
+    <project-name>/
+      Component.tsx
+      ...
+  App.tsx           ← wiring (frames array lives here)
+```
 
 ## How the canvas works
 
-The canvas is an infinite 2D surface. Frames are placed at absolute `{ x, y }` positions. Each frame renders a live React component.
+The canvas is an infinite 2D surface. Frames are placed at absolute `{ x, y }` positions. Each frame renders a live React component. Frames are transparent — no background, no border. The component IS the frame content.
 
 ## Adding a frame
 
-To add a new design component to the canvas, add a new entry to the frames array in `src/App.tsx`:
+Add a new entry to the frames array in `src/App.tsx`:
 
 ```tsx
 {
   id: 'unique-id',
   title: 'Component / Variant',
-  x: <number>,
-  y: <number>,
-  width: <number>,
-  height: <number>,
+  x: <number>, y: <number>,
+  width: <number>, height: <number>,
   component: YourComponent,
   props: { /* component props */ },
 }
 ```
+
+Import the component from `src/projects/<project-name>/`.
 
 ## Spatial layout conventions
 
@@ -37,18 +54,6 @@ To add a new design component to the canvas, add a new entry to the frames array
 - Place new states **below** their parent variation
 - Group related components together
 - Keep consistent frame widths for the same component type
-
-## Updating a frame
-
-Modify the frame's entry in the frames array — change `component`, `props`, `width`, `height`, or position (`x`, `y`).
-
-## Removing a frame
-
-Delete the frame's entry from the frames array.
-
-## Creating a design component
-
-Create a new React component file in `src/components/` and import it into `App.tsx`. Place it in a frame.
 
 ## Annotation flow (Agentation)
 
@@ -58,7 +63,12 @@ When you receive annotation feedback via the Agentation MCP:
 3. Apply the requested changes to the component code
 4. The canvas re-renders live — verify the change is correct
 
+## Skills
+
+- **`/install-canvai`** — First-time setup (npm install, Agentation MCP config)
+- **`/init <project-name>`** — Create a new design project and start designing
+
 ## Commands
 
-- **Dev server:** `npm run dev`
-- **Build:** `npm run build`
+- `npm run dev` — start dev server
+- `npm run build` — build for production

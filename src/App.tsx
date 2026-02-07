@@ -1,46 +1,11 @@
 import './App.css'
-import { Canvas } from './components/Canvas'
-import { Frame } from './components/Frame'
-import { useFrames } from './hooks/useFrames'
+import { Canvas } from './app/Canvas'
+import { Frame } from './app/Frame'
+import { useFrames } from './app/useFrames'
 import { Agentation } from 'agentation'
-import { DashboardNavBar } from './components/DashboardNavBar'
-
-const sampleSites = [
-  { id: 'site-1', name: 'My Blog', url: 'myblog.wordpress.com' },
-  { id: 'site-2', name: 'Portfolio', url: 'portfolio.design' },
-  { id: 'site-3', name: 'Company Site', url: 'acme.com' },
-]
-
-const sampleUser = {
-  name: 'Noam Almosnino',
-  email: 'noam@example.com',
-}
 
 function App() {
-  const { frames, updateFrame } = useFrames([
-    {
-      id: 'navbar-default',
-      title: 'NavBar / Default',
-      x: 100, y: 100, width: 720, height: 60,
-      component: DashboardNavBar,
-      props: {
-        sites: sampleSites,
-        activeSiteId: 'site-1',
-        user: sampleUser,
-      },
-    },
-    {
-      id: 'navbar-alt-site',
-      title: 'NavBar / Different Site',
-      x: 100, y: 200, width: 720, height: 60,
-      component: DashboardNavBar,
-      props: {
-        sites: sampleSites,
-        activeSiteId: 'site-2',
-        user: sampleUser,
-      },
-    },
-  ])
+  const { frames, updateFrame } = useFrames([])
 
   return (
     <div id="canvai-root" style={{ width: '100vw', height: '100vh' }}>

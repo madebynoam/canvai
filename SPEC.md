@@ -6,24 +6,20 @@ Canvai gives designers a Figma-like infinite canvas where every iteration is cod
 
 ## How it works
 
-A designer runs a skill:
-
-```
-/init design project team-permissions
-```
-
-This clones the canvai boilerplate, sets up the Agentation MCP server, and launches the dev server in the browser. From there:
-
-1. **Brainstorm** - Describe or attach a sketch. The agent generates the component with its variations and states and places them on the spatial canvas.
-2. **Iterate** - Annotate elements with Agentation. The agent reads the structured feedback (CSS selectors, component names, computed styles) and updates directly.
-3. **Review** - Commit and deploy to GitHub Pages. Team reviews a live, interactive page.
-4. **Ship** - PR to the production codebase. The code was the material the whole time.
+1. **Clone** — `git clone` this repo once. It's the design studio.
+2. **`/install`** — First-time setup. Installs dependencies, configures the Agentation MCP server.
+3. **`/init team-permissions`** — Creates `src/projects/team-permissions/`, wires it into the canvas, launches the dev server and MCP. Ready to design.
+4. **Describe** — Tell the agent what to build. It generates the component with variations and states, placed as frames on the canvas.
+5. **Annotate** — Use Agentation in the browser to annotate elements. The MCP feeds structured feedback to the agent, who applies changes directly.
+6. **Ship** — PR the finished components to the production codebase. The code was the material the whole time.
 
 ## What's in the box
 
-- **React app** (Vite) - minimal, no extra framework
+- **`src/app/`** - the platform. Canvas, Frame, useFrames, types. Don't modify.
+- **`src/projects/`** - your design projects. Each project is a folder with its own components.
+- **`src/App.tsx`** - wiring. Register frames from your project components here.
 - **Spatial canvas component** - pan, zoom, drag. Figma-like interactions, zero dependencies. Based on the [WPUI Lab](https://github.com/madebynoam/WPUI-Lab) canvas.
-- **Agentation integration** - pre-installed via [agentation.dev/install](https://agentation.dev/install). MCP server configured on init so the agent can read annotations without copy-paste.
+- **Agentation integration** - pre-installed via [agentation.dev/install](https://agentation.dev/install). MCP server configured so the agent can read annotations without copy-paste.
 - **CLAUDE.md** - teaches the agent how the canvas works, how to add/update/remove design components, and the spatial layout conventions.
 
 ## The canvas
@@ -41,26 +37,31 @@ The agent places the component being designed on the canvas, along with its vari
 
 ## CLAUDE.md contract
 
-The CLAUDE.md in each canvai project teaches the agent:
+The CLAUDE.md teaches the agent:
 
 - The canvas API: how to add a frame, update it, remove it, reposition it
 - Spatial conventions: new variations and states go to the right of existing ones, spaced consistently
 - Frame structure: each frame on the canvas renders a React component at a position `{ x, y, width, height }`
 - Annotation flow: when Agentation output is piped in, map selectors to frames and apply feedback
 
-## Skill: `/init design project`
+## Skills
 
-The Claude Code skill that bootstraps a canvai project:
+### `/install`
 
-1. Clones this repo into a new directory named after the project
-2. Removes the `.git` folder and reinitializes
-3. Updates `package.json` name field
-4. Configures Agentation MCP server in `.claude/settings.json`
-5. Runs `npm install`
-6. Launches `npm run dev` and opens the browser
-7. Ready to design
+First-time setup after cloning:
 
-On subsequent sessions, `/start` reconnects: starts the dev server, verifies MCP, opens the browser.
+1. Runs `npm install`
+2. Verifies/creates `.claude/settings.json` with the Agentation MCP server config
+3. Confirms everything is ready
+
+### `/init <project-name>`
+
+Creates a new design project:
+
+1. Creates `src/projects/<project-name>/` with a placeholder component
+2. Wires the placeholder into `src/App.tsx` as a frame
+3. Launches `npm run dev -- --open`
+4. Ready to design
 
 ## Not in v1
 
