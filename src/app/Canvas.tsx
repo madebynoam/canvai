@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, useCallback, createContext, useContext } from 'react'
+import { useRef, useState, useEffect, createContext, useContext } from 'react'
 
 const MIN_ZOOM = 0.1
 const MAX_ZOOM = 5
@@ -15,90 +15,144 @@ interface CanvasProps {
 
 export function Canvas({ children }: CanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
   const [pan, setPan] = useState({ x: 0, y: 0 })
   const [zoom, setZoom] = useState(1)
 
-  // Refs for direct DOM reads during gestures
+  // All gesture state lives in refs — no React renders during gestures
   const panRef = useRef(pan)
   const zoomRef = useRef(zoom)
+  const isDraggingRef = useRef(false)
+  const dragStartRef = useRef({ x: 0, y: 0 })
+  const panStartRef = useRef({ x: 0, y: 0 })
+  const commitRafRef = useRef<number>(0)
+
   panRef.current = pan
   zoomRef.current = zoom
 
-  // Drag-to-pan state
-  const [isDragging, setIsDragging] = useState(false)
-  const dragStartRef = useRef({ x: 0, y: 0 })
-  const panStartRef = useRef({ x: 0, y: 0 })
+  // Write transform directly to the DOM — no React involved
+  function applyTransform(p: { x: number; y: number }, z: number) {
+    const el = contentRef.current
+    if (el) {
+      el.style.transform = `translate3d(${p.x}px, ${p.y}px, 0) scale(${z})`
+    }
+  }
 
-  // Wheel: Ctrl/Cmd+scroll = zoom toward cursor, plain scroll = pan
+  // Debounced commit to React state (for context consumers like Frame zoom)
+  function commitState(p: { x: number; y: number }, z: number) {
+    cancelAnimationFrame(commitRafRef.current)
+    commitRafRef.current = requestAnimationFrame(() => {
+      setPan(p)
+      setZoom(z)
+    })
+  }
+
+  // All pointer + wheel handlers as native listeners — bypasses React synthetic events
   useEffect(() => {
     const container = containerRef.current
     if (!container) return
 
-    const handleWheel = (e: WheelEvent) => {
+    // --- Wheel: zoom + pan ---
+    function handleWheel(e: WheelEvent) {
       e.preventDefault()
 
       if (e.ctrlKey || e.metaKey) {
-        const rect = container.getBoundingClientRect()
+        const rect = container!.getBoundingClientRect()
         const mouseX = e.clientX - rect.left
         const mouseY = e.clientY - rect.top
 
         const contentX = (mouseX - panRef.current.x) / zoomRef.current
         const contentY = (mouseY - panRef.current.y) / zoomRef.current
 
-        const factor = e.deltaY > 0 ? 0.9 : 1.1
+        const factor = Math.pow(2, -e.deltaY * 0.005)
         const newZoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, zoomRef.current * factor))
 
-        const newPanX = mouseX - contentX * newZoom
-        const newPanY = mouseY - contentY * newZoom
+        const newPan = {
+          x: mouseX - contentX * newZoom,
+          y: mouseY - contentY * newZoom,
+        }
 
-        setPan({ x: newPanX, y: newPanY })
-        setZoom(newZoom)
-        panRef.current = { x: newPanX, y: newPanY }
+        panRef.current = newPan
         zoomRef.current = newZoom
+        applyTransform(newPan, newZoom)
+        commitState(newPan, newZoom)
       } else {
         const newPan = {
           x: panRef.current.x - e.deltaX,
           y: panRef.current.y - e.deltaY,
         }
-        setPan(newPan)
         panRef.current = newPan
+        applyTransform(newPan, zoomRef.current)
+        commitState(newPan, zoomRef.current)
       }
     }
 
+    // --- Pointer: drag to pan ---
+    function handlePointerDown(e: PointerEvent) {
+      if (e.target !== container) return
+      e.preventDefault()
+      isDraggingRef.current = true
+      dragStartRef.current = { x: e.clientX, y: e.clientY }
+      panStartRef.current = { x: panRef.current.x, y: panRef.current.y }
+      container!.setPointerCapture(e.pointerId)
+      container!.style.cursor = 'grabbing'
+    }
+
+    function handlePointerMove(e: PointerEvent) {
+      if (!isDraggingRef.current) return
+      const newPan = {
+        x: panStartRef.current.x + (e.clientX - dragStartRef.current.x),
+        y: panStartRef.current.y + (e.clientY - dragStartRef.current.y),
+      }
+      panRef.current = newPan
+      applyTransform(newPan, zoomRef.current)
+    }
+
+    function handlePointerUp() {
+      if (!isDraggingRef.current) return
+      isDraggingRef.current = false
+      container!.style.cursor = 'grab'
+      commitState(panRef.current, zoomRef.current)
+    }
+
     container.addEventListener('wheel', handleWheel, { passive: false })
-    return () => container.removeEventListener('wheel', handleWheel)
+    container.addEventListener('pointerdown', handlePointerDown)
+    container.addEventListener('pointermove', handlePointerMove)
+    container.addEventListener('pointerup', handlePointerUp)
+
+    return () => {
+      container.removeEventListener('wheel', handleWheel)
+      container.removeEventListener('pointerdown', handlePointerDown)
+      container.removeEventListener('pointermove', handlePointerMove)
+      container.removeEventListener('pointerup', handlePointerUp)
+    }
   }, [])
 
-  // Keyboard: Cmd+Plus/Minus for zoom, Cmd+0 to fit all
+  // Keyboard shortcuts
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
+    function handleKeyDown(e: KeyboardEvent) {
       const isMod = e.metaKey || e.ctrlKey
 
       if (isMod && (e.key === '=' || e.key === '+')) {
         e.preventDefault()
-        setZoom(z => {
-          const newZoom = Math.min(MAX_ZOOM, z * 1.2)
-          zoomRef.current = newZoom
-          return newZoom
-        })
+        const newZoom = Math.min(MAX_ZOOM, zoomRef.current * 1.2)
+        zoomRef.current = newZoom
+        applyTransform(panRef.current, newZoom)
+        commitState(panRef.current, newZoom)
       } else if (isMod && e.key === '-') {
         e.preventDefault()
-        setZoom(z => {
-          const newZoom = Math.max(MIN_ZOOM, z * 0.8)
-          zoomRef.current = newZoom
-          return newZoom
-        })
+        const newZoom = Math.max(MIN_ZOOM, zoomRef.current * 0.8)
+        zoomRef.current = newZoom
+        applyTransform(panRef.current, newZoom)
+        commitState(panRef.current, newZoom)
       } else if (isMod && e.key === '0') {
         e.preventDefault()
-        const container = containerRef.current
-        if (!container) return
-        const content = container.firstElementChild?.firstElementChild as HTMLElement | null
-        if (!content || content.children.length === 0) {
-          // No frames — just reset
-          setZoom(1)
-          setPan({ x: 0, y: 0 })
+        const content = contentRef.current
+        if (!container || !content || content.children.length === 0) {
           zoomRef.current = 1
           panRef.current = { x: 0, y: 0 }
+          applyTransform(panRef.current, 1)
+          commitState(panRef.current, 1)
           return
         }
 
@@ -128,13 +182,15 @@ export function Canvas({ children }: CanvasProps) {
 
         const centerX = (minX + maxX) / 2
         const centerY = (minY + maxY) / 2
-        const newPanX = containerRect.width / 2 - centerX * fitZoom
-        const newPanY = containerRect.height / 2 - centerY * fitZoom
+        const newPan = {
+          x: containerRect.width / 2 - centerX * fitZoom,
+          y: containerRect.height / 2 - centerY * fitZoom,
+        }
 
-        setZoom(fitZoom)
-        setPan({ x: newPanX, y: newPanY })
         zoomRef.current = fitZoom
-        panRef.current = { x: newPanX, y: newPanY }
+        panRef.current = newPan
+        applyTransform(newPan, fitZoom)
+        commitState(newPan, fitZoom)
       }
     }
 
@@ -142,50 +198,22 @@ export function Canvas({ children }: CanvasProps) {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
 
-  // Drag-to-pan handlers
-  const handlePointerDown = useCallback((e: React.PointerEvent) => {
-    if (e.target !== containerRef.current) return
-    e.preventDefault()
-    setIsDragging(true)
-    dragStartRef.current = { x: e.clientX, y: e.clientY }
-    panStartRef.current = { ...panRef.current }
-    ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
-  }, [])
-
-  const handlePointerMove = useCallback((e: React.PointerEvent) => {
-    if (!isDragging) return
-    const dx = e.clientX - dragStartRef.current.x
-    const dy = e.clientY - dragStartRef.current.y
-    const newPan = {
-      x: panStartRef.current.x + dx,
-      y: panStartRef.current.y + dy,
-    }
-    setPan(newPan)
-    panRef.current = newPan
-  }, [isDragging])
-
-  const handlePointerUp = useCallback(() => {
-    setIsDragging(false)
-  }, [])
-
   return (
     <div
       ref={containerRef}
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
       style={{
         width: '100%',
         height: '100%',
         overflow: 'hidden',
         position: 'relative',
-        cursor: isDragging ? 'grabbing' : 'grab',
+        cursor: 'grab',
       }}
     >
       <CanvasContext.Provider value={{ zoom, pan }}>
         <div
+          ref={contentRef}
           style={{
-            transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+            transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})`,
             transformOrigin: '0 0',
             willChange: 'transform',
             position: 'absolute',

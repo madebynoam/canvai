@@ -52,7 +52,6 @@ export function Frame({ id, title, x, y, width, height, children, onMove }: Fram
         position: 'absolute',
         left: x,
         top: y,
-        width,
       }}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
@@ -67,19 +66,14 @@ export function Frame({ id, title, x, y, width, height, children, onMove }: Fram
           whiteSpace: 'nowrap',
           overflow: 'hidden',
           textOverflow: 'ellipsis',
-          maxWidth: width,
           cursor: dragging ? 'grabbing' : 'grab',
           userSelect: 'none',
+          WebkitUserSelect: 'none',
         }}
       >
         {title}
       </div>
-      <div
-        style={{
-          width,
-          minHeight: height,
-        }}
-      >
+      <div>
         {children}
       </div>
     </div>
