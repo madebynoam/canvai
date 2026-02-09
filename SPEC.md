@@ -9,7 +9,7 @@ Canvai gives designers a Figma-like infinite canvas where every iteration is cod
 1. **Clone** — `git clone` this repo once. It's the design studio.
 2. **`/canvai-install`** — First-time setup. Installs dependencies, configures the Agentation MCP server.
 3. **`/canvai-init team-permissions`** — Creates `src/projects/team-permissions/`, wires it into the canvas, launches the dev server and MCP. Ready to design.
-4. **Describe** — Tell the agent what to build. It generates the component with variations and states, placed as frames on the canvas.
+4. **Describe** — Tell the agent what to build. It generates a component matrix — every variation × state laid out as a grid on the canvas.
 5. **Annotate** — Use Agentation in the browser to annotate elements. The MCP feeds structured feedback to the agent, who applies changes directly.
 6. **Ship** — PR the finished components to the production codebase. The code was the material the whole time.
 
@@ -33,15 +33,18 @@ The canvas component handles:
 - **CSS transforms** - single transform layer: `translate(pan) scale(zoom)`, `transformOrigin: 0 0`
 - **Keyboard shortcuts** - Cmd+Plus/Minus for zoom, Cmd+0 to fit all
 
-The agent places the component being designed on the canvas, along with its variations and states, each in its own frame, arranged spatially (side by side, like artboards). Each frame contains a live, rendered React component. The canvas is the layout; the frames are the designs.
+The agent doesn't just place one component — it generates a **component matrix**. When a designer describes a component, the agent thinks through its variations (content scenarios, types) and states (interactions, conditions), then lays out every combination as a grid of frames on the canvas. Columns are states, rows are variations. Every combination visible at once, like a spec sheet in Figma.
+
+Each frame contains a live, rendered React component with the right props for that variation × state. The canvas is the layout; the frames are the designs.
 
 ## CLAUDE.md contract
 
 The CLAUDE.md teaches the agent:
 
-- The canvas API: how to add a frame, update it, remove it, reposition it
-- Spatial conventions: new variations and states go to the right of existing ones, spaced consistently
-- Frame structure: each frame on the canvas renders a React component at a position `{ x, y, width, height }`
+- The component matrix pattern: generate variations × states, lay them out as a grid
+- Spatial conventions: columns = states (left to right), rows = variations (top to bottom), consistent spacing
+- Frame structure: each frame renders a React component at `{ x, y, width, height }` with specific props
+- Naming: `Component / Variation / State` titles, `component-variation-state` IDs
 - Annotation flow: when Agentation output is piped in, map selectors to frames and apply feedback
 
 ## Skills
