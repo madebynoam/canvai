@@ -1,9 +1,9 @@
 ---
-name: install-canvai
+name: canvai-install
 description: First-time Canvai setup — install dependencies and configure Agentation MCP
 ---
 
-# /install
+# /canvai-install
 
 First-time setup after cloning the Canvai repo.
 
@@ -30,4 +30,4 @@ First-time setup after cloning the Canvai repo.
 3. Confirm setup:
    - `node_modules/` exists
    - `.claude/settings.json` has the agentation MCP entry
-   - Report success: "Canvai is ready. Run `/init <project-name>` to start a new design project."
+   - Report success: "Canvai is ready. Run `/canvai-init <project-name>` to start a new design project."

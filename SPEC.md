@@ -7,8 +7,8 @@ Canvai gives designers a Figma-like infinite canvas where every iteration is cod
 ## How it works
 
 1. **Clone** — `git clone` this repo once. It's the design studio.
-2. **`/install`** — First-time setup. Installs dependencies, configures the Agentation MCP server.
-3. **`/init team-permissions`** — Creates `src/projects/team-permissions/`, wires it into the canvas, launches the dev server and MCP. Ready to design.
+2. **`/canvai-install`** — First-time setup. Installs dependencies, configures the Agentation MCP server.
+3. **`/canvai-init team-permissions`** — Creates `src/projects/team-permissions/`, wires it into the canvas, launches the dev server and MCP. Ready to design.
 4. **Describe** — Tell the agent what to build. It generates the component with variations and states, placed as frames on the canvas.
 5. **Annotate** — Use Agentation in the browser to annotate elements. The MCP feeds structured feedback to the agent, who applies changes directly.
 6. **Ship** — PR the finished components to the production codebase. The code was the material the whole time.
@@ -46,7 +46,7 @@ The CLAUDE.md teaches the agent:
 
 ## Skills
 
-### `/install`
+### `/canvai-install`
 
 First-time setup after cloning:
 
@@ -54,7 +54,7 @@ First-time setup after cloning:
 2. Verifies/creates `.claude/settings.json` with the Agentation MCP server config
 3. Confirms everything is ready
 
-### `/init <project-name>`
+### `/canvai-init <project-name>`
 
 Creates a new design project:
 

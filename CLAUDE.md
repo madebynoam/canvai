@@ -5,8 +5,8 @@ Canvai is a design studio. A Figma-like infinite canvas where every design is li
 ## User workflow
 
 1. **Clone** — `git clone` this repo once. It's the app.
-2. **`/install-canvai`** — First-time setup. Installs dependencies, configures the Agentation MCP server.
-3. **`/init <project-name>`** — Creates a new design project in `src/projects/<project-name>/`, wires it into the canvas, launches the dev server and MCP. Ready to design.
+2. **`/canvai-install`** — First-time setup. Installs dependencies, configures the Agentation MCP server.
+3. **`/canvai-init <project-name>`** — Creates a new design project in `src/projects/<project-name>/`, wires it into the canvas, launches the dev server and MCP. Ready to design.
 4. **Describe** — The designer describes the component (or attaches a sketch). The agent generates the component with variations and states, places them as frames on the canvas.
 5. **Annotate** — The designer uses Agentation to annotate elements in the browser. The MCP feeds structured feedback (CSS selectors, component names, computed styles) to the agent, who applies the changes directly.
 6. **Ship** — PR the finished components to the production codebase.
@@ -65,8 +65,8 @@ When you receive annotation feedback via the Agentation MCP:
 
 ## Skills
 
-- **`/install-canvai`** — First-time setup (npm install, Agentation MCP config)
-- **`/init <project-name>`** — Create a new design project and start designing
+- **`/canvai-install`** — First-time setup (npm install, Agentation MCP config)
+- **`/canvai-init <project-name>`** — Create a new design project and start designing
 
 ## Commands
 

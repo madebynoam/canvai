@@ -1,15 +1,15 @@
 ---
-name: init
+name: canvai-init
 description: Create a new design project and start designing
 ---
 
-# /init <project-name>
+# /canvai-init <project-name>
 
 Create a new design project inside Canvai and launch the dev environment.
 
 ## Steps
 
-1. **Parse the project name** from the user's command (e.g. `/init team-permissions`). If no name is provided, ask for one.
+1. **Parse the project name** from the user's command (e.g. `/canvai-init team-permissions`). If no name is provided, ask for one.
 
 2. **Create the project folder:**
    ```
