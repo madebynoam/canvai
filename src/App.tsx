@@ -25,7 +25,7 @@ function App() {
           </Frame>
         ))}
       </Canvas>
-      {import.meta.env.DEV && <Agentation />}
+      {import.meta.env.DEV && <Agentation endpoint="http://localhost:4747" />}
     </div>
   )
 }

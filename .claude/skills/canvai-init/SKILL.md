@@ -16,7 +16,13 @@ Create a new design project inside Canvai and launch the dev environment.
    src/projects/<project-name>/
    ```
 
-3. **Launch the dev server** in the background:
+3. **Ensure `<Agentation />` in `src/App.tsx` has the endpoint prop:**
+   ```tsx
+   {import.meta.env.DEV && <Agentation endpoint="http://localhost:4747" />}
+   ```
+   Without `endpoint`, annotations only save to localStorage and never reach the MCP server.
+
+4. **Launch the dev server** in the background:
    ```bash
    npm run dev -- --open
    ```
