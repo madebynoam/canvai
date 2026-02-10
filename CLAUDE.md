@@ -5,7 +5,7 @@ Canvai is a design studio. A Figma-like infinite canvas where every design is li
 ## Architecture
 
 Canvai has two pieces:
-- **npm package** — the canvas runtime, Vite plugin, and CLI (`canvai dev`)
+- **npm package** — the canvas runtime, Vite plugin, and CLI (`canvai init`, `canvai dev`)
 - **Claude Code plugin** — skills, MCP config, and agent instructions (marketplace in `plugin/`, plugin at `plugin/plugins/canvai/`)
 
 ## Project structure
@@ -35,7 +35,7 @@ plugin/               ← Claude Code plugin marketplace
 
 ```ts
 import { MyComponent } from './MyComponent'
-import type { ProjectManifest } from '../../runtime/types'
+import type { ProjectManifest } from 'canvai/runtime'
 
 const manifest: ProjectManifest = {
   project: 'my-project',
@@ -79,4 +79,5 @@ When you receive annotation feedback via the Agentation MCP:
 
 ## Commands
 
+- `npx canvai init` — scaffold project files (index.html, vite.config, App.tsx, etc.)
 - `npx canvai dev` — start dev server + Agentation MCP

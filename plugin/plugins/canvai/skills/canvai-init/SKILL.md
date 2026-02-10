@@ -16,16 +16,16 @@ Create a new design project inside Canvai and launch the dev environment.
    - If `package.json` exists but no canvai dependency: run `npm install github:madebynoam/canvai`
    - If already installed: continue
 
-3. **Create the project folder:**
+3. **Scaffold the project.** Run:
+   ```bash
+   npx canvai init
+   ```
+   This creates `index.html`, `vite.config.ts`, `src/App.tsx`, `src/main.tsx`, tsconfigs, and installs peer dependencies. It skips files that already exist.
+
+4. **Create the project folder:**
    ```
    src/projects/<project-name>/
    ```
-
-4. **Ensure `<Agentation />` in `src/App.tsx` has the endpoint prop:**
-   ```tsx
-   {import.meta.env.DEV && <Agentation endpoint="http://localhost:4747" />}
-   ```
-   Without `endpoint`, annotations only save to localStorage and never reach the MCP server.
 
 5. **Launch the dev server** in the background:
    ```bash
@@ -49,7 +49,7 @@ After init, the designer describes a component (or attaches a sketch). The agent
 
 ```ts
 import { MyComponent } from './MyComponent'
-import type { ProjectManifest } from '../../runtime/types'
+import type { ProjectManifest } from 'canvai/runtime'
 
 const manifest: ProjectManifest = {
   project: '<project-name>',

@@ -25,7 +25,7 @@ Each project has a `manifest.ts` that exports a `ProjectManifest`:
 
 ```ts
 import { MyComponent } from './MyComponent'
-import type { ProjectManifest } from '../../runtime/types'
+import type { ProjectManifest } from 'canvai/runtime'
 
 const manifest: ProjectManifest = {
   project: 'my-project',

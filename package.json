@@ -3,10 +3,11 @@
   "version": "0.0.1",
   "type": "module",
   "exports": {
-    "./runtime": "./src/runtime/index.ts"
+    "./runtime": "./src/runtime/index.ts",
+    "./vite-plugin": "./src/vite-plugin/plugin.cjs"
   },
   "bin": {
-    "canvai": "./src/cli/index.ts"
+    "canvai": "./bin/canvai.js"
   },
   "scripts": {
     "dev": "vite",
