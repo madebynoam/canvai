@@ -89,6 +89,24 @@ function scaffold() {
   }
 }
 
+function update() {
+  const cwd = process.cwd()
+  console.log('Updating canvai to latest...\n')
+  const install = spawn('npm', ['install', 'github:madebynoam/canvai'], {
+    cwd,
+    stdio: 'inherit',
+    shell: true,
+  })
+  install.on('exit', (code) => {
+    if (code === 0) {
+      console.log('\nUpdated! Restart `npx canvai dev` to use the latest.')
+    } else {
+      console.error('\nUpdate failed. Try running: npm install github:madebynoam/canvai')
+    }
+    process.exit(code ?? 0)
+  })
+}
+
 function startDev() {
   const cwd = process.cwd()
 
@@ -139,11 +157,15 @@ switch (command) {
   case 'dev':
     startDev()
     break
+  case 'update':
+    update()
+    break
   default:
     console.log('Canvai — design studio on an infinite canvas\n')
     console.log('Usage:')
-    console.log('  canvai init    Scaffold project files')
-    console.log('  canvai dev     Start dev server + Agentation MCP')
-    console.log('  canvai help    Show this message')
+    console.log('  canvai init      Scaffold project files')
+    console.log('  canvai dev       Start dev server + Agentation MCP')
+    console.log('  canvai update    Update canvai to latest')
+    console.log('  canvai help      Show this message')
     process.exit(command === 'help' ? 0 : 1)
 }
