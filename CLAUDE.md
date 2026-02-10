@@ -15,7 +15,7 @@ Canvai is a design studio. A Figma-like infinite canvas where every design is li
 
 ```
 src/
-  app/              ← platform (do not modify)
+  runtime/          ← platform (do not modify)
     Canvas.tsx      ← infinite canvas (pan, zoom, drag)
     Frame.tsx       ← draggable frame on the canvas
     useFrames.ts    ← frame registry (add, update, remove)

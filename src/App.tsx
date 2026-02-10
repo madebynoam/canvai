@@ -1,10 +1,10 @@
 import './App.css'
-import { Canvas } from './app/Canvas'
-import { Frame } from './app/Frame'
-import { useFrames } from './app/useFrames'
+import { Canvas } from './runtime/Canvas'
+import { Frame } from './runtime/Frame'
+import { useFrames } from './runtime/useFrames'
 import { Agentation } from 'agentation'
 import { SegmentedTabs } from './projects/test-tabs/SegmentedTabs'
-import type { CanvasFrame } from './app/types'
+import type { CanvasFrame } from './runtime/types'
 
 const COL_W = 320
 const ROW_H = 60
