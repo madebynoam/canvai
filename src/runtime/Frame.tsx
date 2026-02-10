@@ -39,6 +39,9 @@ export function Frame({ id, title, x, y, width, height, children, onMove, onResi
       for (const entry of entries) {
         const h = entry.borderBoxSize?.[0]?.blockSize ?? entry.contentRect.height
         onResizeRef.current?.(idRef.current, h)
+        window.dispatchEvent(new CustomEvent('canvai:frame-resize', {
+          detail: { id: idRef.current, height: h },
+        }))
       }
     })
     observer.observe(el)
@@ -91,7 +94,6 @@ export function Frame({ id, title, x, y, width, height, children, onMove, onResi
           whiteSpace: 'nowrap',
           overflow: 'hidden',
           textOverflow: 'ellipsis',
-          cursor: isDraggingRef.current ? 'grabbing' : 'grab',
           userSelect: 'none',
           WebkitUserSelect: 'none',
         }}
