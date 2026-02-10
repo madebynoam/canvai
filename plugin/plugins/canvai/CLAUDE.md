@@ -68,5 +68,7 @@ When you receive annotation feedback via the Agentation MCP:
 ## Skills
 
 - **`/canvai-init <project-name>`** — Create a new design project and start designing
+- **`/canvai-dev`** — Start (or restart) the dev server and Agentation MCP
 - **`/canvai-iterate`** — Create a new design iteration (page)
 - **`/canvai-ship`** — Ship component to a production repo
+- **`/canvai-update`** — Update canvai to the latest version

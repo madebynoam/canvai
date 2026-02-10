@@ -74,10 +74,13 @@ When you receive annotation feedback via the Agentation MCP:
 ## Skills
 
 - **`/canvai-init <project-name>`** — Create a new design project and start designing
+- **`/canvai-dev`** — Start (or restart) the dev server and Agentation MCP
 - **`/canvai-iterate`** — Create a new design iteration (page)
 - **`/canvai-ship`** — Ship component to a production repo
+- **`/canvai-update`** — Update canvai to the latest version
 
 ## Commands
 
 - `npx canvai init` — scaffold project files (index.html, vite.config, App.tsx, etc.)
 - `npx canvai dev` — start dev server + Agentation MCP
+- `npx canvai update` — update canvai to latest from GitHub
