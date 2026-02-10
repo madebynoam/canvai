@@ -1,5 +1,7 @@
 export { Canvas, useCanvas } from './Canvas'
 export { Frame } from './Frame'
 export { useFrames } from './useFrames'
-export type { CanvasFrame, ManifestFrame, PageManifest, ProjectManifest } from './types'
 export { layoutFrames } from './layout'
+export { PageTabs } from './PageTabs'
+export { ProjectSidebar } from './ProjectSidebar'
+export type { CanvasFrame, ManifestFrame, PageManifest, ProjectManifest } from './types'
