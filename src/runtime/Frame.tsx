@@ -27,21 +27,23 @@ export function Frame({ id, title, x, y, width, height, children, onMove, onResi
   onMoveRef.current = onMove
   zoomRef.current = zoom
   idRef.current = id
+  const onResizeRef = useRef(onResize)
+  onResizeRef.current = onResize
 
   // ResizeObserver to report actual rendered height
   useEffect(() => {
     const el = frameRef.current
-    if (!el || !onResize) return
+    if (!el) return
 
     const observer = new ResizeObserver((entries) => {
       for (const entry of entries) {
         const h = entry.borderBoxSize?.[0]?.blockSize ?? entry.contentRect.height
-        onResize(id, h)
+        onResizeRef.current?.(idRef.current, h)
       }
     })
     observer.observe(el)
     return () => observer.disconnect()
-  }, [id, onResize])
+  }, [])
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     const target = e.target as HTMLElement

@@ -4,23 +4,30 @@ import { relayoutFrames } from './layout'
 
 const FRAME_GAP = 40
 
+function frameIdsKey(frames: CanvasFrame[]): string {
+  return frames.map(f => f.id).join(',')
+}
+
 export function useFrames(
   sourceFrames: CanvasFrame[] = [],
   gridConfig?: { columns?: number; rowHeight?: number; gap?: number },
 ) {
   const [frames, setFrames] = useState<CanvasFrame[]>(sourceFrames)
-  const prevSourceRef = useRef(sourceFrames)
   const measuredHeightsRef = useRef<Record<string, number>>({})
   const rafRef = useRef<number>(0)
+  const gridConfigRef = useRef(gridConfig)
+  gridConfigRef.current = gridConfig
+  const sourceFramesRef = useRef(sourceFrames)
+  sourceFramesRef.current = sourceFrames
 
-  // Sync when source frames change (e.g. page switch)
+  // Sync when source frames actually change (page switch = different IDs)
+  // Using ID-based key avoids resetting on every render (layoutFrames creates new arrays)
+  const sourceKey = frameIdsKey(sourceFrames)
   useEffect(() => {
-    if (prevSourceRef.current !== sourceFrames) {
-      setFrames(sourceFrames)
-      measuredHeightsRef.current = {}
-      prevSourceRef.current = sourceFrames
-    }
-  }, [sourceFrames])
+    setFrames(sourceFramesRef.current)
+    measuredHeightsRef.current = {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sourceKey])
 
   const handleResize = useCallback((id: string, height: number) => {
     const prev = measuredHeightsRef.current[id]
@@ -31,10 +38,10 @@ export function useFrames(
     cancelAnimationFrame(rafRef.current)
     rafRef.current = requestAnimationFrame(() => {
       setFrames(current =>
-        relayoutFrames(current, measuredHeightsRef.current, gridConfig)
+        relayoutFrames(current, measuredHeightsRef.current, gridConfigRef.current)
       )
     })
-  }, [gridConfig])
+  }, [])
 
   const addFrame = useCallback((frame: CanvasFrame) => {
     setFrames(prev => [...prev, frame])
