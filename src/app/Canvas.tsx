@@ -95,7 +95,7 @@ export function Canvas({ children }: CanvasProps) {
       dragStartRef.current = { x: e.clientX, y: e.clientY }
       panStartRef.current = { x: panRef.current.x, y: panRef.current.y }
       container!.setPointerCapture(e.pointerId)
-      container!.style.cursor = 'grabbing'
+      container!.style.cursor = 'default'
     }
 
     function handlePointerMove(e: PointerEvent) {
@@ -111,7 +111,7 @@ export function Canvas({ children }: CanvasProps) {
     function handlePointerUp() {
       if (!isDraggingRef.current) return
       isDraggingRef.current = false
-      container!.style.cursor = 'grab'
+      container!.style.cursor = 'default'
       commitState(panRef.current, zoomRef.current)
     }
 
@@ -206,7 +206,7 @@ export function Canvas({ children }: CanvasProps) {
         height: '100%',
         overflow: 'hidden',
         position: 'relative',
-        cursor: 'grab',
+        cursor: 'default',
       }}
     >
       <CanvasContext.Provider value={{ zoom, pan }}>

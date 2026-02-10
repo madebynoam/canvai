@@ -66,7 +66,7 @@ export function Frame({ id, title, x, y, width, height, children, onMove }: Fram
           whiteSpace: 'nowrap',
           overflow: 'hidden',
           textOverflow: 'ellipsis',
-          cursor: dragging ? 'grabbing' : 'grab',
+          cursor: 'default',
           userSelect: 'none',
           WebkitUserSelect: 'none',
         }}
