@@ -10,6 +10,7 @@ export interface CanvasFrame {
   height: number
   component: ComponentType<any>
   props?: Record<string, unknown>
+  onResize?: (id: string, height: number) => void
 }
 
 /** A frame declared in a manifest (no position — layout is computed) */

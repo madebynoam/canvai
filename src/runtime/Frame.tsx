@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback } from 'react'
+import { useRef, useCallback, useEffect } from 'react'
 import type { ReactNode } from 'react'
 import { useCanvas } from './Canvas'
 
@@ -11,50 +11,73 @@ interface FrameProps {
   height: number
   children: ReactNode
   onMove?: (id: string, x: number, y: number) => void
+  onResize?: (id: string, height: number) => void
 }
 
-export function Frame({ id, title, x, y, width, height, children, onMove }: FrameProps) {
+export function Frame({ id, title, x, y, width, height, children, onMove, onResize }: FrameProps) {
   const { zoom } = useCanvas()
-  const [dragging, setDragging] = useState(false)
-  const dragStart = useRef({ x: 0, y: 0 })
-  const frameStart = useRef({ x: 0, y: 0 })
+  const frameRef = useRef<HTMLDivElement>(null)
+  const isDraggingRef = useRef(false)
+  const dragStartRef = useRef({ x: 0, y: 0 })
+  const frameStartRef = useRef({ x: 0, y: 0 })
+  const onMoveRef = useRef(onMove)
+  const zoomRef = useRef(zoom)
+  const idRef = useRef(id)
+
+  onMoveRef.current = onMove
+  zoomRef.current = zoom
+  idRef.current = id
+
+  // ResizeObserver to report actual rendered height
+  useEffect(() => {
+    const el = frameRef.current
+    if (!el || !onResize) return
+
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const h = entry.borderBoxSize?.[0]?.blockSize ?? entry.contentRect.height
+        onResize(id, h)
+      }
+    })
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [id, onResize])
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
-    // Only drag from the title bar area
     const target = e.target as HTMLElement
     if (!target.dataset.frameHandle) return
 
     e.stopPropagation()
     e.preventDefault()
-    setDragging(true)
-    dragStart.current = { x: e.clientX, y: e.clientY }
-    frameStart.current = { x, y }
-    ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
+    isDraggingRef.current = true
+    dragStartRef.current = { x: e.clientX, y: e.clientY }
+    frameStartRef.current = { x, y }
+
+    function handleWindowMove(ev: PointerEvent) {
+      if (!isDraggingRef.current) return
+      const dx = (ev.clientX - dragStartRef.current.x) / zoomRef.current
+      const dy = (ev.clientY - dragStartRef.current.y) / zoomRef.current
+      onMoveRef.current?.(idRef.current, frameStartRef.current.x + dx, frameStartRef.current.y + dy)
+    }
+
+    function handleWindowUp() {
+      isDraggingRef.current = false
+      window.removeEventListener('pointermove', handleWindowMove)
+      window.removeEventListener('pointerup', handleWindowUp)
+    }
+
+    window.addEventListener('pointermove', handleWindowMove)
+    window.addEventListener('pointerup', handleWindowUp)
   }, [x, y])
-
-  const handlePointerMove = useCallback((e: React.PointerEvent) => {
-    if (!dragging) return
-    e.stopPropagation()
-    const dx = (e.clientX - dragStart.current.x) / zoom
-    const dy = (e.clientY - dragStart.current.y) / zoom
-    onMove?.(id, frameStart.current.x + dx, frameStart.current.y + dy)
-  }, [dragging, zoom, id, onMove])
-
-  const handlePointerUp = useCallback((e: React.PointerEvent) => {
-    if (!dragging) return
-    e.stopPropagation()
-    setDragging(false)
-  }, [dragging])
 
   return (
     <div
+      ref={frameRef}
       style={{
         position: 'absolute',
         left: x,
         top: y,
       }}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
     >
       <div
         data-frame-handle="true"
@@ -66,7 +89,7 @@ export function Frame({ id, title, x, y, width, height, children, onMove }: Fram
           whiteSpace: 'nowrap',
           overflow: 'hidden',
           textOverflow: 'ellipsis',
-          cursor: 'default',
+          cursor: isDraggingRef.current ? 'grabbing' : 'grab',
           userSelect: 'none',
           WebkitUserSelect: 'none',
         }}

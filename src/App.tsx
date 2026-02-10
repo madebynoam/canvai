@@ -18,7 +18,7 @@ function App() {
   const activePage = activeProject?.pages[activePageIndex]
   const layoutedFrames = activePage ? layoutFrames(activePage) : []
 
-  const { frames, updateFrame } = useFrames(layoutedFrames)
+  const { frames, updateFrame, handleResize } = useFrames(layoutedFrames, activePage?.grid)
 
   return (
     <div id="canvai-root" style={{ width: '100vw', height: '100vh', display: 'flex' }}>
@@ -86,6 +86,7 @@ function App() {
                 width={frame.width}
                 height={frame.height}
                 onMove={(id, newX, newY) => updateFrame(id, { x: newX, y: newY })}
+                onResize={handleResize}
               >
                 <frame.component {...(frame.props ?? {})} />
               </Frame>
