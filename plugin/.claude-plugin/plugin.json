@@ -1,0 +1,7 @@
+{
+  "name": "canvai",
+  "version": "0.0.1",
+  "description": "Canvai — design studio on an infinite canvas with live React code",
+  "skills": "../skills",
+  "mcpServers": "../.mcp.json"
+}
