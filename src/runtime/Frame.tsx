@@ -17,6 +17,7 @@ interface FrameProps {
 export function Frame({ id, title, x, y, width, height, children, onMove, onResize }: FrameProps) {
   const { zoom } = useCanvas()
   const frameRef = useRef<HTMLDivElement>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
   const isDraggingRef = useRef(false)
   const dragStartRef = useRef({ x: 0, y: 0 })
   const frameStartRef = useRef({ x: 0, y: 0 })
@@ -30,9 +31,9 @@ export function Frame({ id, title, x, y, width, height, children, onMove, onResi
   const onResizeRef = useRef(onResize)
   onResizeRef.current = onResize
 
-  // ResizeObserver to report actual rendered height
+  // ResizeObserver on content div only (not title bar which has zoom-dependent font size)
   useEffect(() => {
-    const el = frameRef.current
+    const el = contentRef.current
     if (!el) return
 
     const observer = new ResizeObserver((entries) => {
@@ -101,7 +102,7 @@ export function Frame({ id, title, x, y, width, height, children, onMove, onResi
       >
         {title}
       </div>
-      <div style={{ width }}>
+      <div ref={contentRef} style={{ width }}>
         {children}
       </div>
     </div>
