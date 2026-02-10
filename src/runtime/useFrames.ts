@@ -1,10 +1,19 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import type { CanvasFrame } from './types'
 
 const FRAME_GAP = 40
 
-export function useFrames(initialFrames: CanvasFrame[] = []) {
-  const [frames, setFrames] = useState<CanvasFrame[]>(initialFrames)
+export function useFrames(sourceFrames: CanvasFrame[] = []) {
+  const [frames, setFrames] = useState<CanvasFrame[]>(sourceFrames)
+  const prevSourceRef = useRef(sourceFrames)
+
+  // Sync when source frames change (e.g. page switch)
+  useEffect(() => {
+    if (prevSourceRef.current !== sourceFrames) {
+      setFrames(sourceFrames)
+      prevSourceRef.current = sourceFrames
+    }
+  }, [sourceFrames])
 
   const addFrame = useCallback((frame: CanvasFrame) => {
     setFrames(prev => [...prev, frame])
