@@ -6,14 +6,14 @@
   },
   "metadata": {
     "description": "Canvai — design studio on an infinite canvas with live React code",
-    "version": "0.0.1"
+    "version": "0.0.2"
   },
   "plugins": [
     {
       "name": "canvai",
       "source": "./plugins/canvai",
       "description": "Canvai design skills — init projects, iterate designs, and ship components from an infinite canvas",
-      "version": "0.0.1",
+      "version": "0.0.2",
       "category": "design",
       "tags": ["canvas", "design", "react", "figma"]
     }
