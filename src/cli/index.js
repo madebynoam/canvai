@@ -13,14 +13,14 @@ import {
   tsconfigJson,
   tsconfigAppJson,
   tsconfigNodeJson,
-} from './templates.ts'
+} from './templates.js'
 
 const command = process.argv[2]
 
 function scaffold() {
   const cwd = process.cwd()
 
-  const files: [string, string][] = [
+  const files = [
     ['index.html', indexHtml],
     ['vite.config.ts', viteConfig],
     ['tsconfig.json', tsconfigJson],
@@ -106,12 +106,12 @@ function startDev() {
     shell: true,
   })
 
-  mcp.stdout?.on('data', (data: Buffer) => {
+  mcp.stdout?.on('data', (data) => {
     const msg = data.toString().trim()
     if (msg) console.log(`[agentation] ${msg}`)
   })
 
-  mcp.stderr?.on('data', (data: Buffer) => {
+  mcp.stderr?.on('data', (data) => {
     const msg = data.toString().trim()
     if (msg) console.error(`[agentation] ${msg}`)
   })

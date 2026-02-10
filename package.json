@@ -7,7 +7,7 @@
     "./vite-plugin": "./src/vite-plugin/plugin.cjs"
   },
   "bin": {
-    "canvai": "./bin/canvai.js"
+    "canvai": "./src/cli/index.js"
   },
   "scripts": {
     "dev": "vite",
