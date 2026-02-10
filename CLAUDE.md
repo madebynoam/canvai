@@ -6,7 +6,7 @@ Canvai is a design studio. A Figma-like infinite canvas where every design is li
 
 Canvai has two pieces:
 - **npm package** — the canvas runtime, Vite plugin, and CLI (`canvai dev`)
-- **Claude Code plugin** — skills, MCP config, and agent instructions (in `plugin/`)
+- **Claude Code plugin** — skills, MCP config, and agent instructions (marketplace in `plugin/`, plugin at `plugin/plugins/canvai/`)
 
 ## Project structure
 
@@ -19,7 +19,9 @@ src/
     <project-name>/
       Component.tsx   ← the React component
       manifest.ts     ← pages × frames (auto-discovered)
-plugin/               ← Claude Code plugin (skills, MCP, CLAUDE.md)
+plugin/               ← Claude Code plugin marketplace
+  .claude-plugin/     ← marketplace manifest
+  plugins/canvai/     ← the plugin (skills, MCP, CLAUDE.md)
 ```
 
 ## How it works
