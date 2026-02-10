@@ -82,6 +82,7 @@ export function Frame({ id, title, x, y, width, height, children, onMove, onResi
         position: 'absolute',
         left: x,
         top: y,
+        width,
       }}
     >
       <div
@@ -100,7 +101,7 @@ export function Frame({ id, title, x, y, width, height, children, onMove, onResi
       >
         {title}
       </div>
-      <div>
+      <div style={{ width }}>
         {children}
       </div>
     </div>
