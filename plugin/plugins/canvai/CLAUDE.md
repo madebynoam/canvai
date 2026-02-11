@@ -99,6 +99,26 @@ When an annotation arrives (via either mode):
 2. Map the `componentName` and `selector` to the relevant component file and element
 3. Apply the requested changes to the component code
 4. Call `resolve_annotation` with the annotation ID
+5. **Log the change** to `src/projects/<project-name>/CHANGELOG.md` (create if it doesn't exist)
+
+### Change history
+
+Every annotation fix must be logged in the project's `CHANGELOG.md`. This provides a running record of all design iterations. Format:
+
+```markdown
+# Changelog
+
+## V1 — Initial
+
+- **button > span**: Changed font size from 14px to 16px (annotation #1)
+- **card > h2**: Updated color to #1F2937 (annotation #2)
+
+## V2 — Refined
+
+- **input**: Added 8px padding and border-radius 6px (annotation #3)
+```
+
+Each entry includes the `selector`, a brief description of the change, and the annotation number. Group entries under the current iteration (page name).
 
 ## Skills
 

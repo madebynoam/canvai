@@ -81,6 +81,13 @@ function getStyleSubset(el: Element): Record<string, string> {
   return styles
 }
 
+interface AnnotationMarker {
+  id: number
+  frameId: string
+  selector: string
+  comment: string
+}
+
 export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual' }: AnnotationOverlayProps) {
   const [mode, setMode] = useState<Mode>('idle')
   const [highlight, setHighlight] = useState<DOMRect | null>(null)
@@ -88,8 +95,11 @@ export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual' }:
   const [comment, setComment] = useState('')
   const [toast, setToast] = useState<string | null>(null)
   const [buttonState, setButtonState] = useState<'idle' | 'hover' | 'pressed'>('idle')
+  const [markers, setMarkers] = useState<AnnotationMarker[]>([])
+  const [markerRects, setMarkerRects] = useState<Map<number, DOMRect>>(new Map())
   const overlayRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const nextMarkerId = useRef(1)
 
   // Focus textarea when entering commenting mode
   useEffect(() => {
@@ -104,6 +114,28 @@ export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual' }:
     const t = setTimeout(() => setToast(null), 2000)
     return () => clearTimeout(t)
   }, [toast])
+
+  // Recompute marker positions on scroll/resize/animation
+  useEffect(() => {
+    if (markers.length === 0) return
+    function updateRects() {
+      const rects = new Map<number, DOMRect>()
+      for (const marker of markers) {
+        const frameEl = document.querySelector(`[data-frame-id="${marker.frameId}"]`)
+        if (!frameEl) continue
+        const contentEl = frameEl.hasAttribute('data-frame-content') ? frameEl : frameEl.querySelector('[data-frame-content]')
+        if (!contentEl) continue
+        try {
+          const el = contentEl.querySelector(marker.selector) ?? contentEl
+          rects.set(marker.id, el.getBoundingClientRect())
+        } catch { /* selector may not match */ }
+      }
+      setMarkerRects(rects)
+    }
+    updateRects()
+    const interval = setInterval(updateRects, 500)
+    return () => clearInterval(interval)
+  }, [markers])
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
     if (mode !== 'targeting') return
@@ -191,6 +223,14 @@ export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual' }:
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       })
+      // Add annotation marker
+      const id = nextMarkerId.current++
+      setMarkers(prev => [...prev, {
+        id,
+        frameId: target.frameId,
+        selector: target.selector,
+        comment: comment.trim(),
+      }])
       setToast('Sent to agent')
     } catch {
       setToast('Failed to send')
@@ -390,12 +430,45 @@ export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual' }:
             transition: 'all 0.1s ease',
           }}
         >
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path d="M11.5 2.5l4 4-10 10H1.5v-4l10-10z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M9.5 4.5l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
+            <path d="M13 1.5l3.5 3.5-10 10H3v-3.5l10-10z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M11 3.5l3.5 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </button>
       )}
+
+      {/* Annotation markers */}
+      {markers.map((marker) => {
+        const rect = markerRects.get(marker.id)
+        if (!rect) return null
+        return (
+          <div
+            key={marker.id}
+            title={marker.comment}
+            style={{
+              position: 'fixed',
+              left: rect.left - 6,
+              top: rect.top - 6,
+              width: 18,
+              height: 18,
+              borderRadius: '50%',
+              backgroundColor: ACCENT,
+              color: '#fff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 9,
+              fontWeight: 700,
+              fontFamily: FONT,
+              pointerEvents: 'none',
+              zIndex: 99997,
+              boxShadow: `0 1px 4px ${ACCENT_SHADOW}`,
+            }}
+          >
+            {marker.id}
+          </div>
+        )
+      })}
 
       {/* Toast */}
       {toast && (

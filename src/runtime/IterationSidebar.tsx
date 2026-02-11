@@ -6,7 +6,6 @@ interface IterationSidebarProps {
   onSelect: (index: number) => void
 }
 
-const ACCENT = '#E8590C'
 const BORDER = '#E5E7EB'
 const TEXT_TERTIARY = '#9CA3AF'
 const FONT = '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif'
@@ -78,19 +77,6 @@ const styles = {
     transition: 'background-color 0.1s ease',
     fontFamily: FONT,
   }) satisfies CSSProperties,
-  circle: (active: boolean) => ({
-    width: 20,
-    height: 20,
-    borderRadius: '50%',
-    backgroundColor: active ? ACCENT : BORDER,
-    color: active ? '#fff' : TEXT_TERTIARY,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: 10,
-    fontWeight: 600,
-    flexShrink: 0,
-  }) satisfies CSSProperties,
 }
 
 export function IterationSidebar({ iterations, activeIndex, onSelect }: IterationSidebarProps) {
@@ -124,9 +110,6 @@ export function IterationSidebar({ iterations, activeIndex, onSelect }: Iteratio
               style={styles.item(i === activeIndex)}
               onClick={() => onSelect(i)}
             >
-              <div style={styles.circle(i === activeIndex)}>
-                {i + 1}
-              </div>
               <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {iter.name}
               </span>
