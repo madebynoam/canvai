@@ -2,7 +2,7 @@
   "mcpServers": {
     "canvai-annotations": {
       "command": "node",
-      "args": ["src/mcp/server.js"]
+      "args": ["node_modules/canvai/src/mcp/mcp-server.js"]
     }
   }
 }

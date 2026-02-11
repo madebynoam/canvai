@@ -125,22 +125,17 @@ function startDev() {
     shell: true,
   })
 
-  // Start canvai MCP server
-  const mcpServerPath = join(__dirname, '..', 'mcp', 'server.js')
-  const mcp = spawn('node', [mcpServerPath], {
+  // Start annotation HTTP server
+  const httpServerPath = join(__dirname, '..', 'mcp', 'http-server.js')
+  const httpSrv = spawn('node', [httpServerPath], {
     cwd,
-    stdio: ['pipe', 'pipe', 'inherit'],
-  })
-
-  mcp.stdout?.on('data', (data) => {
-    const msg = data.toString().trim()
-    if (msg) console.log(`[canvai-mcp] ${msg}`)
+    stdio: 'inherit',
   })
 
   // Clean up on exit
   function cleanup() {
     vite.kill()
-    mcp.kill()
+    httpSrv.kill()
     process.exit()
   }
 
@@ -148,7 +143,7 @@ function startDev() {
   process.on('SIGTERM', cleanup)
 
   vite.on('exit', (code) => {
-    mcp.kill()
+    httpSrv.kill()
     process.exit(code ?? 0)
   })
 }
@@ -167,7 +162,7 @@ switch (command) {
     console.log('Canvai — design studio on an infinite canvas\n')
     console.log('Usage:')
     console.log('  canvai init      Scaffold project files')
-    console.log('  canvai dev       Start dev server + annotation MCP')
+    console.log('  canvai dev       Start dev server + annotation server')
     console.log('  canvai update    Update canvai to latest')
     console.log('  canvai help      Show this message')
     process.exit(command === 'help' ? 0 : 1)
