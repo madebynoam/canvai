@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { spawn } from 'child_process'
-import { existsSync, mkdirSync, writeFileSync, readFileSync, rmSync } from 'fs'
+import { existsSync, mkdirSync, writeFileSync, rmSync } from 'fs'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
 
@@ -17,6 +17,7 @@ import {
   tsconfigAppJson,
   tsconfigNodeJson,
 } from './templates.js'
+import { runMigrations, writeMarker, getCanvaiVersion } from './migrate.js'
 
 const command = process.argv[2]
 
@@ -57,6 +58,10 @@ function scaffold() {
     console.log('  created src/projects/')
   }
 
+  // Write .canvai version marker
+  writeMarker(cwd, getCanvaiVersion())
+  console.log('  created .canvai')
+
   if (wrote === 0) {
     console.log('All scaffold files already exist — nothing to write.')
   } else {
@@ -91,19 +96,6 @@ function scaffold() {
   }
 }
 
-function migrate(cwd) {
-  const appPath = join(cwd, 'src/App.tsx')
-  if (!existsSync(appPath)) return
-
-  const content = readFileSync(appPath, 'utf-8')
-
-  // v0.0.10: PageTabs + ProjectSidebar → TopBar + IterationSidebar
-  if (content.includes('PageTabs') || content.includes('ProjectSidebar')) {
-    writeFileSync(appPath, appTsx)
-    console.log('Migrated src/App.tsx (replaced PageTabs/ProjectSidebar with TopBar/IterationSidebar).')
-  }
-}
-
 function update() {
   const cwd = process.cwd()
   console.log('Updating canvai to latest...\n')
@@ -121,7 +113,10 @@ function update() {
         console.log('Cleared Vite cache.')
       }
       // Run migrations for breaking changes
-      migrate(cwd)
+      const applied = runMigrations(cwd)
+      if (applied > 0) {
+        console.log(`\nApplied ${applied} migration${applied === 1 ? '' : 's'}.`)
+      }
       console.log('\nUpdated! Restart `npx canvai dev` to use the latest.')
     } else {
       console.error('\nUpdate failed. Try running: npm install github:madebynoam/canvai')
@@ -133,8 +128,11 @@ function update() {
 function startDev() {
   const cwd = process.cwd()
 
-  // Run migrations before starting — catches stale App.tsx regardless of how the update happened
-  migrate(cwd)
+  // Run migrations before starting
+  const applied = runMigrations(cwd)
+  if (applied > 0) {
+    console.log(`Applied ${applied} migration${applied === 1 ? '' : 's'}.\n`)
+  }
 
   // Start Vite dev server
   const vite = spawn('npx', ['vite', '--open'], {
