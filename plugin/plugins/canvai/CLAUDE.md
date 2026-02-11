@@ -103,7 +103,8 @@ When an annotation arrives (via either mode):
 ## Skills
 
 - **`/canvai-init <project-name>`** — Create a new design project and start designing
-- **`/canvai-dev`** — Start (or restart) the dev server and annotation MCP
+- **`/canvai-dev`** — Start (or restart) the dev server (chat mode)
+- **`/canvai-watch`** — Enter watch mode for rapid annotation sessions
 - **`/canvai-iterate`** — Create a new design iteration (page)
 - **`/canvai-ship`** — Ship component to a production repo
 - **`/canvai-update`** — Update canvai to the latest version
