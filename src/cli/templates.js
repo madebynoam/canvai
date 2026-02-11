@@ -40,8 +40,7 @@ createRoot(document.getElementById('root')!).render(
 `
 
 export const appTsx = `import { useState } from 'react'
-import { Canvas, Frame, useFrames, layoutFrames, PageTabs, ProjectSidebar } from 'canvai/runtime'
-import { Agentation } from 'agentation'
+import { Canvas, Frame, useFrames, layoutFrames, PageTabs, ProjectSidebar, AnnotationOverlay } from 'canvai/runtime'
 import { manifests } from 'virtual:canvai-manifests'
 import type { ProjectManifest } from 'canvai/runtime'
 
@@ -126,7 +125,7 @@ function App() {
         </div>
       </div>
 
-      {import.meta.env.DEV && <Agentation endpoint="http://localhost:4747" />}
+      {import.meta.env.DEV && <AnnotationOverlay endpoint="http://localhost:4748" frames={frames} />}
     </div>
   )
 }

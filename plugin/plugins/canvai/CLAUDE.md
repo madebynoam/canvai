@@ -1,12 +1,12 @@
 # Canvai — Agent Instructions
 
-Canvai is a design studio. A Figma-like infinite canvas where every design is live React code. The designer describes what they want, the agent builds it on the canvas, the designer annotates with Agentation to iterate, and the final code gets PR'd to a production repo.
+Canvai is a design studio. A Figma-like infinite canvas where every design is live React code. The designer describes what they want, the agent builds it on the canvas, the designer annotates elements on the canvas to iterate, and the final code gets PR'd to a production repo.
 
 ## User workflow
 
-1. **`/canvai-init <project-name>`** — Creates a new design project, installs canvai if needed, starts the dev server + Agentation MCP.
+1. **`/canvai-init <project-name>`** — Creates a new design project, installs canvai if needed, starts the dev server + annotation MCP.
 2. **Describe** — The designer describes the component (or attaches a sketch). The agent generates the component with variations and states as a manifest.
-3. **Annotate** — The designer uses Agentation to annotate elements in the browser. The MCP feeds structured feedback to the agent.
+3. **Annotate** — The designer clicks "Annotate" on the canvas, selects an element, types a comment, and clicks "Apply". The annotation is pushed to the agent automatically via the MCP watch loop.
 4. **`/canvai-iterate`** — Creates a new page (version) in the manifest. Old versions are frozen.
 5. **`/canvai-ship`** — PR the finished components to a production codebase.
 
@@ -57,18 +57,23 @@ When the designer describes a component, think through its **variations** and **
 - Frame IDs: `<component>-<variation>-<state>`
 - Frame titles: `Component / Variation / State`
 
-## Annotation flow (Agentation)
+## Annotation flow (push-driven)
 
-When you receive annotation feedback via the Agentation MCP:
-1. Read the annotation — it includes CSS selectors, component names, and computed styles
-2. Map the selector to the relevant component
+The canvas has a built-in annotation overlay. The designer clicks "Annotate", selects an element, types a comment, and clicks "Apply". The annotation is pushed to the canvai MCP server, which unblocks the `watch_annotations` tool.
+
+**Agent watch loop:** After starting the dev server, call `watch_annotations` to enter the loop. When an annotation arrives:
+1. Read the annotation — it includes `frameId`, `componentName`, `selector`, `comment`, and `computedStyles`
+2. Map the `componentName` and `selector` to the relevant component file and element
 3. Apply the requested changes to the component code
-4. The canvas re-renders live via Vite HMR
+4. Call `resolve_annotation` with the annotation ID
+5. Call `watch_annotations` again — back to waiting
+
+The agent never needs to be told "go check annotations." It's always listening.
 
 ## Skills
 
 - **`/canvai-init <project-name>`** — Create a new design project and start designing
-- **`/canvai-dev`** — Start (or restart) the dev server and Agentation MCP
+- **`/canvai-dev`** — Start (or restart) the dev server and annotation MCP
 - **`/canvai-iterate`** — Create a new design iteration (page)
 - **`/canvai-ship`** — Ship component to a production repo
 - **`/canvai-update`** — Update canvai to the latest version

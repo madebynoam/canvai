@@ -2,7 +2,10 @@
 
 import { spawn } from 'child_process'
 import { existsSync, mkdirSync, writeFileSync } from 'fs'
-import { join } from 'path'
+import { join, dirname } from 'path'
+import { fileURLToPath } from 'url'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
 import {
   indexHtml,
   viteConfig,
@@ -65,7 +68,6 @@ function scaffold() {
     'react', 'react-dom',
     '@vitejs/plugin-react', 'vite', 'typescript',
     '@types/react', '@types/react-dom',
-    'agentation', 'agentation-mcp',
   ]
   const missing = needed.filter(dep => !existsSync(join(cwd, 'node_modules', dep)))
 
@@ -117,21 +119,16 @@ function startDev() {
     shell: true,
   })
 
-  // Start Agentation MCP server
-  const mcp = spawn('npx', ['agentation-mcp', 'server'], {
+  // Start canvai MCP server
+  const mcpServerPath = join(__dirname, '..', 'mcp', 'server.js')
+  const mcp = spawn('node', [mcpServerPath], {
     cwd,
-    stdio: 'pipe',
-    shell: true,
+    stdio: ['pipe', 'pipe', 'inherit'],
   })
 
   mcp.stdout?.on('data', (data) => {
     const msg = data.toString().trim()
-    if (msg) console.log(`[agentation] ${msg}`)
-  })
-
-  mcp.stderr?.on('data', (data) => {
-    const msg = data.toString().trim()
-    if (msg) console.error(`[agentation] ${msg}`)
+    if (msg) console.log(`[canvai-mcp] ${msg}`)
   })
 
   // Clean up on exit
@@ -164,7 +161,7 @@ switch (command) {
     console.log('Canvai — design studio on an infinite canvas\n')
     console.log('Usage:')
     console.log('  canvai init      Scaffold project files')
-    console.log('  canvai dev       Start dev server + Agentation MCP')
+    console.log('  canvai dev       Start dev server + annotation MCP')
     console.log('  canvai update    Update canvai to latest')
     console.log('  canvai help      Show this message')
     process.exit(command === 'help' ? 0 : 1)

@@ -1,8 +1,8 @@
 {
   "mcpServers": {
-    "agentation": {
-      "command": "npx",
-      "args": ["agentation-mcp", "server"]
+    "canvai-annotations": {
+      "command": "node",
+      "args": ["src/mcp/server.js"]
     }
   }
 }

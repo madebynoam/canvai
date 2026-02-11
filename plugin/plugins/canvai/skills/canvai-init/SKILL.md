@@ -31,7 +31,7 @@ Create a new design project inside Canvai and launch the dev environment.
    ```bash
    npx canvai dev
    ```
-   This starts both Vite and Agentation MCP in one command.
+   This starts both Vite and the annotation MCP in one command.
 
 6. **Confirm:** "Project `<project-name>` is ready. Describe a component — I'll generate its variations and states as a matrix on the canvas."
 

@@ -6,7 +6,7 @@ import { useFrames } from './runtime/useFrames'
 import { layoutFrames } from './runtime/layout'
 import { PageTabs } from './runtime/PageTabs'
 import { ProjectSidebar } from './runtime/ProjectSidebar'
-import { Agentation } from 'agentation'
+import { AnnotationOverlay } from './runtime/AnnotationOverlay'
 import { manifests } from 'virtual:canvai-manifests'
 import type { ProjectManifest } from './runtime/types'
 
@@ -95,7 +95,7 @@ function App() {
         </div>
       </div>
 
-      {import.meta.env.DEV && <Agentation endpoint="http://localhost:4747" />}
+      {import.meta.env.DEV && <AnnotationOverlay endpoint="http://localhost:4748" frames={frames} />}
     </div>
   )
 }

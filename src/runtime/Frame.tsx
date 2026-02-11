@@ -102,7 +102,7 @@ export function Frame({ id, title, x, y, width, height, children, onMove, onResi
       >
         {title}
       </div>
-      <div ref={contentRef} style={{ width }}>
+      <div ref={contentRef} data-frame-id={id} data-frame-content="" style={{ width }}>
         {children}
       </div>
     </div>
