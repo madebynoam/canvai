@@ -11,7 +11,7 @@ Start the Canvai dev server and annotation MCP, then enter the annotation watch 
 
 1. **Kill any existing canvai/vite processes** to avoid port conflicts:
    ```bash
-   pkill -f "canvai dev" 2>/dev/null; pkill -f "vite" 2>/dev/null; pkill -f "src/mcp/server.js" 2>/dev/null
+   pkill -f "canvai dev" 2>/dev/null; pkill -f "vite" 2>/dev/null; pkill -f "http-server.js" 2>/dev/null
    ```
    It's fine if these fail (nothing was running).
 
