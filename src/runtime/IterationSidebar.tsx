@@ -1,21 +1,27 @@
 import { useState, type CSSProperties } from 'react'
 
-interface ProjectSidebarProps {
-  projects: { project: string }[]
+interface IterationSidebarProps {
+  iterations: { name: string }[]
   activeIndex: number
   onSelect: (index: number) => void
 }
 
+const ACCENT = '#E8590C'
+const BORDER = '#E5E7EB'
+const TEXT_TERTIARY = '#9CA3AF'
+const FONT = '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif'
+
 const styles = {
   container: (collapsed: boolean) => ({
     width: collapsed ? 40 : 200,
-    borderRight: '1px solid #e5e7eb',
-    backgroundColor: '#fafafa',
+    borderRight: `1px solid ${BORDER}`,
+    backgroundColor: '#FAFAFA',
     display: 'flex',
     flexDirection: 'column',
     flexShrink: 0,
     transition: 'width 0.15s ease',
     overflow: 'hidden',
+    fontFamily: FONT,
   }) satisfies CSSProperties,
   header: {
     display: 'flex',
@@ -27,7 +33,7 @@ const styles = {
   title: {
     fontSize: 11,
     fontWeight: 600,
-    color: '#9ca3af',
+    color: TEXT_TERTIARY,
     textTransform: 'uppercase',
     letterSpacing: '0.05em',
     whiteSpace: 'nowrap',
@@ -41,7 +47,7 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    color: '#9ca3af',
+    color: TEXT_TERTIARY,
     borderRadius: 4,
     flexShrink: 0,
   } satisfies CSSProperties,
@@ -54,31 +60,48 @@ const styles = {
     flex: 1,
   } satisfies CSSProperties,
   item: (active: boolean) => ({
-    fontSize: 13,
-    padding: '6px 8px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    padding: '5px 8px',
     border: 'none',
     borderRadius: 6,
     cursor: 'pointer',
-    backgroundColor: active ? '#e5e7eb' : 'transparent',
-    color: active ? '#111827' : '#374151',
+    backgroundColor: active ? BORDER : 'transparent',
     fontWeight: active ? 500 : 400,
+    fontSize: 13,
+    color: active ? '#1F2937' : '#374151',
     textAlign: 'left',
     whiteSpace: 'nowrap',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
     transition: 'background-color 0.1s ease',
+    fontFamily: FONT,
+  }) satisfies CSSProperties,
+  circle: (active: boolean) => ({
+    width: 20,
+    height: 20,
+    borderRadius: '50%',
+    backgroundColor: active ? ACCENT : BORDER,
+    color: active ? '#fff' : TEXT_TERTIARY,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: 10,
+    fontWeight: 600,
+    flexShrink: 0,
   }) satisfies CSSProperties,
 }
 
-export function ProjectSidebar({ projects, activeIndex, onSelect }: ProjectSidebarProps) {
+export function IterationSidebar({ iterations, activeIndex, onSelect }: IterationSidebarProps) {
   const [collapsed, setCollapsed] = useState(false)
 
-  if (projects.length === 0) return null
+  if (iterations.length === 0) return null
 
   return (
     <div style={styles.container(collapsed)}>
       <div style={styles.header}>
-        {!collapsed && <span style={styles.title}>Projects</span>}
+        {!collapsed && <span style={styles.title}>Iterations</span>}
         <button
           style={styles.toggleBtn}
           onClick={() => setCollapsed(c => !c)}
@@ -95,13 +118,18 @@ export function ProjectSidebar({ projects, activeIndex, onSelect }: ProjectSideb
       </div>
       {!collapsed && (
         <div style={styles.list}>
-          {projects.map((p, i) => (
+          {iterations.map((iter, i) => (
             <button
-              key={p.project}
+              key={iter.name}
               style={styles.item(i === activeIndex)}
               onClick={() => onSelect(i)}
             >
-              {p.project}
+              <div style={styles.circle(i === activeIndex)}>
+                {i + 1}
+              </div>
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {iter.name}
+              </span>
             </button>
           ))}
         </div>

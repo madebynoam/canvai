@@ -15,13 +15,18 @@ interface TargetInfo {
   rect: DOMRect
 }
 
+type AnnotateMode = 'manual' | 'watch'
+
 interface AnnotationOverlayProps {
   endpoint: string
   frames: CanvasFrame[]
+  annotateMode?: AnnotateMode
 }
 
 // Design tokens — Braun/Ive aesthetic with orange accent
 const ACCENT = '#E8590C'
+const ACCENT_HOVER = '#CF4F0B'
+const ACCENT_PRESSED = '#D4520A'
 const ACCENT_MUTED = 'rgba(232, 89, 12, 0.15)'
 const ACCENT_SHADOW = 'rgba(232, 89, 12, 0.25)'
 const SURFACE = '#FFFFFF'
@@ -76,12 +81,13 @@ function getStyleSubset(el: Element): Record<string, string> {
   return styles
 }
 
-export function AnnotationOverlay({ endpoint, frames }: AnnotationOverlayProps) {
+export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual' }: AnnotationOverlayProps) {
   const [mode, setMode] = useState<Mode>('idle')
   const [highlight, setHighlight] = useState<DOMRect | null>(null)
   const [target, setTarget] = useState<TargetInfo | null>(null)
   const [comment, setComment] = useState('')
   const [toast, setToast] = useState<string | null>(null)
+  const [buttonState, setButtonState] = useState<'idle' | 'hover' | 'pressed'>('idle')
   const overlayRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -248,14 +254,14 @@ export function AnnotationOverlay({ endpoint, frames }: AnnotationOverlayProps) 
         />
       )}
 
-      {/* Comment popup */}
+      {/* Comment card — fixed bottom-right */}
       {mode === 'commenting' && target && (
         <div
           onKeyDown={handleKeyDown}
           style={{
             position: 'fixed',
-            left: Math.min(target.rect.left, window.innerWidth - 340),
-            top: Math.min(target.rect.bottom + 8, window.innerHeight - 200),
+            bottom: 16,
+            right: 16,
             zIndex: 99999,
             background: SURFACE,
             borderRadius: RADIUS,
@@ -266,8 +272,22 @@ export function AnnotationOverlay({ endpoint, frames }: AnnotationOverlayProps) 
             fontFamily: FONT,
           }}
         >
-          <div style={{ fontSize: 11, color: TEXT_TERTIARY, marginBottom: 8, letterSpacing: '0.02em' }}>
-            {target.componentName} &middot; {target.elementTag}
+          {/* Header: component·tag + mode badge */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+            <div style={{ fontSize: 11, color: TEXT_TERTIARY, letterSpacing: '0.02em' }}>
+              {target.componentName} &middot; {target.elementTag}
+            </div>
+            {annotateMode === 'manual' ? (
+              <span style={{
+                fontSize: 10, fontWeight: 500, color: TEXT_SECONDARY,
+                backgroundColor: '#F3F4F6', padding: '2px 8px', borderRadius: 10,
+              }}>Manual</span>
+            ) : (
+              <span style={{
+                fontSize: 10, fontWeight: 500, color: '#059669',
+                backgroundColor: '#ECFDF5', padding: '2px 8px', borderRadius: 10,
+              }}>Live</span>
+            )}
           </div>
           <textarea
             ref={textareaRef}
@@ -319,41 +339,61 @@ export function AnnotationOverlay({ endpoint, frames }: AnnotationOverlayProps) 
                 fontSize: 12,
                 fontWeight: 500,
                 fontFamily: FONT,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 5,
               }}
             >
-              Apply
+              {annotateMode === 'watch' ? (
+                <>
+                  Send
+                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                    <path d="M3 8l4 4 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </>
+              ) : 'Apply'}
             </button>
           </div>
           <div style={{ fontSize: 10, color: TEXT_TERTIARY, marginTop: 8 }}>
-            Cmd+Enter to apply &middot; Esc to cancel
+            Cmd+Enter to {annotateMode === 'watch' ? 'send' : 'apply'} &middot; Esc to cancel
           </div>
         </div>
       )}
 
-      {/* Annotate button */}
+      {/* Annotate icon button — circular, bottom-right */}
       {mode === 'idle' && (
         <button
           onClick={() => setMode('targeting')}
+          onPointerEnter={() => setButtonState('hover')}
+          onPointerLeave={() => setButtonState('idle')}
+          onPointerDown={() => setButtonState('pressed')}
+          onPointerUp={() => setButtonState('hover')}
           style={{
             position: 'fixed',
-            bottom: 24,
-            left: '50%',
-            transform: 'translateX(-50%)',
+            bottom: 16,
+            right: 16,
             zIndex: 99999,
-            padding: '8px 24px',
-            background: ACCENT,
+            width: 40,
+            height: 40,
+            borderRadius: '50%',
+            background: buttonState === 'hover' ? ACCENT_HOVER : buttonState === 'pressed' ? ACCENT_PRESSED : ACCENT,
             color: '#fff',
             border: 'none',
-            borderRadius: 20,
             cursor: 'pointer',
-            fontSize: 13,
-            fontWeight: 500,
-            letterSpacing: '0.01em',
-            fontFamily: FONT,
-            boxShadow: `0 2px 12px ${ACCENT_SHADOW}`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: buttonState === 'hover'
+              ? `0 4px 16px ${ACCENT_SHADOW}`
+              : `0 2px 8px ${ACCENT_SHADOW}`,
+            transform: buttonState === 'pressed' ? 'scale(0.95)' : 'scale(1)',
+            transition: 'all 0.1s ease',
           }}
         >
-          Annotate
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M11.5 2.5l4 4-10 10H1.5v-4l10-10z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M9.5 4.5l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
         </button>
       )}
 

@@ -40,13 +40,14 @@ createRoot(document.getElementById('root')!).render(
 `
 
 export const appTsx = `import { useState } from 'react'
-import { Canvas, Frame, useFrames, layoutFrames, PageTabs, ProjectSidebar, AnnotationOverlay } from 'canvai/runtime'
+import { Canvas, Frame, useFrames, layoutFrames, TopBar, IterationSidebar, AnnotationOverlay } from 'canvai/runtime'
 import { manifests } from 'virtual:canvai-manifests'
 import type { ProjectManifest } from 'canvai/runtime'
 
 function App() {
   const [activeProjectIndex, setActiveProjectIndex] = useState(0)
   const [activePageIndex, setActivePageIndex] = useState(0)
+  const [mode] = useState<'manual' | 'watch'>('manual')
 
   const activeProject: ProjectManifest | undefined = manifests[activeProjectIndex]
   const activePage = activeProject?.pages[activePageIndex]
@@ -55,54 +56,25 @@ function App() {
   const { frames, updateFrame, handleResize } = useFrames(layoutedFrames, activePage?.grid)
 
   return (
-    <div id="canvai-root" style={{ width: '100vw', height: '100vh', display: 'flex' }}>
-      <ProjectSidebar
+    <div id="canvai-root" style={{ width: '100vw', height: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <TopBar
         projects={manifests}
-        activeIndex={activeProjectIndex}
-        onSelect={(i) => {
+        activeProjectIndex={activeProjectIndex}
+        onSelectProject={(i) => {
           setActiveProjectIndex(i)
           setActivePageIndex(0)
         }}
+        iterationCount={activeProject?.pages.length ?? 0}
+        pendingCount={0}
+        mode={mode}
       />
 
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 12,
-          padding: '8px 16px',
-          borderBottom: '1px solid #e5e7eb',
-          backgroundColor: '#fff',
-          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-          flexShrink: 0,
-          minHeight: 40,
-        }}>
-          {activeProject && (
-            <span style={{ fontSize: 13, fontWeight: 600, color: '#374151' }}>
-              {activeProject.project}
-            </span>
-          )}
-
-          {activeProject && activeProject.pages.length > 1 && (
-            <PageTabs
-              pages={activeProject.pages}
-              activeIndex={activePageIndex}
-              onSelect={setActivePageIndex}
-            />
-          )}
-
-          {activeProject && activeProject.pages.length === 1 && (
-            <span style={{ fontSize: 12, color: '#9ca3af' }}>
-              {activeProject.pages[0].name}
-            </span>
-          )}
-
-          {!activeProject && (
-            <span style={{ fontSize: 13, color: '#9ca3af' }}>
-              No projects found. Run /canvai-init to create one.
-            </span>
-          )}
-        </div>
+      <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+        <IterationSidebar
+          iterations={activeProject?.pages ?? []}
+          activeIndex={activePageIndex}
+          onSelect={setActivePageIndex}
+        />
 
         <div style={{ flex: 1 }}>
           <Canvas>
@@ -125,7 +97,7 @@ function App() {
         </div>
       </div>
 
-      {import.meta.env.DEV && <AnnotationOverlay endpoint="http://localhost:4748" frames={frames} />}
+      {import.meta.env.DEV && <AnnotationOverlay endpoint="http://localhost:4748" frames={frames} annotateMode={mode} />}
     </div>
   )
 }
