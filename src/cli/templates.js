@@ -144,8 +144,8 @@ html, body, #root {
   height: 100%;
   overflow: hidden;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-  background: #1e1e1e;
-  color: #e0e0e0;
+  background: #F0F0F0;
+  color: #1F2937;
 }
 `
 

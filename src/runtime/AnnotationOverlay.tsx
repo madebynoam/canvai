@@ -20,6 +20,19 @@ interface AnnotationOverlayProps {
   frames: CanvasFrame[]
 }
 
+// Design tokens — Braun/Ive aesthetic with orange accent
+const ACCENT = '#E8590C'
+const ACCENT_MUTED = 'rgba(232, 89, 12, 0.15)'
+const ACCENT_SHADOW = 'rgba(232, 89, 12, 0.25)'
+const SURFACE = '#FFFFFF'
+const SURFACE_ALT = '#F9FAFB'
+const BORDER = '#E5E7EB'
+const TEXT_PRIMARY = '#1F2937'
+const TEXT_SECONDARY = '#6B7280'
+const TEXT_TERTIARY = '#9CA3AF'
+const FONT = '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif'
+const RADIUS = 10
+
 // Build a CSS selector path from element up to the frame content boundary
 function buildSelector(el: Element, boundary: Element): string {
   const parts: string[] = []
@@ -226,7 +239,7 @@ export function AnnotationOverlay({ endpoint, frames }: AnnotationOverlayProps) 
             top: highlight.top - 2,
             width: highlight.width + 4,
             height: highlight.height + 4,
-            border: '2px solid #3b82f6',
+            border: `2px solid ${ACCENT}`,
             borderRadius: 4,
             pointerEvents: 'none',
             zIndex: 99999,
@@ -242,17 +255,18 @@ export function AnnotationOverlay({ endpoint, frames }: AnnotationOverlayProps) 
           style={{
             position: 'fixed',
             left: Math.min(target.rect.left, window.innerWidth - 340),
-            top: Math.min(target.rect.bottom + 8, window.innerHeight - 180),
+            top: Math.min(target.rect.bottom + 8, window.innerHeight - 200),
             zIndex: 99999,
-            background: '#1f2937',
-            borderRadius: 8,
-            padding: 12,
-            boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+            background: SURFACE,
+            borderRadius: RADIUS,
+            padding: 16,
+            boxShadow: '0 4px 24px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0, 0, 0, 0.04)',
+            border: `1px solid ${BORDER}`,
             width: 320,
-            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif',
+            fontFamily: FONT,
           }}
         >
-          <div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 6 }}>
+          <div style={{ fontSize: 11, color: TEXT_TERTIARY, marginBottom: 8, letterSpacing: '0.02em' }}>
             {target.componentName} &middot; {target.elementTag}
           </div>
           <textarea
@@ -262,29 +276,32 @@ export function AnnotationOverlay({ endpoint, frames }: AnnotationOverlayProps) 
             placeholder="Describe the change..."
             style={{
               width: '100%',
-              minHeight: 64,
-              background: '#111827',
-              color: '#f3f4f6',
-              border: '1px solid #374151',
-              borderRadius: 6,
-              padding: 8,
+              minHeight: 72,
+              background: SURFACE_ALT,
+              color: TEXT_PRIMARY,
+              border: `1px solid ${BORDER}`,
+              borderRadius: 8,
+              padding: 10,
               fontSize: 13,
+              lineHeight: 1.5,
               resize: 'vertical',
               outline: 'none',
               fontFamily: 'inherit',
             }}
           />
-          <div style={{ display: 'flex', gap: 8, marginTop: 8, justifyContent: 'flex-end' }}>
+          <div style={{ display: 'flex', gap: 8, marginTop: 10, justifyContent: 'flex-end' }}>
             <button
               onClick={handleCancel}
               style={{
-                padding: '6px 12px',
+                padding: '7px 14px',
                 background: 'transparent',
-                color: '#9ca3af',
-                border: '1px solid #374151',
-                borderRadius: 6,
+                color: TEXT_SECONDARY,
+                border: `1px solid ${BORDER}`,
+                borderRadius: 8,
                 cursor: 'pointer',
                 fontSize: 12,
+                fontWeight: 500,
+                fontFamily: FONT,
               }}
             >
               Cancel
@@ -293,20 +310,21 @@ export function AnnotationOverlay({ endpoint, frames }: AnnotationOverlayProps) 
               onClick={handleApply}
               disabled={!comment.trim()}
               style={{
-                padding: '6px 12px',
-                background: comment.trim() ? '#3b82f6' : '#1e3a5f',
-                color: comment.trim() ? '#fff' : '#6b7280',
+                padding: '7px 14px',
+                background: comment.trim() ? ACCENT : ACCENT_MUTED,
+                color: comment.trim() ? '#fff' : TEXT_TERTIARY,
                 border: 'none',
-                borderRadius: 6,
+                borderRadius: 8,
                 cursor: comment.trim() ? 'pointer' : 'default',
                 fontSize: 12,
                 fontWeight: 500,
+                fontFamily: FONT,
               }}
             >
               Apply
             </button>
           </div>
-          <div style={{ fontSize: 10, color: '#6b7280', marginTop: 6 }}>
+          <div style={{ fontSize: 10, color: TEXT_TERTIARY, marginTop: 8 }}>
             Cmd+Enter to apply &middot; Esc to cancel
           </div>
         </div>
@@ -318,20 +336,21 @@ export function AnnotationOverlay({ endpoint, frames }: AnnotationOverlayProps) 
           onClick={() => setMode('targeting')}
           style={{
             position: 'fixed',
-            bottom: 20,
+            bottom: 24,
             left: '50%',
             transform: 'translateX(-50%)',
             zIndex: 99999,
-            padding: '8px 20px',
-            background: '#3b82f6',
+            padding: '8px 24px',
+            background: ACCENT,
             color: '#fff',
             border: 'none',
             borderRadius: 20,
             cursor: 'pointer',
             fontSize: 13,
             fontWeight: 500,
-            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif',
-            boxShadow: '0 4px 16px rgba(59,130,246,0.4)',
+            letterSpacing: '0.01em',
+            fontFamily: FONT,
+            boxShadow: `0 2px 12px ${ACCENT_SHADOW}`,
           }}
         >
           Annotate
@@ -343,18 +362,18 @@ export function AnnotationOverlay({ endpoint, frames }: AnnotationOverlayProps) 
         <div
           style={{
             position: 'fixed',
-            bottom: 20,
+            bottom: 24,
             left: '50%',
             transform: 'translateX(-50%)',
             zIndex: 99999,
-            padding: '8px 20px',
-            background: '#065f46',
-            color: '#d1fae5',
+            padding: '8px 24px',
+            background: TEXT_PRIMARY,
+            color: '#fff',
             borderRadius: 20,
             fontSize: 13,
             fontWeight: 500,
-            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif',
-            boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
+            fontFamily: FONT,
+            boxShadow: '0 2px 12px rgba(0, 0, 0, 0.12)',
           }}
         >
           {toast}

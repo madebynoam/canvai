@@ -57,18 +57,48 @@ When the designer describes a component, think through its **variations** and **
 - Frame IDs: `<component>-<variation>-<state>`
 - Frame titles: `Component / Variation / State`
 
+## Design language
+
+Canvai follows a **Braun / Jony Ive** aesthetic — clean, minimal, functional. Modern like Figma, not retro.
+
+### Palette
+
+| Token | Value | Usage |
+|---|---|---|
+| Accent | `#E8590C` | Buttons, highlights, selection outlines |
+| Accent muted | `rgba(232, 89, 12, 0.15)` | Disabled accent backgrounds |
+| Canvas | `#F0F0F0` | Canvas background (light gray) |
+| Surface | `#FFFFFF` | Cards, popovers, panels |
+| Border | `#E5E7EB` | Borders, dividers |
+| Text primary | `#1F2937` | Body text |
+| Text secondary | `#6B7280` | Labels, captions |
+| Text tertiary | `#9CA3AF` | Hints, metadata |
+
+### Principles
+
+- **One accent color.** Orange (`#E8590C`) is the only color. Everything else is grayscale.
+- **Light canvas.** The background is always light gray, never dark.
+- **Minimal chrome.** Subtle borders, soft shadows, no heavy outlines.
+- **Generous spacing.** Comfortable padding (10-16px). Don't crowd elements.
+- **Rounded but not bubbly.** Border radius 8-10px for cards, 20px for pill buttons.
+
 ## Annotation flow (push-driven)
 
-The canvas has a built-in annotation overlay. The designer clicks "Annotate", selects an element, types a comment, and clicks "Apply". The annotation is pushed to the canvai MCP server, which unblocks the `watch_annotations` tool.
+The canvas has a built-in annotation overlay. The designer clicks "Annotate", selects an element, types a comment, and clicks "Apply". The annotation is pushed to the canvai HTTP server.
 
-**Agent watch loop:** After starting the dev server, call `watch_annotations` to enter the loop. When an annotation arrives:
+### Two modes
+
+**Chat mode (default):** The agent stays conversational. The designer can chat and request changes. To process annotations, the agent calls `get_pending_annotations` between tasks or when the designer asks.
+
+**Watch mode (opt-in):** The designer says "enter watch mode" or uses `/canvai-dev`. The agent calls `watch_annotations` in a blocking loop for rapid annotation sessions. Exit by sending any message.
+
+### Processing an annotation
+
+When an annotation arrives (via either mode):
 1. Read the annotation — it includes `frameId`, `componentName`, `selector`, `comment`, and `computedStyles`
 2. Map the `componentName` and `selector` to the relevant component file and element
 3. Apply the requested changes to the component code
 4. Call `resolve_annotation` with the annotation ID
-5. Call `watch_annotations` again — back to waiting
-
-The agent never needs to be told "go check annotations." It's always listening.
 
 ## Skills
 
