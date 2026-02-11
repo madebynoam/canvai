@@ -133,6 +133,9 @@ function update() {
 function startDev() {
   const cwd = process.cwd()
 
+  // Run migrations before starting — catches stale App.tsx regardless of how the update happened
+  migrate(cwd)
+
   // Start Vite dev server
   const vite = spawn('npx', ['vite', '--open'], {
     cwd,
