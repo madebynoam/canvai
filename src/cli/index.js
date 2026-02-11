@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { spawn } from 'child_process'
-import { existsSync, mkdirSync, writeFileSync } from 'fs'
+import { existsSync, mkdirSync, writeFileSync, rmSync } from 'fs'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
 
@@ -101,6 +101,12 @@ function update() {
   })
   install.on('exit', (code) => {
     if (code === 0) {
+      // Clear Vite cache so stale bundled deps don't linger
+      const viteCache = join(cwd, 'node_modules', '.vite')
+      if (existsSync(viteCache)) {
+        rmSync(viteCache, { recursive: true, force: true })
+        console.log('Cleared Vite cache.')
+      }
       console.log('\nUpdated! Restart `npx canvai dev` to use the latest.')
     } else {
       console.error('\nUpdate failed. Try running: npm install github:madebynoam/canvai')

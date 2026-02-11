@@ -14,9 +14,14 @@ Update the canvai package to the latest version from GitHub.
    npm install github:madebynoam/canvai
    ```
 
-2. **Restart the dev server** if it's running. Kill the existing process and run:
+2. **Clear the Vite cache** so stale bundled deps don't linger:
+   ```bash
+   rm -rf node_modules/.vite
+   ```
+
+3. **Restart the dev server** if it's running. Kill the existing process and run:
    ```bash
    npx canvai dev
    ```
 
-3. **Confirm:** "Canvai updated to latest. Dev server restarted."
+4. **Confirm:** "Canvai updated to latest. Dev server restarted."
