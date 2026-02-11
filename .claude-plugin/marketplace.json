@@ -1,0 +1,21 @@
+{
+  "name": "canvai",
+  "owner": {
+    "name": "Noam Almosnino",
+    "email": "noam@noamalmos.com"
+  },
+  "metadata": {
+    "description": "Canvai — design studio on an infinite canvas with live React code",
+    "version": "0.0.5"
+  },
+  "plugins": [
+    {
+      "name": "canvai",
+      "source": "./plugin/plugins/canvai",
+      "description": "Canvai design skills — init projects, iterate designs, and ship components from an infinite canvas",
+      "version": "0.0.5",
+      "category": "design",
+      "tags": ["canvas", "design", "react", "figma"]
+    }
+  ]
+}
