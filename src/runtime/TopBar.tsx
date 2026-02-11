@@ -44,8 +44,6 @@ export function TopBar({
           activeIndex={activeProjectIndex}
           onSelect={onSelectProject}
         />
-        {/* Divider */}
-        <div style={{ width: 1, height: 16, backgroundColor: BORDER }} />
         {/* Iteration count */}
         <span style={{ fontSize: 11, color: TEXT_TERTIARY }}>
           {iterationCount} {iterationCount === 1 ? 'iteration' : 'iterations'}
@@ -76,9 +74,6 @@ export function TopBar({
             <span style={{ fontSize: 11, color: ACCENT, fontWeight: 500 }}>pending</span>
           </div>
         )}
-
-        {/* Divider */}
-        <div style={{ width: 1, height: 16, backgroundColor: BORDER }} />
 
         {/* Mode pill */}
         {mode === 'manual' ? (

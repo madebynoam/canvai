@@ -21,6 +21,7 @@ interface AnnotationOverlayProps {
   endpoint: string
   frames: CanvasFrame[]
   annotateMode?: AnnotateMode
+  onPendingChange?: (count: number) => void
 }
 
 // Design tokens — Braun/Ive aesthetic with orange accent
@@ -88,7 +89,7 @@ interface AnnotationMarker {
   comment: string
 }
 
-export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual' }: AnnotationOverlayProps) {
+export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual', onPendingChange }: AnnotationOverlayProps) {
   const [mode, setMode] = useState<Mode>('idle')
   const [highlight, setHighlight] = useState<DOMRect | null>(null)
   const [target, setTarget] = useState<TargetInfo | null>(null)
@@ -97,6 +98,7 @@ export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual' }:
   const [buttonState, setButtonState] = useState<'idle' | 'hover' | 'pressed'>('idle')
   const [markers, setMarkers] = useState<AnnotationMarker[]>([])
   const [markerRects, setMarkerRects] = useState<Map<number, DOMRect>>(new Map())
+  const [editingMarkerId, setEditingMarkerId] = useState<number | null>(null)
   const overlayRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const nextMarkerId = useRef(1)
@@ -114,6 +116,11 @@ export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual' }:
     const t = setTimeout(() => setToast(null), 2000)
     return () => clearTimeout(t)
   }, [toast])
+
+  // Notify parent of pending annotation count
+  useEffect(() => {
+    onPendingChange?.(markers.length)
+  }, [markers.length, onPendingChange])
 
   // Recompute marker positions on scroll/resize/animation
   useEffect(() => {
@@ -223,14 +230,23 @@ export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual' }:
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       })
-      // Add annotation marker
-      const id = nextMarkerId.current++
-      setMarkers(prev => [...prev, {
-        id,
-        frameId: target.frameId,
-        selector: target.selector,
-        comment: comment.trim(),
-      }])
+      if (editingMarkerId !== null) {
+        // Update existing marker
+        setMarkers(prev => prev.map(m =>
+          m.id === editingMarkerId
+            ? { ...m, frameId: target.frameId, selector: target.selector, comment: comment.trim() }
+            : m
+        ))
+      } else {
+        // Add new annotation marker
+        const id = nextMarkerId.current++
+        setMarkers(prev => [...prev, {
+          id,
+          frameId: target.frameId,
+          selector: target.selector,
+          comment: comment.trim(),
+        }])
+      }
       setToast('Sent to agent')
     } catch {
       setToast('Failed to send')
@@ -239,13 +255,15 @@ export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual' }:
     setMode('idle')
     setTarget(null)
     setComment('')
-  }, [target, comment, endpoint])
+    setEditingMarkerId(null)
+  }, [target, comment, endpoint, editingMarkerId])
 
   const handleCancel = useCallback(() => {
     setMode('idle')
     setTarget(null)
     setHighlight(null)
     setComment('')
+    setEditingMarkerId(null)
   }, [])
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
@@ -294,14 +312,33 @@ export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual' }:
         />
       )}
 
-      {/* Comment card — fixed bottom-right */}
-      {mode === 'commenting' && target && (
+      {/* Comment card — positioned near target element */}
+      {mode === 'commenting' && target && (() => {
+        const cardWidth = 320
+        const cardHeight = 220 // approximate
+        const gap = 8
+        // Default: below target
+        let top = target.rect.bottom + gap
+        let left = target.rect.left
+        // If overflows bottom, place above
+        if (top + cardHeight > window.innerHeight) {
+          top = target.rect.top - cardHeight - gap
+        }
+        // If overflows right, shift left
+        if (left + cardWidth > window.innerWidth - 16) {
+          left = window.innerWidth - cardWidth - 16
+        }
+        // Clamp left
+        if (left < 16) left = 16
+        // Clamp top
+        if (top < 16) top = 16
+        return (
         <div
           onKeyDown={handleKeyDown}
           style={{
             position: 'fixed',
-            bottom: 16,
-            right: 16,
+            top,
+            left,
             zIndex: 99999,
             background: SURFACE,
             borderRadius: RADIUS,
@@ -398,7 +435,8 @@ export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual' }:
             Cmd+Enter to {annotateMode === 'watch' ? 'send' : 'apply'} &middot; Esc to cancel
           </div>
         </div>
-      )}
+        )
+      })()}
 
       {/* Annotate icon button — circular, bottom-right */}
       {mode === 'idle' && (
@@ -445,6 +483,35 @@ export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual' }:
           <div
             key={marker.id}
             title={marker.comment}
+            onClick={() => {
+              // Rebuild target from marker data
+              const frameEl = document.querySelector(`[data-frame-id="${marker.frameId}"]`)
+              if (!frameEl) return
+              const contentEl = frameEl.hasAttribute('data-frame-content') ? frameEl : frameEl.querySelector('[data-frame-content]')
+              if (!contentEl) return
+              let el: Element
+              try {
+                el = contentEl.querySelector(marker.selector) ?? contentEl
+              } catch {
+                el = contentEl
+              }
+              const frame = frames.find(f => f.id === marker.frameId)
+              const componentName = frame?.component?.displayName ?? frame?.component?.name ?? 'Unknown'
+              setTarget({
+                frameId: marker.frameId,
+                componentName,
+                props: frame?.props ?? {},
+                selector: marker.selector,
+                elementTag: el.tagName.toLowerCase(),
+                elementClasses: (el as HTMLElement).className?.toString() ?? '',
+                elementText: (el.textContent ?? '').trim().slice(0, 100),
+                computedStyles: getStyleSubset(el),
+                rect: el.getBoundingClientRect(),
+              })
+              setComment(marker.comment)
+              setEditingMarkerId(marker.id)
+              setMode('commenting')
+            }}
             style={{
               position: 'fixed',
               left: rect.left - 6,
@@ -460,7 +527,7 @@ export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual' }:
               fontSize: 9,
               fontWeight: 700,
               fontFamily: FONT,
-              pointerEvents: 'none',
+              cursor: 'pointer',
               zIndex: 99997,
               boxShadow: `0 1px 4px ${ACCENT_SHADOW}`,
             }}

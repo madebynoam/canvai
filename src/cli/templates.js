@@ -48,6 +48,7 @@ function App() {
   const [activeProjectIndex, setActiveProjectIndex] = useState(0)
   const [activePageIndex, setActivePageIndex] = useState(0)
   const [mode] = useState<'manual' | 'watch'>('manual')
+  const [pendingCount, setPendingCount] = useState(0)
 
   const activeProject: ProjectManifest | undefined = manifests[activeProjectIndex]
   const activePage = activeProject?.pages[activePageIndex]
@@ -65,7 +66,7 @@ function App() {
           setActivePageIndex(0)
         }}
         iterationCount={activeProject?.pages.length ?? 0}
-        pendingCount={0}
+        pendingCount={pendingCount}
         mode={mode}
       />
 
@@ -97,7 +98,7 @@ function App() {
         </div>
       </div>
 
-      {import.meta.env.DEV && <AnnotationOverlay endpoint="http://localhost:4748" frames={frames} annotateMode={mode} />}
+      {import.meta.env.DEV && <AnnotationOverlay endpoint="http://localhost:4748" frames={frames} annotateMode={mode} onPendingChange={setPendingCount} />}
     </div>
   )
 }

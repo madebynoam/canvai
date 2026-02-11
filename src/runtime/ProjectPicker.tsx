@@ -43,8 +43,8 @@ export function ProjectPicker({ projects, activeIndex, onSelect }: ProjectPicker
           gap: 8,
           padding: '4px 8px',
           background: 'transparent',
-          border: 'none',
-          borderRadius: 6,
+          border: `1px solid ${BORDER}`,
+          borderRadius: 20,
           cursor: 'pointer',
           fontFamily: FONT,
         }}
