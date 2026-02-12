@@ -112,16 +112,21 @@ function update() {
         rmSync(viteCache, { recursive: true, force: true })
         console.log('Cleared Vite cache.')
       }
-      // Run migrations for breaking changes
-      const applied = runMigrations(cwd)
-      if (applied > 0) {
-        console.log(`\nApplied ${applied} migration${applied === 1 ? '' : 's'}.`)
-      }
-      console.log('\nUpdated! Restart `npx canvai dev` to use the latest.')
+      // Run migrations in a NEW process so the freshly-installed code is used.
+      // The current process still has the old modules loaded from before npm install.
+      const migratePath = join(cwd, 'node_modules', 'canvai', 'src', 'cli', 'index.js')
+      const migrate = spawn('node', [migratePath, 'migrate'], {
+        cwd,
+        stdio: 'inherit',
+      })
+      migrate.on('exit', () => {
+        console.log('\nUpdated! Restart `npx canvai dev` to use the latest.')
+        process.exit(0)
+      })
     } else {
       console.error('\nUpdate failed. Try running: npm install github:madebynoam/canvai')
+      process.exit(code ?? 1)
     }
-    process.exit(code ?? 0)
   })
 }
 
@@ -174,6 +179,16 @@ switch (command) {
   case 'update':
     update()
     break
+  case 'migrate': {
+    const cwd = process.cwd()
+    const applied = runMigrations(cwd)
+    if (applied > 0) {
+      console.log(`Applied ${applied} migration${applied === 1 ? '' : 's'}.`)
+    } else {
+      console.log('No migrations needed.')
+    }
+    break
+  }
   default:
     console.log('Canvai — design studio on an infinite canvas\n')
     console.log('Usage:')

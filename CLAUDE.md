@@ -74,6 +74,10 @@ When changing a type, interface, or data format:
 4. **Use safe optional chaining** (`?.[]`) when accessing properties that may not exist during migration transitions
 5. **Test the migration against a real consumer project** before pushing — don't rely only on unit tests
 
+### Update command: stale code trap
+
+`canvai update` runs `npm install` then migrations. But the migration code was loaded at process startup (old version). The new code is on disk but not in memory. The update command handles this by spawning `canvai migrate` as a **new process** after npm install. Never call `runMigrations()` directly inside the update function — it will use stale code.
+
 ### Dogfooding project (`src/projects/canvai-ui/`)
 
 The `canvai-ui` project renders the actual runtime UI components (TopBar, ProjectPicker, IterationSidebar, etc.) so we can visually test the canvas itself. It imports directly from `../../runtime/`, so existing component changes are reflected instantly via HMR.
