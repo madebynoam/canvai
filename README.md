@@ -4,7 +4,7 @@
 
 A design studio on an infinite canvas where every design is live React code. Describe what you want, the agent builds it on the canvas, annotate elements to iterate, and ship the final code to a production repo.
 
-**Current version: 0.0.15**
+**Current version: 0.0.16**
 
 ## Quick start
 

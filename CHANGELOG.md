@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.0.16
+
+- Grouped iterations: `ProjectManifest.pages` → `ProjectManifest.iterations` with nested pages
+- Migration now covers both App.tsx and manifest files (was missing manifests)
+- Fixed unsafe optional chaining in App.tsx template
+- Fixed stale code bug: `canvai update` now spawns a new process for migrations
+- Added `canvai migrate` subcommand
+- Added `/plugin-local` and `/plugin-release` dev skills for local plugin testing
+- Added development workflow docs to README and CLAUDE.md
+- Added integration tests for migration coverage
+- Added breaking change coverage rules to engineering guidelines
+
 ## 0.0.15
 
 - Added export contract and migration tests (`npm test`)
