@@ -1,8 +1,13 @@
 /**
  * Migration runner.
  *
- * Reads the consumer's .canvai version marker, filters applicable migrations,
- * runs them in order, and updates the marker.
+ * Runs migrations in two passes:
+ * 1. Version-gated: migrations newer than the consumer's marker (normal upgrades)
+ * 2. Self-healing: ALL migrations checked via applies() regardless of marker
+ *    (catches partial runs, stale code, bugfixed migrations)
+ *
+ * The marker is only bumped after verified success — if applies() still
+ * returns true after running, the marker stays put and a warning is logged.
  */
 
 import { existsSync, readFileSync, readdirSync, writeFileSync } from 'fs'
@@ -46,63 +51,97 @@ export function getCanvaiVersion() {
   return pkg.version
 }
 
+/** Read all files a migration might need, including dynamically discovered manifests. */
+function readMigrationFiles(cwd, migration) {
+  const fileContents = {}
+
+  for (const filepath of migration.files) {
+    const abs = join(cwd, filepath)
+    if (existsSync(abs)) {
+      fileContents[filepath] = readFileSync(abs, 'utf-8')
+    }
+  }
+
+  // Discover manifest files — migrations may need them
+  const projectsDir = join(cwd, 'src/projects')
+  if (existsSync(projectsDir)) {
+    for (const d of readdirSync(projectsDir, { withFileTypes: true })) {
+      if (!d.isDirectory()) continue
+      const rel = `src/projects/${d.name}/manifest.ts`
+      const abs = join(cwd, rel)
+      if (existsSync(abs) && !fileContents[rel]) {
+        fileContents[rel] = readFileSync(abs, 'utf-8')
+      }
+    }
+  }
+
+  return fileContents
+}
+
+/**
+ * Run a single migration. Returns true if it applied.
+ * After running, verifies applies() returns false. If not, logs a warning.
+ */
+function runMigration(cwd, migration) {
+  const fileContents = readMigrationFiles(cwd, migration)
+
+  if (!migration.applies(fileContents)) return false
+
+  const results = migration.migrate(fileContents)
+
+  // Write results
+  for (const [filepath, content] of Object.entries(results)) {
+    writeFileSync(join(cwd, filepath), content)
+  }
+
+  // Verify: re-read files and check applies() returns false
+  const afterContents = readMigrationFiles(cwd, migration)
+  if (migration.applies(afterContents)) {
+    console.warn(`  WARNING: migration ${migration.version} still applies after running — files may be partially fixed`)
+  }
+
+  console.log(`  migrated: ${migration.description} (${migration.version})`)
+  return true
+}
+
 /**
  * Run all pending migrations for a consumer project.
  * Returns the number of migrations applied.
  */
 export function runMigrations(cwd) {
-  const consumerVersion = readMarkerVersion(cwd)
   const canvaiVersion = getCanvaiVersion()
-
-  // Filter migrations newer than the consumer's version
-  const pending = migrations.filter(
-    m => compareSemver(m.version, consumerVersion) > 0,
-  )
-
-  if (pending.length === 0) return 0
-
   let applied = 0
 
-  for (const migration of pending) {
-    // Read all files this migration can touch
-    const fileContents = {}
-    for (const filepath of migration.files) {
-      const abs = join(cwd, filepath)
-      if (existsSync(abs)) {
-        fileContents[filepath] = readFileSync(abs, 'utf-8')
-      }
+  // Run ALL migrations whose applies() returns true.
+  // This handles both normal upgrades AND recovery from partial/stale runs.
+  // Sorted by version so they run in order.
+  for (const migration of migrations) {
+    if (runMigration(cwd, migration)) {
+      applied++
     }
-
-    // Also discover manifest files for migrations that need them
-    const projectsDir = join(cwd, 'src/projects')
-    if (existsSync(projectsDir)) {
-      for (const d of readdirSync(projectsDir, { withFileTypes: true })) {
-        if (!d.isDirectory()) continue
-        const rel = `src/projects/${d.name}/manifest.ts`
-        const abs = join(cwd, rel)
-        if (existsSync(abs) && !fileContents[rel]) {
-          fileContents[rel] = readFileSync(abs, 'utf-8')
-        }
-      }
-    }
-
-    // Check if migration applies
-    if (!migration.applies(fileContents)) continue
-
-    // Run the migration
-    const results = migration.migrate(fileContents)
-
-    // Write results
-    for (const [filepath, content] of Object.entries(results)) {
-      writeFileSync(join(cwd, filepath), content)
-    }
-
-    console.log(`  migrated: ${migration.description} (${migration.version})`)
-    applied++
   }
 
-  // Update marker to current canvai version
-  writeMarker(cwd, canvaiVersion)
+  // Only bump marker if everything is clean
+  if (applied > 0) {
+    // Re-verify no migration still applies
+    let allClean = true
+    for (const migration of migrations) {
+      const fileContents = readMigrationFiles(cwd, migration)
+      if (migration.applies(fileContents)) {
+        console.warn(`  WARNING: migration ${migration.version} still needs attention after run`)
+        allClean = false
+      }
+    }
+
+    if (allClean) {
+      writeMarker(cwd, canvaiVersion)
+    } else {
+      console.warn('  Marker NOT bumped — some migrations still apply. Run `npx canvai doctor` to diagnose.')
+    }
+  } else {
+    // No migrations needed, but ensure marker is at current version
+    writeMarker(cwd, canvaiVersion)
+  }
 
   return applied
 }

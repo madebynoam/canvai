@@ -333,6 +333,82 @@ describe('migration 0.0.16 integration', () => {
   })
 })
 
+// --- Recovery scenario: the exact bug consumers hit ---
+
+describe('migration 0.0.16 recovery', () => {
+  const migration = migrations.find(m => m.version === '0.0.16')!
+
+  // Simulates what happened: old migration ran on App.tsx (unsafe chaining),
+  // manifest was never touched, marker was bumped to 0.0.16
+  const halfMigratedApp = `import { useState } from 'react'
+import { Canvas, Frame, useFrames, layoutFrames, TopBar, IterationSidebar, AnnotationOverlay } from 'canvai/runtime'
+import { manifests } from 'virtual:canvai-manifests'
+import type { ProjectManifest } from 'canvai/runtime'
+
+function App() {
+  const [activeProjectIndex, setActiveProjectIndex] = useState(0)
+  const [activeIterationIndex, setActiveIterationIndex] = useState(0)
+  const [activePageIndex, setActivePageIndex] = useState(0)
+
+  const activeProject: ProjectManifest | undefined = manifests[activeProjectIndex]
+  const activePage = activeProject?.iterations[activeIterationIndex]?.pages[activePageIndex]
+
+  return (
+    <div>
+      <TopBar iterationCount={activeProject?.iterations.length ?? 0} />
+      <IterationSidebar
+        iterations={activeProject?.iterations ?? []}
+        activeIterationIndex={activeIterationIndex}
+        activePageIndex={activePageIndex}
+        onSelect={(iterIdx, pageIdx) => {
+          setActiveIterationIndex(iterIdx)
+          setActivePageIndex(pageIdx)
+        }}
+      />
+    </div>
+  )
+}
+
+export default App
+`
+
+  it('applies to half-migrated state (marker at 0.0.16 but files broken)', () => {
+    // This is the exact scenario: App.tsx was half-migrated, manifest untouched
+    expect(migration.applies({
+      'src/App.tsx': halfMigratedApp,
+      'src/projects/foo/manifest.ts': oldManifest,
+    })).toBe(true)
+  })
+
+  it('fixes both App.tsx chaining AND manifest in one pass', () => {
+    const result = migration.migrate({
+      'src/App.tsx': halfMigratedApp,
+      'src/projects/foo/manifest.ts': oldManifest,
+    })
+
+    // App.tsx should have safe chaining
+    expect(result['src/App.tsx']).toContain('?.iterations?.[')
+    expect(result['src/App.tsx']).toContain('?.iterations?.length')
+    expect(result['src/App.tsx']).not.toContain('?.iterations[')
+    expect(result['src/App.tsx']).not.toContain('?.iterations.length')
+
+    // Manifest should be wrapped in iterations
+    expect(result['src/projects/foo/manifest.ts']).toContain('iterations:')
+  })
+
+  it('applies returns false after recovery (verified clean)', () => {
+    const result = migration.migrate({
+      'src/App.tsx': halfMigratedApp,
+      'src/projects/foo/manifest.ts': oldManifest,
+    })
+
+    expect(migration.applies({
+      'src/App.tsx': result['src/App.tsx'],
+      'src/projects/foo/manifest.ts': result['src/projects/foo/manifest.ts'],
+    })).toBe(false)
+  })
+})
+
 describe('compareSemver', () => {
   it('handles equal versions', () => {
     expect(compareSemver('0.0.10', '0.0.10')).toBe(0)

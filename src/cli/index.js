@@ -179,13 +179,17 @@ switch (command) {
   case 'update':
     update()
     break
-  case 'migrate': {
+  case 'migrate':
+  case 'doctor': {
     const cwd = process.cwd()
+    if (command === 'doctor') {
+      console.log('Running canvai doctor — checking all migrations...\n')
+    }
     const applied = runMigrations(cwd)
     if (applied > 0) {
-      console.log(`Applied ${applied} migration${applied === 1 ? '' : 's'}.`)
+      console.log(`\nApplied ${applied} migration${applied === 1 ? '' : 's'}.`)
     } else {
-      console.log('No migrations needed.')
+      console.log('All files are healthy — no migrations needed.')
     }
     break
   }
@@ -195,6 +199,7 @@ switch (command) {
     console.log('  canvai init      Scaffold project files')
     console.log('  canvai dev       Start dev server + annotation server')
     console.log('  canvai update    Update canvai to latest')
+    console.log('  canvai doctor    Check and fix project files')
     console.log('  canvai help      Show this message')
     process.exit(command === 'help' ? 0 : 1)
 }

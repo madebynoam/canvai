@@ -78,6 +78,15 @@ When changing a type, interface, or data format:
 
 `canvai update` runs `npm install` then migrations. But the migration code was loaded at process startup (old version). The new code is on disk but not in memory. The update command handles this by spawning `canvai migrate` as a **new process** after npm install. Never call `runMigrations()` directly inside the update function — it will use stale code.
 
+### Self-healing migrations
+
+The migration runner checks `applies()` on ALL migrations every run, not just ones newer than the marker. This means:
+- A migration that partially ran (stale code, bugs) will be re-applied on next run
+- The marker is only bumped after ALL migrations verify clean (`applies()` returns false)
+- `canvai doctor` is the manual escape hatch — same logic, explicit invocation
+- Every migration's `applies()` must detect ALL broken states, including half-migrated files
+- Recovery tests must simulate the half-migrated scenario and verify full recovery
+
 ### Dogfooding project (`src/projects/canvai-ui/`)
 
 The `canvai-ui` project renders the actual runtime UI components (TopBar, ProjectPicker, IterationSidebar, etc.) so we can visually test the canvas itself. It imports directly from `../../runtime/`, so existing component changes are reflected instantly via HMR.
@@ -113,6 +122,7 @@ Register new migrations in `src/cli/migrations/index.js`. Keep them sorted by ve
 - `npx canvai init` — scaffold consumer project files
 - `npx canvai dev` — start dev server + annotation MCP
 - `npx canvai update` — update canvai to latest from GitHub
+- `npx canvai doctor` — check and fix project files (self-healing migrations)
 
 ### Local plugin testing
 
