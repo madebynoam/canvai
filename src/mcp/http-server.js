@@ -6,6 +6,7 @@ import { createServer } from 'http'
 
 const annotations = new Map()
 const waiters = [] // Array of { resolve } for long-poll /annotations/next
+const sseClients = [] // Array of response objects for SSE
 let nextId = 1
 
 function addAnnotation(data) {
@@ -39,6 +40,10 @@ function resolveAnnotation(id) {
   const annotation = annotations.get(id)
   if (annotation) {
     annotation.status = 'resolved'
+    // Notify all SSE clients
+    for (const client of sseClients) {
+      client.write(`data: ${JSON.stringify({ type: 'resolved', id })}\n\n`)
+    }
   }
   return annotation
 }
@@ -90,6 +95,23 @@ const httpServer = createServer(async (req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`)
 
   try {
+    // GET /annotations/events — SSE stream
+    if (req.method === 'GET' && url.pathname === '/annotations/events') {
+      res.writeHead(200, {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+        'Access-Control-Allow-Origin': '*',
+      })
+      res.write('\n')
+      sseClients.push(res)
+      req.on('close', () => {
+        const idx = sseClients.indexOf(res)
+        if (idx !== -1) sseClients.splice(idx, 1)
+      })
+      return
+    }
+
     // POST /annotations — receive from browser
     if (req.method === 'POST' && url.pathname === '/annotations') {
       const data = await parseBody(req)

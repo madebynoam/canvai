@@ -12,12 +12,13 @@ import type { ProjectManifest } from './runtime/types'
 
 function App() {
   const [activeProjectIndex, setActiveProjectIndex] = useState(0)
+  const [activeIterationIndex, setActiveIterationIndex] = useState(0)
   const [activePageIndex, setActivePageIndex] = useState(0)
   const [mode] = useState<'manual' | 'watch'>('manual')
   const [pendingCount, setPendingCount] = useState(0)
 
   const activeProject: ProjectManifest | undefined = manifests[activeProjectIndex]
-  const activePage = activeProject?.pages[activePageIndex]
+  const activePage = activeProject?.iterations[activeIterationIndex]?.pages[activePageIndex]
   const layoutedFrames = activePage ? layoutFrames(activePage) : []
 
   const { frames, updateFrame, handleResize } = useFrames(layoutedFrames, activePage?.grid)
@@ -30,20 +31,25 @@ function App() {
         activeProjectIndex={activeProjectIndex}
         onSelectProject={(i) => {
           setActiveProjectIndex(i)
+          setActiveIterationIndex(0)
           setActivePageIndex(0)
         }}
-        iterationCount={activeProject?.pages.length ?? 0}
+        iterationCount={activeProject?.iterations.length ?? 0}
         pendingCount={pendingCount}
         mode={mode}
       />
 
       {/* Main area — sidebar + canvas */}
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
-        {/* Iteration sidebar (pages) */}
+        {/* Iteration sidebar */}
         <IterationSidebar
-          iterations={activeProject?.pages ?? []}
-          activeIndex={activePageIndex}
-          onSelect={setActivePageIndex}
+          iterations={activeProject?.iterations ?? []}
+          activeIterationIndex={activeIterationIndex}
+          activePageIndex={activePageIndex}
+          onSelect={(iterIdx, pageIdx) => {
+            setActiveIterationIndex(iterIdx)
+            setActivePageIndex(pageIdx)
+          }}
         />
 
         {/* Canvas */}

@@ -38,8 +38,14 @@ export interface PageManifest {
   }
 }
 
+/** An iteration grouping pages within a project */
+export interface IterationManifest {
+  name: string
+  pages: PageManifest[]
+}
+
 /** A project manifest — exported from src/projects/<name>/manifest.ts */
 export interface ProjectManifest {
   project: string
-  pages: PageManifest[]
+  iterations: IterationManifest[]
 }

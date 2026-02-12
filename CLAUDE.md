@@ -65,6 +65,16 @@ If you remove/rename a runtime export, you MUST:
 - Migrations must be idempotent
 - Test migrations with `npm test`
 
+### Dogfooding project (`src/projects/canvai-ui/`)
+
+The `canvai-ui` project renders the actual runtime UI components (TopBar, ProjectPicker, IterationSidebar, etc.) so we can visually test the canvas itself. It imports directly from `../../runtime/`, so existing component changes are reflected instantly via HMR.
+
+When you modify runtime UI components:
+- **Change props/appearance** — automatically reflected, nothing to do
+- **Add a new UI component** — add a preview wrapper + frame to `canvai-ui/manifest.ts`
+- **Remove a UI component** — remove its frame from `canvai-ui/manifest.ts`
+- **Change a component's props interface** — update the corresponding preview wrapper
+
 ### Deprecation before removal
 
 When removing a runtime export:
@@ -94,8 +104,9 @@ Register new migrations in `src/cli/migrations/index.js`. Keep them sorted by ve
 ## Skills
 
 - **`/canvai-init <project-name>`** — Create a new design project and start designing
+- **`/canvai-check`** — Check for pending annotations and process them
 - **`/canvai-dev`** — Start (or restart) the dev server (chat mode)
 - **`/canvai-watch`** — Enter watch mode for rapid annotation sessions
-- **`/canvai-iterate`** — Create a new design iteration (page)
+- **`/canvai-iterate`** — Create a new design iteration
 - **`/canvai-ship`** — Ship component to a production repo
 - **`/canvai-update`** — Update canvai to the latest version

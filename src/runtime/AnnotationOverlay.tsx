@@ -84,6 +84,7 @@ function getStyleSubset(el: Element): Record<string, string> {
 
 interface AnnotationMarker {
   id: number
+  serverId: string
   frameId: string
   selector: string
   comment: string
@@ -121,6 +122,20 @@ export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual', o
   useEffect(() => {
     onPendingChange?.(markers.length)
   }, [markers.length, onPendingChange])
+
+  // Subscribe to SSE for resolved annotations — remove markers when agent resolves them
+  useEffect(() => {
+    const source = new EventSource(`${endpoint}/annotations/events`)
+    source.onmessage = (e) => {
+      try {
+        const data = JSON.parse(e.data)
+        if (data.type === 'resolved' && data.id) {
+          setMarkers(prev => prev.filter(m => m.serverId !== data.id))
+        }
+      } catch { /* ignore parse errors */ }
+    }
+    return () => source.close()
+  }, [endpoint])
 
   // Recompute marker positions on scroll/resize/animation
   useEffect(() => {
@@ -225,16 +240,18 @@ export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual', o
     }
 
     try {
-      await fetch(`${endpoint}/annotations`, {
+      const res = await fetch(`${endpoint}/annotations`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       })
+      const annotation = await res.json()
+      const serverId = annotation.id as string
       if (editingMarkerId !== null) {
         // Update existing marker
         setMarkers(prev => prev.map(m =>
           m.id === editingMarkerId
-            ? { ...m, frameId: target.frameId, selector: target.selector, comment: comment.trim() }
+            ? { ...m, serverId, frameId: target.frameId, selector: target.selector, comment: comment.trim() }
             : m
         ))
       } else {
@@ -242,6 +259,7 @@ export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual', o
         const id = nextMarkerId.current++
         setMarkers(prev => [...prev, {
           id,
+          serverId,
           frameId: target.frameId,
           selector: target.selector,
           comment: comment.trim(),

@@ -7,7 +7,7 @@ Canvai is a design studio. A Figma-like infinite canvas where every design is li
 1. **`/canvai-init <project-name>`** — Creates a new design project, installs canvai if needed, starts the dev server + annotation MCP.
 2. **Describe** — The designer describes the component (or attaches a sketch). The agent generates the component with variations and states as a manifest.
 3. **Annotate** — The designer clicks "Annotate" on the canvas, selects an element, types a comment, and clicks "Apply". The annotation is pushed to the agent automatically via the MCP watch loop.
-4. **`/canvai-iterate`** — Creates a new page (version) in the manifest. Old versions are frozen.
+4. **`/canvai-iterate`** — Creates a new iteration in the manifest. Old iterations are frozen.
 5. **`/canvai-ship`** — PR the finished components to a production codebase.
 
 ## Project structure
@@ -29,12 +29,17 @@ import type { ProjectManifest } from 'canvai/runtime'
 
 const manifest: ProjectManifest = {
   project: 'my-project',
-  pages: [
+  iterations: [
     {
-      name: 'V1 — Initial',
-      grid: { columns: 3, columnWidth: 300, rowHeight: 160, gap: 40 },
-      frames: [
-        { id: 'comp-variant-state', title: 'Comp / Variant / State', component: MyComponent, props: { ... } },
+      name: 'V1',
+      pages: [
+        {
+          name: 'Initial',
+          grid: { columns: 3, columnWidth: 300, rowHeight: 160, gap: 40 },
+          frames: [
+            { id: 'comp-variant-state', title: 'Comp / Variant / State', component: MyComponent, props: { ... } },
+          ],
+        },
       ],
     },
   ],
@@ -118,13 +123,14 @@ Every annotation fix must be logged in the project's `CHANGELOG.md`. This provid
 - **input**: Added 8px padding and border-radius 6px (annotation #3)
 ```
 
-Each entry includes the `selector`, a brief description of the change, and the annotation number. Group entries under the current iteration (page name).
+Each entry includes the `selector`, a brief description of the change, and the annotation number. Group entries under the current iteration name.
 
 ## Skills
 
 - **`/canvai-init <project-name>`** — Create a new design project and start designing
+- **`/canvai-check`** — Check for pending annotations and process them
 - **`/canvai-dev`** — Start (or restart) the dev server (chat mode)
 - **`/canvai-watch`** — Enter watch mode for rapid annotation sessions
-- **`/canvai-iterate`** — Create a new design iteration (page)
+- **`/canvai-iterate`** — Create a new design iteration
 - **`/canvai-ship`** — Ship component to a production repo
 - **`/canvai-update`** — Update canvai to the latest version

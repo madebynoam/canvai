@@ -4,6 +4,7 @@
  */
 
 import * as m0010 from './0.0.10.js'
+import * as m0016 from './0.0.16.js'
 
 /** Migrations sorted by version (ascending). */
-export const migrations = [m0010]
+export const migrations = [m0010, m0016]

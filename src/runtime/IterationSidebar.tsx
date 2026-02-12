@@ -1,9 +1,10 @@
 import { useState, type CSSProperties } from 'react'
 
 interface IterationSidebarProps {
-  iterations: { name: string }[]
-  activeIndex: number
-  onSelect: (index: number) => void
+  iterations: { name: string; pages: { name: string }[] }[]
+  activeIterationIndex: number
+  activePageIndex: number
+  onSelect: (iterationIndex: number, pageIndex: number) => void
 }
 
 const BORDER = '#E5E7EB'
@@ -58,31 +59,82 @@ const styles = {
     overflow: 'auto',
     flex: 1,
   } satisfies CSSProperties,
-  item: (active: boolean) => ({
+  iterationHeader: (expanded: boolean) => ({
     display: 'flex',
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
     padding: '5px 8px',
     border: 'none',
     borderRadius: 6,
     cursor: 'pointer',
-    backgroundColor: active ? BORDER : 'transparent',
-    fontWeight: active ? 500 : 400,
-    fontSize: 13,
-    color: active ? '#1F2937' : '#374151',
+    backgroundColor: 'transparent',
+    fontWeight: 600,
+    fontSize: 12,
+    color: '#374151',
     textAlign: 'left',
     whiteSpace: 'nowrap',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
-    transition: 'background-color 0.1s ease',
+    fontFamily: FONT,
+    marginTop: 4,
+  }) satisfies CSSProperties,
+  chevron: (expanded: boolean) => ({
+    width: 12,
+    height: 12,
+    flexShrink: 0,
+    transition: 'transform 0.15s ease',
+    transform: expanded ? 'rotate(90deg)' : 'rotate(0deg)',
+    color: TEXT_TERTIARY,
+  }),
+  pageItem: (active: boolean) => ({
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    padding: '4px 8px 4px 26px',
+    border: 'none',
+    borderRadius: 6,
+    cursor: 'pointer',
+    backgroundColor: 'transparent',
+    fontWeight: active ? 500 : 400,
+    fontSize: 13,
+    color: active ? '#1F2937' : '#9CA3AF',
+    textAlign: 'left',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    transition: 'color 0.1s ease',
     fontFamily: FONT,
   }) satisfies CSSProperties,
 }
 
-export function IterationSidebar({ iterations, activeIndex, onSelect }: IterationSidebarProps) {
+export function IterationSidebar({ iterations, activeIterationIndex, activePageIndex, onSelect }: IterationSidebarProps) {
   const [collapsed, setCollapsed] = useState(false)
+  const [expandedSet, setExpandedSet] = useState<Set<number>>(() => new Set([activeIterationIndex]))
+
+  // Auto-expand when the active iteration changes
+  const prevActiveRef = useState({ current: activeIterationIndex })[0]
+  if (prevActiveRef.current !== activeIterationIndex) {
+    prevActiveRef.current = activeIterationIndex
+    if (!expandedSet.has(activeIterationIndex)) {
+      setExpandedSet(prev => new Set(prev).add(activeIterationIndex))
+    }
+  }
 
   if (iterations.length === 0) return null
+
+  const toggleExpanded = (index: number) => {
+    setExpandedSet(prev => {
+      const next = new Set(prev)
+      if (next.has(index)) {
+        next.delete(index)
+      } else {
+        next.add(index)
+      }
+      return next
+    })
+  }
+
+  const isExpanded = (index: number) => expandedSet.has(index)
 
   return (
     <div style={styles.container(collapsed)}>
@@ -104,17 +156,35 @@ export function IterationSidebar({ iterations, activeIndex, onSelect }: Iteratio
       </div>
       {!collapsed && (
         <div style={styles.list}>
-          {iterations.map((iter, i) => (
-            <button
-              key={iter.name}
-              style={styles.item(i === activeIndex)}
-              onClick={() => onSelect(i)}
-            >
-              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {iter.name}
-              </span>
-            </button>
-          ))}
+          {iterations.map((iter, iterIdx) => {
+            const expanded = isExpanded(iterIdx)
+            return (
+              <div key={iter.name}>
+                <button
+                  style={styles.iterationHeader(expanded)}
+                  onClick={() => toggleExpanded(iterIdx)}
+                >
+                  <svg style={styles.chevron(expanded)} viewBox="0 0 12 12" fill="none">
+                    <path d="M4 2l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {iter.name}
+                  </span>
+                </button>
+                {expanded && iter.pages.map((page, pageIdx) => (
+                  <button
+                    key={page.name}
+                    style={styles.pageItem(iterIdx === activeIterationIndex && pageIdx === activePageIndex)}
+                    onClick={() => onSelect(iterIdx, pageIdx)}
+                  >
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {page.name}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )
+          })}
         </div>
       )}
     </div>

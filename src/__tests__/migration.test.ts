@@ -87,6 +87,133 @@ describe('migration registry', () => {
   })
 })
 
+// Old App.tsx template that used flat pages (pre-0.0.16)
+const oldPagesAppTsx = `import { useState } from 'react'
+import { Canvas, Frame, useFrames, layoutFrames, TopBar, IterationSidebar, AnnotationOverlay } from 'canvai/runtime'
+import { manifests } from 'virtual:canvai-manifests'
+import type { ProjectManifest } from 'canvai/runtime'
+
+function App() {
+  const [activeProjectIndex, setActiveProjectIndex] = useState(0)
+  const [activePageIndex, setActivePageIndex] = useState(0)
+  const [mode] = useState<'manual' | 'watch'>('manual')
+  const [pendingCount, setPendingCount] = useState(0)
+
+  const activeProject: ProjectManifest | undefined = manifests[activeProjectIndex]
+  const activePage = activeProject?.pages[activePageIndex]
+  const layoutedFrames = activePage ? layoutFrames(activePage) : []
+
+  const { frames, updateFrame, handleResize } = useFrames(layoutedFrames, activePage?.grid)
+
+  return (
+    <div id="canvai-root" style={{ width: '100vw', height: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <TopBar
+        projects={manifests}
+        activeProjectIndex={activeProjectIndex}
+        onSelectProject={(i) => {
+          setActiveProjectIndex(i)
+          setActivePageIndex(0)
+        }}
+        iterationCount={activeProject?.pages.length ?? 0}
+        pendingCount={pendingCount}
+        mode={mode}
+      />
+
+      <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+        <IterationSidebar
+          iterations={activeProject?.pages ?? []}
+          activeIndex={activePageIndex}
+          onSelect={setActivePageIndex}
+        />
+
+        <div style={{ flex: 1 }}>
+          <Canvas>
+            {frames.map(frame => (
+              <Frame
+                key={frame.id}
+                id={frame.id}
+                title={frame.title}
+                x={frame.x}
+                y={frame.y}
+                width={frame.width}
+                height={frame.height}
+                onMove={(id, newX, newY) => updateFrame(id, { x: newX, y: newY })}
+                onResize={handleResize}
+              >
+                <frame.component {...(frame.props ?? {})} />
+              </Frame>
+            ))}
+          </Canvas>
+        </div>
+      </div>
+
+      {import.meta.env.DEV && <AnnotationOverlay endpoint="http://localhost:4748" frames={frames} annotateMode={mode} onPendingChange={setPendingCount} />}
+    </div>
+  )
+}
+
+export default App
+`
+
+describe('migration 0.0.16', () => {
+  const migration = migrations.find(m => m.version === '0.0.16')!
+
+  it('exists in the registry', () => {
+    expect(migration).toBeDefined()
+    expect(migration.version).toBe('0.0.16')
+  })
+
+  it('applies to old template with flat pages', () => {
+    expect(migration.applies({ 'src/App.tsx': oldPagesAppTsx })).toBe(true)
+  })
+
+  it('does not apply to current template', () => {
+    const currentApp = `const activePage = activeProject?.iterations[activeIterationIndex]?.pages[activePageIndex]`
+    expect(migration.applies({ 'src/App.tsx': currentApp })).toBe(false)
+  })
+
+  it('does not apply when file is missing', () => {
+    expect(migration.applies({})).toBe(false)
+  })
+
+  it('adds activeIterationIndex state', () => {
+    const result = migration.migrate({ 'src/App.tsx': oldPagesAppTsx })
+    expect(result['src/App.tsx']).toContain('activeIterationIndex')
+    expect(result['src/App.tsx']).toContain('setActiveIterationIndex')
+  })
+
+  it('replaces .pages[activePageIndex] with .iterations[activeIterationIndex]?.pages[activePageIndex]', () => {
+    const result = migration.migrate({ 'src/App.tsx': oldPagesAppTsx })
+    expect(result['src/App.tsx']).toContain('iterations[activeIterationIndex]?.pages[activePageIndex]')
+    expect(result['src/App.tsx']).not.toMatch(/activeProject\?\.pages\[activePageIndex\]/)
+  })
+
+  it('replaces .pages.length with .iterations.length', () => {
+    const result = migration.migrate({ 'src/App.tsx': oldPagesAppTsx })
+    expect(result['src/App.tsx']).toContain('.iterations.length')
+    expect(result['src/App.tsx']).not.toContain('.pages.length')
+  })
+
+  it('updates IterationSidebar props', () => {
+    const result = migration.migrate({ 'src/App.tsx': oldPagesAppTsx })
+    expect(result['src/App.tsx']).toContain('activeIterationIndex={activeIterationIndex}')
+    expect(result['src/App.tsx']).toContain('activePageIndex={activePageIndex}')
+    expect(result['src/App.tsx']).not.toContain('activeIndex={activePageIndex}')
+  })
+
+  it('resets both indices on project switch', () => {
+    const result = migration.migrate({ 'src/App.tsx': oldPagesAppTsx })
+    expect(result['src/App.tsx']).toContain('setActiveIterationIndex(0)')
+  })
+
+  it('is idempotent — running twice produces the same result', () => {
+    const first = migration.migrate({ 'src/App.tsx': oldPagesAppTsx })
+    expect(migration.applies({ 'src/App.tsx': first['src/App.tsx'] })).toBe(false)
+    const second = migration.migrate({ 'src/App.tsx': first['src/App.tsx'] })
+    expect(second['src/App.tsx']).toBe(first['src/App.tsx'])
+  })
+})
+
 describe('compareSemver', () => {
   it('handles equal versions', () => {
     expect(compareSemver('0.0.10', '0.0.10')).toBe(0)
