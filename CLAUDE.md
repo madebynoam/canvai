@@ -108,5 +108,6 @@ Register new migrations in `src/cli/migrations/index.js`. Keep them sorted by ve
 - **`/canvai-dev`** — Start (or restart) the dev server (chat mode)
 - **`/canvai-watch`** — Enter watch mode for rapid annotation sessions
 - **`/canvai-iterate`** — Create a new design iteration
+- **`/canvai-share`** — Build and deploy to GitHub Pages for sharing
 - **`/canvai-ship`** — Ship component to a production repo
 - **`/canvai-update`** — Update canvai to the latest version

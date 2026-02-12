@@ -132,5 +132,6 @@ Each entry includes the `selector`, a brief description of the change, and the a
 - **`/canvai-dev`** — Start (or restart) the dev server (chat mode)
 - **`/canvai-watch`** — Enter watch mode for rapid annotation sessions
 - **`/canvai-iterate`** — Create a new design iteration
+- **`/canvai-share`** — Build and deploy to GitHub Pages for sharing
 - **`/canvai-ship`** — Ship component to a production repo
 - **`/canvai-update`** — Update canvai to the latest version

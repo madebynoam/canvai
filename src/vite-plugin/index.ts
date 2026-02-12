@@ -19,8 +19,11 @@ export function canvaiPlugin(): Plugin {
   function findManifests(): string[] {
     if (!fs.existsSync(projectsDir)) return []
 
+    const filterProject = process.env.CANVAI_PROJECT
+
     return fs.readdirSync(projectsDir, { withFileTypes: true })
       .filter(d => d.isDirectory())
+      .filter(d => !filterProject || d.name === filterProject)
       .map(d => path.join(projectsDir, d.name, 'manifest.ts'))
       .filter(p => fs.existsSync(p))
   }
