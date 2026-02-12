@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { migrations } from '../cli/migrations/index.js'
 import { compareSemver } from '../cli/migrate.js'
+import { appTsx } from '../cli/templates.js'
 
 // Old App.tsx template that used PageTabs + ProjectSidebar (pre-0.0.10)
 const oldAppTsx = `import { useState } from 'react'
@@ -155,6 +156,27 @@ function App() {
 export default App
 `
 
+// Old manifest format (pre-0.0.16) — flat pages at top level
+const oldManifest = `import { MyComponent } from './MyComponent'
+import type { ProjectManifest } from 'canvai/runtime'
+
+const manifest: ProjectManifest = {
+  project: 'my-project',
+  pages: [
+    {
+      name: 'V1 — Initial',
+      grid: { columns: 3, columnWidth: 300, rowHeight: 160, gap: 40 },
+      frames: [
+        { id: 'comp-short-default', title: 'Comp / Short / Default', component: MyComponent, props: { text: 'Click' } },
+        { id: 'comp-short-hover', title: 'Comp / Short / Hover', component: MyComponent, props: { text: 'Click', state: 'hover' } },
+      ],
+    },
+  ],
+}
+
+export default manifest
+`
+
 describe('migration 0.0.16', () => {
   const migration = migrations.find(m => m.version === '0.0.16')!
 
@@ -163,12 +185,14 @@ describe('migration 0.0.16', () => {
     expect(migration.version).toBe('0.0.16')
   })
 
+  // --- App.tsx tests ---
+
   it('applies to old template with flat pages', () => {
     expect(migration.applies({ 'src/App.tsx': oldPagesAppTsx })).toBe(true)
   })
 
   it('does not apply to current template', () => {
-    const currentApp = `const activePage = activeProject?.iterations[activeIterationIndex]?.pages[activePageIndex]`
+    const currentApp = `const activePage = activeProject?.iterations?.[activeIterationIndex]?.pages[activePageIndex]`
     expect(migration.applies({ 'src/App.tsx': currentApp })).toBe(false)
   })
 
@@ -182,15 +206,15 @@ describe('migration 0.0.16', () => {
     expect(result['src/App.tsx']).toContain('setActiveIterationIndex')
   })
 
-  it('replaces .pages[activePageIndex] with .iterations[activeIterationIndex]?.pages[activePageIndex]', () => {
+  it('replaces .pages[activePageIndex] with .iterations?.[activeIterationIndex]?.pages[activePageIndex]', () => {
     const result = migration.migrate({ 'src/App.tsx': oldPagesAppTsx })
-    expect(result['src/App.tsx']).toContain('iterations[activeIterationIndex]?.pages[activePageIndex]')
+    expect(result['src/App.tsx']).toContain('iterations?.[activeIterationIndex]?.pages[activePageIndex]')
     expect(result['src/App.tsx']).not.toMatch(/activeProject\?\.pages\[activePageIndex\]/)
   })
 
-  it('replaces .pages.length with .iterations.length', () => {
+  it('replaces .pages.length with .iterations?.length', () => {
     const result = migration.migrate({ 'src/App.tsx': oldPagesAppTsx })
-    expect(result['src/App.tsx']).toContain('.iterations.length')
+    expect(result['src/App.tsx']).toContain('.iterations?.length')
     expect(result['src/App.tsx']).not.toContain('.pages.length')
   })
 
@@ -211,6 +235,85 @@ describe('migration 0.0.16', () => {
     expect(migration.applies({ 'src/App.tsx': first['src/App.tsx'] })).toBe(false)
     const second = migration.migrate({ 'src/App.tsx': first['src/App.tsx'] })
     expect(second['src/App.tsx']).toBe(first['src/App.tsx'])
+  })
+
+  // --- Manifest tests ---
+
+  it('applies when manifest has old pages format', () => {
+    expect(migration.applies({
+      'src/App.tsx': appTsx, // already migrated
+      'src/projects/foo/manifest.ts': oldManifest,
+    })).toBe(true)
+  })
+
+  it('does not apply when manifest already has iterations', () => {
+    const newManifest = oldManifest.replace('pages:', 'iterations:')
+    expect(migration.applies({
+      'src/App.tsx': appTsx,
+      'src/projects/foo/manifest.ts': newManifest,
+    })).toBe(false)
+  })
+
+  it('wraps manifest pages in iterations', () => {
+    const result = migration.migrate({
+      'src/App.tsx': appTsx,
+      'src/projects/foo/manifest.ts': oldManifest,
+    })
+    const migrated = result['src/projects/foo/manifest.ts']
+    expect(migrated).toContain('iterations:')
+    expect(migrated).toContain("name: 'V1'")
+    expect(migrated).toContain('pages:')
+    // Should still have the frames inside
+    expect(migrated).toContain('comp-short-default')
+    expect(migrated).toContain('comp-short-hover')
+  })
+
+  it('manifest migration is idempotent', () => {
+    const first = migration.migrate({
+      'src/App.tsx': appTsx,
+      'src/projects/foo/manifest.ts': oldManifest,
+    })
+    const second = migration.migrate({
+      'src/App.tsx': appTsx,
+      'src/projects/foo/manifest.ts': first['src/projects/foo/manifest.ts'],
+    })
+    expect(second['src/projects/foo/manifest.ts']).toBe(first['src/projects/foo/manifest.ts'])
+  })
+})
+
+// --- Integration test: migrated files work together ---
+
+describe('migration 0.0.16 integration', () => {
+  const migration = migrations.find(m => m.version === '0.0.16')!
+
+  it('migrated App.tsx accesses iterations, migrated manifest provides iterations', () => {
+    const result = migration.migrate({
+      'src/App.tsx': oldPagesAppTsx,
+      'src/projects/foo/manifest.ts': oldManifest,
+    })
+
+    const migratedApp = result['src/App.tsx']
+    const migratedManifest = result['src/projects/foo/manifest.ts']
+
+    // App.tsx expects .iterations — manifest must provide it
+    expect(migratedApp).toContain('.iterations?.')
+    expect(migratedManifest).toContain('iterations:')
+
+    // App.tsx expects .iterations[i].pages — manifest must have pages inside iterations
+    expect(migratedApp).toContain('.pages[activePageIndex]')
+    expect(migratedManifest).toContain('pages:')
+    // pages must be INSIDE iterations, not at top level
+    const iterationsIdx = migratedManifest.indexOf('iterations:')
+    const pagesIdx = migratedManifest.indexOf('pages:', iterationsIdx)
+    expect(pagesIdx).toBeGreaterThan(iterationsIdx)
+  })
+
+  it('current template and current manifest format are compatible', () => {
+    // The template uses .iterations?.[i]?.pages[j]
+    // Manifests should have iterations: [{ pages: [...] }]
+    expect(appTsx).toContain('iterations?.[activeIterationIndex]')
+    expect(appTsx).toContain('.pages[activePageIndex]')
+    expect(appTsx).toContain('iterations?.length')
   })
 })
 

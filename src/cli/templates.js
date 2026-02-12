@@ -52,7 +52,7 @@ function App() {
   const [pendingCount, setPendingCount] = useState(0)
 
   const activeProject: ProjectManifest | undefined = manifests[activeProjectIndex]
-  const activePage = activeProject?.iterations[activeIterationIndex]?.pages[activePageIndex]
+  const activePage = activeProject?.iterations?.[activeIterationIndex]?.pages[activePageIndex]
   const layoutedFrames = activePage ? layoutFrames(activePage) : []
 
   const { frames, updateFrame, handleResize } = useFrames(layoutedFrames, activePage?.grid)
@@ -67,7 +67,7 @@ function App() {
           setActiveIterationIndex(0)
           setActivePageIndex(0)
         }}
-        iterationCount={activeProject?.iterations.length ?? 0}
+        iterationCount={activeProject?.iterations?.length ?? 0}
         pendingCount={pendingCount}
         mode={mode}
       />

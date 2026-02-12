@@ -5,7 +5,7 @@
  * runs them in order, and updates the marker.
  */
 
-import { existsSync, readFileSync, writeFileSync } from 'fs'
+import { existsSync, readFileSync, readdirSync, writeFileSync } from 'fs'
 import { join } from 'path'
 import { migrations } from './migrations/index.js'
 
@@ -70,6 +70,19 @@ export function runMigrations(cwd) {
       const abs = join(cwd, filepath)
       if (existsSync(abs)) {
         fileContents[filepath] = readFileSync(abs, 'utf-8')
+      }
+    }
+
+    // Also discover manifest files for migrations that need them
+    const projectsDir = join(cwd, 'src/projects')
+    if (existsSync(projectsDir)) {
+      for (const d of readdirSync(projectsDir, { withFileTypes: true })) {
+        if (!d.isDirectory()) continue
+        const rel = `src/projects/${d.name}/manifest.ts`
+        const abs = join(cwd, rel)
+        if (existsSync(abs) && !fileContents[rel]) {
+          fileContents[rel] = readFileSync(abs, 'utf-8')
+        }
       }
     }
 

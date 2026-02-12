@@ -65,6 +65,15 @@ If you remove/rename a runtime export, you MUST:
 - Migrations must be idempotent
 - Test migrations with `npm test`
 
+### Breaking change coverage (CRITICAL)
+
+When changing a type, interface, or data format:
+1. **Trace ALL consumer files** that use it — not just App.tsx but also manifest files, config files, and any agent-generated files
+2. **Migrate every file type**, not just the ones in `migration.files`. The runner auto-discovers `src/projects/*/manifest.ts`
+3. **Write integration tests** that verify migrated files work together (e.g. migrated App.tsx + migrated manifest)
+4. **Use safe optional chaining** (`?.[]`) when accessing properties that may not exist during migration transitions
+5. **Test the migration against a real consumer project** before pushing — don't rely only on unit tests
+
 ### Dogfooding project (`src/projects/canvai-ui/`)
 
 The `canvai-ui` project renders the actual runtime UI components (TopBar, ProjectPicker, IterationSidebar, etc.) so we can visually test the canvas itself. It imports directly from `../../runtime/`, so existing component changes are reflected instantly via HMR.
