@@ -101,7 +101,20 @@ Register new migrations in `src/cli/migrations/index.js`. Keep them sorted by ve
 - `npx canvai dev` — start dev server + annotation MCP
 - `npx canvai update` — update canvai to latest from GitHub
 
+### Local plugin testing
+
+Plugin skills and MCP changes can't be tested until the plugin is installed. To avoid pushing untested changes:
+
+1. **`/plugin-local`** — Swaps the canvai marketplace from GitHub to the local `plugin/` directory
+2. Edit skills/MCP/CLAUDE.md in `plugin/plugins/canvai/`
+3. In the consumer folder: `claude plugin update canvai@canvai` → restart session → test
+4. **`/plugin-release`** — Swaps the marketplace back to GitHub after pushing
+
+The consumer folder always uses `canvai@canvai` — it doesn't need to know whether the source is local or GitHub.
+
 ## Skills
+
+### Plugin skills (consumer-facing, in `plugin/plugins/canvai/skills/`)
 
 - **`/canvai-init <project-name>`** — Create a new design project and start designing
 - **`/canvai-check`** — Check for pending annotations and process them
@@ -111,3 +124,8 @@ Register new migrations in `src/cli/migrations/index.js`. Keep them sorted by ve
 - **`/canvai-share`** — Build and deploy to GitHub Pages for sharing
 - **`/canvai-ship`** — Ship component to a production repo
 - **`/canvai-update`** — Update canvai to the latest version
+
+### Dev skills (repo-local, in `.claude/skills/`)
+
+- **`/plugin-local`** — Swap canvai marketplace to local for testing
+- **`/plugin-release`** — Swap canvai marketplace back to GitHub
