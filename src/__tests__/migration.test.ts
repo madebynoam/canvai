@@ -232,9 +232,25 @@ describe('migration 0.0.16', () => {
 
   it('is idempotent — running twice produces the same result', () => {
     const first = migration.migrate({ 'src/App.tsx': oldPagesAppTsx })
-    expect(migration.applies({ 'src/App.tsx': first['src/App.tsx'] })).toBe(false)
     const second = migration.migrate({ 'src/App.tsx': first['src/App.tsx'] })
     expect(second['src/App.tsx']).toBe(first['src/App.tsx'])
+  })
+
+  // --- Half-migrated App.tsx (unsafe optional chaining from old migration) ---
+
+  it('applies to half-migrated App.tsx with unsafe optional chaining', () => {
+    const halfMigrated = `const activePage = activeProject?.iterations[activeIterationIndex]?.pages[activePageIndex]`
+    expect(migration.applies({ 'src/App.tsx': halfMigrated })).toBe(true)
+  })
+
+  it('fixes unsafe ?.iterations[ to ?.iterations?.[', () => {
+    const halfMigrated = `const activePage = activeProject?.iterations[activeIterationIndex]?.pages[activePageIndex]
+        iterationCount={activeProject?.iterations.length ?? 0}`
+    const result = migration.migrate({ 'src/App.tsx': halfMigrated })
+    expect(result['src/App.tsx']).toContain('?.iterations?.[activeIterationIndex]')
+    expect(result['src/App.tsx']).toContain('?.iterations?.length')
+    expect(result['src/App.tsx']).not.toContain('?.iterations[')
+    expect(result['src/App.tsx']).not.toContain('?.iterations.length')
   })
 
   // --- Manifest tests ---

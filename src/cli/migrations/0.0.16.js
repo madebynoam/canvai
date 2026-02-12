@@ -17,12 +17,19 @@ export const description =
 export const files = ['src/App.tsx']
 
 export function applies(fileContents) {
-  // Check App.tsx for old pattern
   const app = fileContents['src/App.tsx']
+
+  // Check App.tsx for old flat-pages pattern
   if (app && !app.includes('activeIterationIndex') && (
     app.includes('.pages[activePageIndex]') ||
     app.includes('.pages.length') ||
     app.includes('activeIndex={activePageIndex}')
+  )) return true
+
+  // Check App.tsx for unsafe optional chaining (half-migrated by old migration)
+  if (app && (
+    app.includes('?.iterations[') ||
+    app.includes('?.iterations.length')
   )) return true
 
   // Check any manifest for old format (has `pages:` at top level, no `iterations:`)
@@ -124,7 +131,11 @@ export function migrate(fileContents) {
 
     result['src/App.tsx'] = app
   } else if (app) {
-    result['src/App.tsx'] = app
+    // Fix unsafe optional chaining from old migration (?.iterations[ → ?.iterations?.[)
+    let fixed = app
+    fixed = fixed.replace(/\?\.iterations\[/g, '?.iterations?.[')
+    fixed = fixed.replace(/\?\.iterations\.length/g, '?.iterations?.length')
+    result['src/App.tsx'] = fixed
   }
 
   // --- Migrate manifest files ---
