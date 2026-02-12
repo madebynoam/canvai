@@ -5,27 +5,26 @@ description: Update canvai to the latest version
 
 # /canvai-update
 
-Update the canvai npm package and Claude Code plugin to the latest version.
+Update everything in one shot — npm package, migrations, and Claude Code plugin.
 
 ## Steps
 
-1. **Update the npm package** (runs migrations automatically):
+1. **Update the npm package** (pulls latest from GitHub + runs migrations):
    ```bash
    npx canvai update
    ```
 
-2. **Update the Claude Code plugin** (refresh marketplace cache first):
+2. **Update the plugin marketplace cache:**
    ```bash
-   cd ~/.claude/plugins/marketplaces/canvai && git pull origin main 2>/dev/null; cd -
+   claude plugin marketplace update canvai
    ```
-   Then:
+
+3. **Update the installed plugin:**
    ```bash
    claude plugin update canvai@canvai
    ```
 
-3. **Restart the dev server** if it's running:
-   ```bash
-   npx canvai dev
-   ```
-
-4. **Confirm:** "Canvai updated to latest. Dev server restarted."
+4. Tell the user:
+   - npm package and plugin are updated
+   - **They must restart this Claude Code session** for plugin changes to take effect
+   - If the dev server was running, restart it with `/canvai-dev`
