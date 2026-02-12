@@ -265,7 +265,9 @@ export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual', o
           comment: comment.trim(),
         }])
       }
-      setToast('Sent to agent')
+      if (annotateMode === 'watch') {
+        setToast('Sent to agent')
+      }
     } catch {
       setToast('Failed to send')
     }
@@ -274,7 +276,7 @@ export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual', o
     setTarget(null)
     setComment('')
     setEditingMarkerId(null)
-  }, [target, comment, endpoint, editingMarkerId])
+  }, [target, comment, endpoint, editingMarkerId, annotateMode])
 
   const handleCancel = useCallback(() => {
     setMode('idle')
@@ -413,7 +415,6 @@ export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual', o
                 color: TEXT_SECONDARY,
                 border: `1px solid ${BORDER}`,
                 borderRadius: 8,
-                cursor: 'pointer',
                 fontSize: 12,
                 fontWeight: 500,
                 fontFamily: FONT,
@@ -430,7 +431,7 @@ export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual', o
                 color: comment.trim() ? '#fff' : TEXT_TERTIARY,
                 border: 'none',
                 borderRadius: 8,
-                cursor: comment.trim() ? 'pointer' : 'default',
+                cursor: 'default',
                 fontSize: 12,
                 fontWeight: 500,
                 fontFamily: FONT,
@@ -448,9 +449,6 @@ export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual', o
                 </>
               ) : 'Apply'}
             </button>
-          </div>
-          <div style={{ fontSize: 10, color: TEXT_TERTIARY, marginTop: 8 }}>
-            Cmd+Enter to {annotateMode === 'watch' ? 'send' : 'apply'} &middot; Esc to cancel
           </div>
         </div>
         )
@@ -475,7 +473,6 @@ export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual', o
             background: buttonState === 'hover' ? ACCENT_HOVER : buttonState === 'pressed' ? ACCENT_PRESSED : ACCENT,
             color: '#fff',
             border: 'none',
-            cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -545,9 +542,10 @@ export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual', o
               fontSize: 9,
               fontWeight: 700,
               fontFamily: FONT,
-              cursor: 'pointer',
               zIndex: 99997,
               boxShadow: `0 1px 4px ${ACCENT_SHADOW}`,
+              cursor: 'default',
+              userSelect: 'none',
             }}
           >
             {marker.id}

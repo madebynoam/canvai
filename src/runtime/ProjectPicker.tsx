@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, type CSSProperties } from 'react'
 
 interface ProjectPickerProps {
   projects: { project: string }[]
@@ -13,8 +13,43 @@ const TEXT_PRIMARY = '#1F2937'
 const TEXT_SECONDARY = '#6B7280'
 const FONT = '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif'
 
+/** Row with subtle hover bg and optional active highlight */
+function HoverRow({ children, active, onClick, style }: {
+  children: React.ReactNode
+  active?: boolean
+  onClick?: () => void
+  style?: CSSProperties
+}) {
+  const [hovered, setHovered] = useState(false)
+
+  const bg = active
+    ? 'rgba(0, 0, 0, 0.06)'
+    : hovered
+      ? 'rgba(0, 0, 0, 0.03)'
+      : 'transparent'
+
+  return (
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        display: 'flex', alignItems: 'center', width: '100%',
+        border: 'none', borderRadius: 4,
+        backgroundColor: bg,
+        fontFamily: FONT, textAlign: 'left',
+        transition: 'background-color 0.1s ease',
+        ...style,
+      }}
+    >
+      {children}
+    </button>
+  )
+}
+
 export function ProjectPicker({ projects, activeIndex, onSelect }: ProjectPickerProps) {
   const [open, setOpen] = useState(false)
+  const [triggerHovered, setTriggerHovered] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
   // Click-outside to close
@@ -37,23 +72,25 @@ export function ProjectPicker({ projects, activeIndex, onSelect }: ProjectPicker
       {/* Trigger */}
       <button
         onClick={() => setOpen(o => !o)}
+        onMouseEnter={() => setTriggerHovered(true)}
+        onMouseLeave={() => setTriggerHovered(false)}
         style={{
           display: 'flex',
           alignItems: 'center',
           gap: 8,
           padding: '4px 8px',
-          background: 'transparent',
-          border: `1px solid ${BORDER}`,
-          borderRadius: 20,
-          cursor: 'pointer',
+          background: triggerHovered ? 'rgba(0, 0, 0, 0.04)' : 'transparent',
+          border: 'none',
+          borderRadius: 4,
           fontFamily: FONT,
+          transition: 'background-color 0.1s ease',
         }}
       >
         {/* Orange square with first letter */}
         <div
           style={{
-            width: 18,
-            height: 18,
+            width: 20,
+            height: 20,
             borderRadius: 4,
             backgroundColor: ACCENT,
             color: '#fff',
@@ -94,31 +131,24 @@ export function ProjectPicker({ projects, activeIndex, onSelect }: ProjectPicker
           }}
         >
           {projects.map((p, i) => (
-            <button
+            <HoverRow
               key={p.project}
+              active={i === activeIndex}
               onClick={() => {
                 onSelect(i)
                 setOpen(false)
               }}
               style={{
-                display: 'flex',
-                alignItems: 'center',
                 gap: 8,
-                width: '100%',
-                padding: '6px 8px',
-                background: 'transparent',
-                border: 'none',
-                borderRadius: 6,
-                cursor: 'pointer',
+                padding: '8px 8px',
                 fontSize: 13,
                 color: TEXT_PRIMARY,
-                fontFamily: FONT,
               }}
             >
               <div
                 style={{
-                  width: 18,
-                  height: 18,
+                  width: 20,
+                  height: 20,
                   borderRadius: 4,
                   backgroundColor: i === activeIndex ? ACCENT : BORDER,
                   color: i === activeIndex ? '#fff' : TEXT_SECONDARY,
@@ -134,11 +164,11 @@ export function ProjectPicker({ projects, activeIndex, onSelect }: ProjectPicker
               </div>
               <span style={{ flex: 1, textAlign: 'left' }}>{p.project}</span>
               {i === activeIndex && (
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <path d="M3 7l3 3 5-5" stroke={ACCENT} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <path d="M2.5 6l2.5 2.5 4.5-4.5" stroke={ACCENT} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               )}
-            </button>
+            </HoverRow>
           ))}
         </div>
       )}

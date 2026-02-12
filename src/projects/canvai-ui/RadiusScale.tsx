@@ -1,11 +1,9 @@
 const FONT = '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif'
 
 const radii = [
-  { value: 4, usage: 'Toggles, small elements' },
-  { value: 6, usage: 'Dropdown items, sidebar items' },
-  { value: 8, usage: 'Buttons, inputs, dropdowns' },
-  { value: 10, usage: 'Cards, comment panel' },
-  { value: 12, usage: 'Mode pills' },
+  { value: 4, usage: 'Controls, sidebar rows, triggers' },
+  { value: 8, usage: 'Buttons, inputs, dropdowns, cards' },
+  { value: 12, usage: 'Mode pills, comment panel' },
   { value: 16, usage: 'Large cards' },
   { value: 20, usage: 'Pill buttons, toasts' },
   { value: 99, usage: 'Full pill / badge' },

@@ -16,9 +16,10 @@ function App() {
   const [activePageIndex, setActivePageIndex] = useState(0)
   const [mode] = useState<'manual' | 'watch'>('manual')
   const [pendingCount, setPendingCount] = useState(0)
+  const [sidebarOpen, setSidebarOpen] = useState(true)
 
   const activeProject: ProjectManifest | undefined = manifests[activeProjectIndex]
-  const activePage = activeProject?.iterations[activeIterationIndex]?.pages[activePageIndex]
+  const activePage = activeProject?.iterations?.[activeIterationIndex]?.pages[activePageIndex]
   const layoutedFrames = activePage ? layoutFrames(activePage) : []
 
   const { frames, updateFrame, handleResize } = useFrames(layoutedFrames, activePage?.grid)
@@ -34,9 +35,11 @@ function App() {
           setActiveIterationIndex(0)
           setActivePageIndex(0)
         }}
-        iterationCount={activeProject?.iterations.length ?? 0}
+        iterationCount={activeProject?.iterations?.length ?? 0}
         pendingCount={pendingCount}
         mode={mode}
+        sidebarOpen={sidebarOpen}
+        onToggleSidebar={() => setSidebarOpen(o => !o)}
       />
 
       {/* Main area — sidebar + canvas */}
@@ -50,6 +53,7 @@ function App() {
             setActiveIterationIndex(iterIdx)
             setActivePageIndex(pageIdx)
           }}
+          collapsed={!sidebarOpen}
         />
 
         {/* Canvas */}

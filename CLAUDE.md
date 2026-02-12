@@ -87,6 +87,40 @@ The migration runner checks `applies()` on ALL migrations every run, not just on
 - Every migration's `applies()` must detect ALL broken states, including half-migrated files
 - Recovery tests must simulate the half-migrated scenario and verify full recovery
 
+### Runtime shell aesthetic (Dieter Rams / Jony Ive)
+
+The runtime shell (`src/runtime/` — TopBar, IterationSidebar, ProjectPicker, AnnotationOverlay) follows a **Dieter Rams / Jony Ive** aesthetic. This does NOT apply to designer projects in `src/projects/` — those are the designer's sandbox.
+
+> "Good design is as little design as possible."
+
+**Principles:**
+1. **Honest** — No decoration. Every element earns its place.
+2. **Unobtrusive** — The shell disappears; the designer's work is the hero.
+3. **Thorough** — Every detail matters: spacing, alignment, color, cursor.
+4. **As little as possible** — Remove until it breaks, then add one thing back.
+
+**Palette:**
+
+| Token | Value |
+|---|---|
+| Accent | `#E8590C` |
+| Accent hover | `#CF4F0B` |
+| Accent muted | `rgba(232, 89, 12, 0.15)` |
+| Surface | `#FFFFFF` |
+| Surface subtle | `#F7F7F8` |
+| Border | `#E5E7EB` |
+| Text primary | `#1F2937` |
+| Text secondary | `#6B7280` |
+| Text tertiary | `#9CA3AF` |
+
+**Rules:**
+- One accent color (`#E8590C`). Everything else is grayscale.
+- **4px spacing grid.** Every value (padding, margin, gap, width, height, indent, border-radius) must be a multiple of 4. Font sizes are exempt.
+- Allowed: 0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 48, 64…
+- Border-radius tiers: 4px controls, 8px cards/dropdowns, 12-20px pills.
+- Hover: `rgba(0,0,0,0.03)`. Active: `rgba(0,0,0,0.06)`. No flashy transitions.
+- `cursor: default` for all shell UI. Never `cursor: pointer` — reserve it for designer sandboxes.
+
 ### Dogfooding project (`src/projects/canvai-ui/`)
 
 The `canvai-ui` project renders the actual runtime UI components (TopBar, ProjectPicker, IterationSidebar, etc.) so we can visually test the canvas itself. It imports directly from `../../runtime/`, so existing component changes are reflected instantly via HMR.
