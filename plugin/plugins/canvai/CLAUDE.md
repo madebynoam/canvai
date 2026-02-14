@@ -2,6 +2,16 @@
 
 Canvai is a design studio. A Figma-like infinite canvas where every design is live React code. The designer describes what they want, the agent builds it on the canvas, the designer annotates elements on the canvas to iterate, and the final code gets PR'd to a production repo.
 
+## Tenets
+
+Tenets are decision-making tools — each names the alternative and rejects it.
+
+1. **The code is the design.** Not a mockup. Not a specification. The thing on the canvas runs. What the designer sees is what ships. There is no handoff because there is nothing to hand off.
+2. **One component, infinite states.** Not an app. Not a page. Canvai renders every variation and state of a single component on one canvas — the matrix is the design artifact. Completeness is visible at a glance.
+3. **Point, don't describe.** Not a ticket. Not a meeting. The designer clicks the element, types the change, and the agent applies it. The annotation carries the selector, the computed styles, and the intent. No ambiguity survives the click.
+4. **The agent never waits.** Not a sprint. Not a queue. Every annotation resolves in the same session. The feedback loop is measured in seconds, not days. Speed is not a feature — it is the product.
+5. **The canvas is the only meeting room.** Not Slack. Not Figma comments. Every decision is made on the canvas, visible in the changelog, and shipped from the same place it was designed. Context never leaves the surface it was created on.
+
 ## User workflow
 
 1. **`/canvai-init <project-name>`** — Creates a new design project, installs canvai if needed, starts the dev server + annotation MCP.
@@ -64,28 +74,160 @@ When the designer describes a component, think through its **variations** and **
 
 ## Design language
 
-Canvai follows a **Braun / Jony Ive** aesthetic — clean, minimal, functional. Modern like Figma, not retro.
+Canvai follows a **Braun / Jony Ive** aesthetic — clean, minimal, functional. Modern like Figma, not retro. Every decision is measured against Rams' principles.
+
+### Rams' 10 principles (the law)
+
+1. **Innovative** — Use technology to enable new forms of interaction, not to decorate.
+2. **Useful** — Every element serves a purpose. If it doesn't help the user, remove it.
+3. **Aesthetic** — Visual quality is integral to usefulness. Precision and nature.
+4. **Understandable** — The UI should explain itself. No labels that repeat context ("Delete thread" → just "Delete"). No redundant words.
+5. **Unobtrusive** — Tools, not personalities. The UI disappears when the work begins.
+6. **Honest** — Don't make elements appear more than they are. No fake depth, no gratuitous shadows.
+7. **Long-lasting** — Avoid trends. System fonts, not branded typefaces. Grayscale + one accent, not palettes that date.
+8. **Thorough** — Every state matters. Hover, focus, empty, loading, error — nothing is an afterthought.
+9. **Environmentally friendly** — Minimal bundle. No heavy animation libraries when 30 lines of spring physics suffice.
+10. **As little design as possible** — Back to purity, back to simplicity. Less, but better.
 
 ### Palette
 
 | Token | Value | Usage |
 |---|---|---|
 | Accent | `#E8590C` | Buttons, highlights, selection outlines |
+| Accent hover | `#CF4F0B` | Hover state for accent elements |
 | Accent muted | `rgba(232, 89, 12, 0.15)` | Disabled accent backgrounds |
-| Canvas | `#F0F0F0` | Canvas background (light gray) |
+| Accent shadow | `rgba(232, 89, 12, 0.25)` | Focus rings, box shadows |
+| Canvas | `#F3F4F6` | Canvas background (light gray) |
 | Surface | `#FFFFFF` | Cards, popovers, panels |
+| Surface subtle | `#F9FAFB` | Input backgrounds, secondary surfaces |
 | Border | `#E5E7EB` | Borders, dividers |
+| Hover bg | `rgba(0,0,0,0.03)` | Hover background for interactive rows |
+| Active bg | `rgba(0,0,0,0.06)` | Active/pressed background |
+| Danger | `#DC2626` | Destructive actions (delete buttons, error states) |
 | Text primary | `#1F2937` | Body text |
 | Text secondary | `#6B7280` | Labels, captions |
 | Text tertiary | `#9CA3AF` | Hints, metadata |
 
+### Typography
+
+- **Font:** `-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif`
+- **Mono:** `SF Mono, Monaco, Inconsolata, monospace` (for code values, technical labels)
+- **Scale:** 24px display, 18px heading, 15px subheading, 13px body, 12px caption, 11px meta, 10px micro, 9px tiny
+- **Weights:** 400 regular, 500 medium, 600 semibold, 700 bold
+- **Line-height:** 1.5 for body (13px and below), 1.4 for headings (15px and above)
+- **Uppercase labels:** `fontSize: 13, fontWeight: 600, color: TEXT_TER, textTransform: 'uppercase', letterSpacing: '0.05em'`
+
+### Spacing (4px grid)
+
+All spacing values must be multiples of 4: `4, 8, 12, 16, 20, 24, 28, 32`. Never use `3px`, `5px`, `6px`, `10px`, or other off-grid values for padding, margin, or gap. The only exception is `1px` or `2px` for borders and fine adjustments.
+
+### Border radius
+
+- **Cards, panels, inputs:** `borderRadius: 10` (standard)
+- **Dropdown menus, small cards:** `borderRadius: 8`
+- **Pill buttons, pills, toasts:** `borderRadius: 20`
+- **Inline items (dropdown options, sidebar rows):** `borderRadius: 4`
+- **Small controls (checkboxes, swatches):** `borderRadius: 4`
+
+### Shadows
+
+- **Cards:** `boxShadow: '0 4px 24px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04)'`
+- **Dropdown menus:** `boxShadow: '0 4px 16px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04)'`
+- **Toasts:** `boxShadow: '0 2px 12px rgba(0,0,0,0.12)'`
+- **Subtle (skeleton, light cards):** `boxShadow: '0 2px 8px rgba(0,0,0,0.04)'`
+
 ### Principles
 
-- **One accent color.** Orange (`#E8590C`) is the only color. Everything else is grayscale.
-- **Light canvas.** The background is always light gray, never dark.
-- **Minimal chrome.** Subtle borders, soft shadows, no heavy outlines.
-- **Generous spacing.** Comfortable padding (10-16px). Don't crowd elements.
-- **Rounded but not bubbly.** Border radius 8-10px for cards, 20px for pill buttons.
+- **One accent color.** Orange (`#E8590C`) is the only color. Everything else is grayscale. Exception: semantic status colors (green for resolved, red for danger) are allowed in status pills and badges only.
+- **Light canvas.** The background is always `#F3F4F6`, never dark.
+- **Minimal chrome.** Subtle borders (`1px solid #E5E7EB`), soft shadows, no heavy outlines.
+- **4px spacing grid.** All padding, margin, and gap values must be multiples of 4.
+- **Rounded but not bubbly.** `borderRadius: 10` for cards, `8` for menus, `20` for pills. See Border radius section.
+- **Icons: Lucide React** (`lucide-react`). No hand-drawn SVGs. Size tiers: 16px primary actions (menu items, FAB, sidebar toggle), 14px secondary (close, trash, checks, send), 12px decorative (chevrons in triggers). Always `strokeWidth={1.5}`.
+- **`text-wrap: pretty`** on all text elements. Cast as `React.CSSProperties` in TypeScript. No widows.
+- **Components must be interactive.** Text inputs should be typeable, menus should open on click, buttons should have hover/active states. No static mockups.
+- **Menus dismiss on outside click.** Every dropdown/popover must close when clicking outside. Use a fixed overlay (`position: fixed, inset: 0`) or a `pointerdown` listener on `document`.
+
+### Motion
+
+Not animation — **motion**. Objects have mass, momentum, and friction. Rams' restraint meets Matas' physics. Precision and nature.
+
+#### Golden ratio foundation
+
+Canvai springs are derived from the Fibonacci sequence and the golden ratio (phi = 1.618...).
+
+- **Tensions** are consecutive Fibonacci numbers: 89, 144, 233. Each related by phi — the same proportion found in leaf arrangement, shell spirals, and branching patterns.
+- **Damping ratio** = 1/phi (~0.618) for all presets. This is nature's spring — a branch pulled and released overshoots slightly, then settles with purpose. Enough life to feel real, enough friction to feel controlled.
+- **Friction** is derived, not arbitrary: `friction = 2 x (1/phi) x sqrt(tension)`
+
+#### Spring presets
+
+| Preset | Tension | Friction | zeta | Use for |
+|---|---|---|---|---|
+| `snappy` | 233 | 19 | 0.623 | Buttons, toggles, checkboxes |
+| `gentle` | 144 | 15 | 0.625 | Cards, panels, sidebars, menus |
+| `soft` | 89 | 12 | 0.636 | Tooltips, toasts, page transitions |
+
+All three presets share the golden damping character. They differ in speed, not feel. The shared module lives at `spring.ts` — import `{ SPRING, useSpring }` from there.
+
+#### When to use springs vs CSS
+
+- **Springs (mandatory):** Reveals, dismissals, presses, slides, scale changes, height/width animations — anything where position, size, or visibility changes.
+- **CSS transitions (allowed):** Hover background-color changes (`120ms`), focus ring appearance, color changes on state toggle. These are instantaneous state feedback, not motion.
+- **Never:** `ease-in-out`, `ease`, or any CSS easing curve on animated elements. If it moves, it springs.
+
+#### Spring implementation
+
+Use the shared `useSpring` hook from `spring.ts`. It drives `ref.style.transform` via `requestAnimationFrame` with fixed-timestep physics (120Hz) and an accumulator pattern for frame-rate independence. No React state for animation values — direct DOM updates for 60fps+.
+
+```ts
+import { SPRING, useSpring } from './spring'
+const spring = useSpring(SPRING.gentle)
+spring.set(1, (v) => { ref.current.style.transform = `scale(${v})` })
+```
+
+#### Shared modules
+
+All V5 components import from two shared files:
+- **`tokens.ts`** — design tokens (single source of truth for colors, fonts)
+- **`spring.ts`** — spring physics hook, presets, golden ratio constants
+
+## Feature inventory
+
+This is a hard constraint. Before rendering any component or feature, check this inventory. If it's not listed here, it doesn't exist.
+
+### Runtime components
+
+| Component | What it does |
+|---|---|
+| `Canvas` | Infinite pannable/zoomable surface. Renders Frame children at absolute positions. |
+| `Frame` | Draggable card on the canvas. Title bar + content area. Wraps a single component instance. |
+| `TopBar` | Top navigation bar. Shows project picker, sidebar toggle, watch mode pill, pending annotation count. |
+| `ProjectPicker` | Dropdown to switch between design projects. Orange letter avatar + chevron trigger. |
+| `IterationSidebar` | Collapsible left sidebar listing iterations and their pages. Click to navigate. |
+| `AnnotationOverlay` | Fixed overlay for the annotation workflow: FAB button, targeting crosshair, highlight box, comment card, numbered markers, toast notifications. |
+
+### Does NOT exist
+
+The following features are **not implemented** and must never be rendered, referenced, or implied:
+
+- Dark mode / theme switching
+- User authentication / login / avatars / user profiles
+- Search / command palette / spotlight
+- Notifications / notification bell
+- Settings panel / preferences
+- Keyboard shortcuts overlay
+- Version history / undo-redo timeline
+- Export / download / share dialog (beyond the `/canvai-share` CLI command)
+- Comment threads / threaded replies / reactions (the annotation system is single-comment, not threaded)
+- Real-time collaboration / cursors / presence indicators
+- Generic component library (buttons, inputs, etc.) — Canvai renders the designer's components, it is not a UI kit
+- Password inputs / form validation
+- File upload / drag-and-drop
+
+### Rule
+
+If a designer asks for a feature not in this inventory, the agent must say: "That feature doesn't exist in Canvai yet. Would you like to design it as a new component instead?" — never invent UI for features that aren't built.
 
 ## Annotation flow (push-driven)
 

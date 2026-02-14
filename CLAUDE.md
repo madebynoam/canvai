@@ -120,6 +120,39 @@ The runtime shell (`src/runtime/` — TopBar, IterationSidebar, ProjectPicker, A
 - Border-radius tiers: 4px controls, 8px cards/dropdowns, 12-20px pills.
 - Hover: `rgba(0,0,0,0.03)`. Active: `rgba(0,0,0,0.06)`. No flashy transitions.
 - `cursor: default` for all shell UI. Never `cursor: pointer` — reserve it for designer sandboxes.
+- **`text-wrap: pretty`** on all text elements. No widows (single words on the last line).
+- **Icons: Lucide React** (`lucide-react`). No hand-drawn SVGs. Size tiers: 16px primary actions (menu items, FAB), 14px secondary (close, trash, checks, sidebar toggle), 12px decorative (chevrons in triggers). Always `strokeWidth={1.5}`.
+- **Components must be interactive.** This is a live canvas, not Figma. Text inputs should be typeable, menus should open on click, buttons should have hover/active states. No static mockups — the whole point is that everything works without prototyping.
+
+### Motion language (Rams restraint + Matas physics)
+
+Every transition uses spring physics — no CSS durations, no `ease-in-out`. Objects have mass, momentum, and friction.
+
+> "As little design as possible" — but the little that remains should feel like physics.
+
+**Spring presets:**
+
+| Preset | Tension | Friction | Use for |
+|---|---|---|---|
+| `snappy` | 300 | 20 | Buttons, toggles, micro-feedback |
+| `gentle` | 170 | 18 | Cards, panels, modals |
+| `soft` | 120 | 14 | Tooltips, toasts, page transitions |
+
+**Principles:**
+- **Mass** — Heavier elements move slower. A modal has more mass than a tooltip.
+- **Momentum** — Objects in motion stay in motion. Swipe gestures carry velocity.
+- **Friction** — Everything decelerates naturally. Nothing stops abruptly.
+- **Restraint** — If it doesn't help the user, it doesn't move. No gratuitous animation.
+
+**Rules:**
+- No `transition: 0.3s ease`. Use spring physics (tension/friction/mass) — motion is emergent, not scripted.
+- Reveals: scale from 0.8→1 + translateY with spring overshoot. Opacity fades in parallel.
+- Dismissals: reverse the reveal with slightly higher friction for a controlled exit.
+- Button press: spring squish (scale 0.92) then bounce-back. No duration.
+- Dropdowns: scaleY from transform-origin top. Spring snappy preset.
+- Panels: translateX slide with gentle preset.
+- Toasts: translateY spring up from bottom, auto-dismiss after 2-3s with fade.
+- For prototyping, CSS `cubic-bezier(0.34, 1.56, 0.64, 1)` approximates spring overshoot. Production should use a spring library.
 
 ### Dogfooding project (`src/projects/canvai-ui/`)
 
