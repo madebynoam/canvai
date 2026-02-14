@@ -8,6 +8,25 @@ const annotations = new Map()
 const waiters = [] // Array of { resolve } for long-poll /annotations/next
 const sseClients = [] // Array of response objects for SSE
 let nextId = 1
+let agentWatching = false // true when agent has a long-poll waiter registered
+let watchdogTimer = null
+
+function broadcastMode(mode) {
+  for (const client of sseClients) {
+    client.write(`data: ${JSON.stringify({ type: 'mode', mode })}\n\n`)
+  }
+}
+
+// After a waiter is consumed, the agent has ~5s to re-register before we declare manual mode
+function scheduleWatchdog() {
+  if (watchdogTimer) clearTimeout(watchdogTimer)
+  watchdogTimer = setTimeout(() => {
+    if (waiters.length === 0 && agentWatching) {
+      agentWatching = false
+      broadcastMode('manual')
+    }
+  }, 5000)
+}
 
 function addAnnotation(data) {
   const id = String(nextId++)
@@ -31,6 +50,8 @@ function addAnnotation(data) {
   if (waiters.length > 0) {
     const waiter = waiters.shift()
     waiter.resolve(annotation)
+    // Agent will re-register if still in watch mode — watchdog catches if it doesn't
+    scheduleWatchdog()
   }
 
   return annotation
@@ -129,11 +150,34 @@ const httpServer = createServer(async (req, res) => {
         return
       }
 
+      // Agent is now watching — broadcast mode change, cancel watchdog
+      if (watchdogTimer) clearTimeout(watchdogTimer)
+      if (!agentWatching) {
+        agentWatching = true
+        broadcastMode('watch')
+      }
+
       // Block until a new annotation arrives
       const annotation = await new Promise((resolve) => {
-        waiters.push({ resolve })
+        const waiter = { resolve }
+        waiters.push(waiter)
+        // If the request closes (agent exits watch), remove waiter and update mode
+        req.on('close', () => {
+          const idx = waiters.indexOf(waiter)
+          if (idx !== -1) waiters.splice(idx, 1)
+          if (waiters.length === 0 && agentWatching) {
+            agentWatching = false
+            broadcastMode('manual')
+          }
+        })
       })
       sendJson(res, 200, annotation)
+      return
+    }
+
+    // GET /mode — current agent mode
+    if (req.method === 'GET' && url.pathname === '/mode') {
+      sendJson(res, 200, { mode: agentWatching ? 'watch' : 'manual' })
       return
     }
 

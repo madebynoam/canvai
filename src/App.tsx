@@ -1,5 +1,5 @@
 import './App.css'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Canvas } from './runtime/Canvas'
 import { Frame } from './runtime/Frame'
 import { useFrames } from './runtime/useFrames'
@@ -14,8 +14,23 @@ function App() {
   const [activeProjectIndex, setActiveProjectIndex] = useState(0)
   const [activeIterationIndex, setActiveIterationIndex] = useState(0)
   const [activePageIndex, setActivePageIndex] = useState(0)
-  const [mode] = useState<'manual' | 'watch'>('manual')
+  const [mode, setMode] = useState<'manual' | 'watch'>('manual')
   const [pendingCount, setPendingCount] = useState(0)
+
+  // Listen for agent mode changes via SSE
+  useEffect(() => {
+    if (!import.meta.env.DEV) return
+    const es = new EventSource('http://localhost:4748/annotations/events')
+    es.onmessage = (e) => {
+      try {
+        const data = JSON.parse(e.data)
+        if (data.type === 'mode') setMode(data.mode)
+      } catch {}
+    }
+    // Fetch initial mode
+    fetch('http://localhost:4748/mode').then(r => r.json()).then(d => setMode(d.mode)).catch(() => {})
+    return () => es.close()
+  }, [])
   const [sidebarOpen, setSidebarOpen] = useState(true)
 
   const activeProject: ProjectManifest | undefined = manifests[activeProjectIndex]
