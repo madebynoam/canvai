@@ -297,7 +297,7 @@ viewing
   └─ thread card showing all messages
   └─ reply input at bottom
   └─ per-message hover: quick reactions (👍 🤔 🔥) + ··· menu
-  └─ ··· menu: "Add as annotation", "Delete"
+  └─ ··· menu: "Add as annotation" (canvai dev only), "Delete"
   └─ header: thread menu (copy link → shared canvai URL with ?comment={id}, delete thread), resolve (✓), close (✕)
 ```
 
@@ -337,12 +337,21 @@ Both FABs appear in all served modes (`canvai dev` and `canvai share --serve`). 
 
 ### Annotation promotion flow
 
-When a user clicks "Add as annotation" on a message:
+When a user clicks "Add as annotation" on a message (only available in `canvai dev`):
 
-1. `POST /comments/:id/annotate` sends the comment text + targeting info to the annotation system
-2. The thread card shows an "Annotation #N — Queued" banner (orange accent)
-3. The thread stays open for further discussion
-4. When the agent resolves the annotation, the banner disappears (no "Applied" card — keep it minimal)
+1. `POST /comments/:id/annotate` sends the comment text + targeting info to the existing `addAnnotation()` flow
+2. The annotation is a **copy** — same as if the designer typed it via the orange FAB
+3. The thread card shows an "Annotation #N — Queued" banner (orange accent)
+4. The agent picks it up via `get_pending_annotations` like any other annotation
+5. When the agent resolves it, the banner disappears
+6. The comment thread stays open for further discussion
+
+**Mode-aware menus:** "Add as annotation" only appears in `canvai dev` (where the annotation MCP server runs). On GitHub Pages there's no agent, so it's hidden.
+
+| Per-message ··· menu | `canvai dev` | GitHub Pages |
+|---|---|---|
+| Add as annotation | Yes | No |
+| Delete | Yes | Yes |
 
 ### Spring animations
 
@@ -416,7 +425,7 @@ Files to modify:
 
 **Scope:**
 - [ ] Quick reactions (👍 🤔 🔥) on hover
-- [ ] Per-message ··· menu (Add as annotation, Delete)
+- [ ] Per-message ··· menu ("Add as annotation" in canvai dev only, "Delete" everywhere)
 - [ ] Thread-level ··· menu (Copy link → shared canvai URL with `?comment={id}` deep link, Delete thread)
 - [ ] Deep link: on page load, if `?comment={id}` is present, auto-open that thread card
 - [ ] Annotation promotion flow (queued banner only, disappears on resolve)
@@ -448,11 +457,22 @@ That's it. The existing stack (React, Vite, MCP SDK) handles everything else.
 
 ### GitHub OAuth App
 
-Need to register an OAuth App at `github.com/settings/applications/new`:
-- Application name: `canvai`
-- Homepage URL: `https://github.com/madebynoam/canvai`
-- Authorization callback URL: not needed (device flow)
-- Client ID goes in `src/mcp/auth.js` (public, safe to commit)
+**Canvai maintainers register ONE app. Consumers do nothing.**
+
+One-time setup (us):
+1. Register at `github.com/settings/applications/new`
+2. Application name: `canvai`
+3. Homepage URL: `https://github.com/madebynoam/canvai`
+4. Authorization callback URL: not needed (device flow)
+5. Get Client ID → hardcode in canvai source (public, safe to commit)
+
+Consumer experience:
+1. Click purple FAB → "Sign in with GitHub"
+2. Get a device code (e.g. `ABCD-1234`)
+3. Open `github.com/login/device`, paste code, authorize
+4. Done — never think about OAuth again
+
+No API keys, no config, no setup for the consumer. Device flow is used because there's no stable callback URL (canvas runs on localhost or GitHub Pages).
 
 ---
 
