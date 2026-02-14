@@ -175,7 +175,7 @@ export function InteractionTokens() {
               'As little as possible — Remove until it breaks, then add one thing back.',
             ].map((p, i) => (
               <div key={i} style={{
-                fontSize: 11, color: TEXT_SEC, lineHeight: 1.6,
+                fontSize: 11, color: TEXT_SEC, lineHeight: 1.6, textWrap: 'pretty',
                 paddingLeft: 12, borderLeft: `2px solid ${i === 0 ? ACCENT : BORDER}`,
               }}>
                 {p}

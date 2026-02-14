@@ -1,4 +1,5 @@
 import { useState, useCallback, type CSSProperties } from 'react'
+import { PanelLeft, ChevronRight, ChevronDown, Check } from 'lucide-react'
 import { ProjectPicker } from '../../runtime/ProjectPicker'
 
 const BORDER = '#E5E7EB'
@@ -40,27 +41,21 @@ const canvasArea: CSSProperties = {
 
 /** Sidebar panel icon for TopBar */
 function SidebarIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-      <rect x="1" y="2" width="12" height="10" rx="1.5" stroke="currentColor" strokeWidth="1.2" />
-      <line x1="5" y1="2" x2="5" y2="12" stroke="currentColor" strokeWidth="1.2" />
-    </svg>
-  )
+  return <PanelLeft size={16} strokeWidth={1.5} />
 }
 
 /** Reusable chevron for iteration expand/collapse */
 function Chevron({ expanded }: { expanded: boolean }) {
   return (
-    <svg
-      width="12" height="12" viewBox="0 0 12 12" fill="none"
+    <ChevronRight
+      size={12}
+      strokeWidth={1.5}
       style={{
         flexShrink: 0, transition: 'transform 0.15s ease',
         transform: expanded ? 'rotate(90deg)' : 'rotate(0deg)',
         color: TEXT_TERTIARY,
       }}
-    >
-      <path d="M4 2l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
+    />
   )
 }
 
@@ -148,9 +143,7 @@ function BorderlessProjectPicker({ activeProject, onSelect }: {
           {active.project.charAt(0).toUpperCase()}
         </div>
         <span style={{ fontSize: 13, fontWeight: 500, color: '#1F2937' }}>{active.project}</span>
-        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ flexShrink: 0 }}>
-          <path d="M2.5 3.5L5 6.5L7.5 3.5" stroke="#9CA3AF" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
+        <ChevronDown size={12} strokeWidth={1.5} color="#9CA3AF" style={{ flexShrink: 0 }} />
       </button>
       {open && (
         <div style={{
@@ -181,9 +174,7 @@ function BorderlessProjectPicker({ activeProject, onSelect }: {
               </div>
               <span style={{ flex: 1 }}>{p.project}</span>
               {i === activeProject && (
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <path d="M3 7l3 3 5-5" stroke="#E8590C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
+                <Check size={14} strokeWidth={1.5} color="#E8590C" />
               )}
             </button>
           ))}
@@ -1004,18 +995,16 @@ function HoverRow({ children, active, onClick, style }: {
 /** Tiny inline chevron — sits after text, much smaller than the left-side one */
 function ChevronInline({ expanded }: { expanded: boolean }) {
   return (
-    <svg
-      width="10" height="10" viewBox="0 0 10 10" fill="none"
+    <ChevronRight
+      size={12}
+      strokeWidth={1.5}
       style={{
         flexShrink: 0,
         transition: 'transform 0.15s ease',
         transform: expanded ? 'rotate(90deg)' : 'rotate(0deg)',
         color: TEXT_TERTIARY,
-        marginLeft: 2,
       }}
-    >
-      <path d="M3.5 2l3.5 3.5-3.5 3.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
+    />
   )
 }
 
@@ -1121,20 +1110,19 @@ export function SidebarOptionM() {
   )
 }
 
-/** Micro chevron — 8px, hugs the text with no gap */
+/** Micro chevron — 10px, hugs the text with no gap */
 function ChevronMicro({ expanded }: { expanded: boolean }) {
   return (
-    <svg
-      width="8" height="8" viewBox="0 0 8 8" fill="none"
+    <ChevronRight
+      size={10}
+      strokeWidth={1.5}
       style={{
         flexShrink: 0,
         transition: 'transform 0.15s ease',
         transform: expanded ? 'rotate(90deg)' : 'rotate(0deg)',
         color: TEXT_TERTIARY,
       }}
-    >
-      <path d="M2.5 1.5l3 2.5-3 2.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
+    />
   )
 }
 
@@ -1337,9 +1325,7 @@ function TextOnlyPicker({ activeProject, onSelect }: {
         }}
       >
         <span style={{ fontSize: 13, fontWeight: 500, color: '#1F2937' }}>{active.project}</span>
-        <svg width="9" height="9" viewBox="0 0 10 10" fill="none" style={{ flexShrink: 0 }}>
-          <path d="M2.5 3.5L5 6.5L7.5 3.5" stroke="#9CA3AF" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
+        <ChevronDown size={12} strokeWidth={1.5} color="#9CA3AF" style={{ flexShrink: 0 }} />
       </button>
       {open && (
         <div style={{
@@ -1353,9 +1339,7 @@ function TextOnlyPicker({ activeProject, onSelect }: {
               style={{ padding: '6px 8px', fontSize: 13, color: '#1F2937', gap: 8 }}>
               <span style={{ flex: 1 }}>{p.project}</span>
               {i === activeProject && (
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <path d="M3 7l3 3 5-5" stroke="#E8590C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
+                <Check size={14} strokeWidth={1.5} color="#E8590C" />
               )}
             </HoverRow>
           ))}
@@ -1419,9 +1403,7 @@ function DotPicker({ activeProject, onSelect }: {
           width: 8, height: 8, borderRadius: '50%', backgroundColor: '#E8590C', flexShrink: 0,
         }} />
         <span style={{ fontSize: 13, fontWeight: 500, color: '#1F2937' }}>{active.project}</span>
-        <svg width="9" height="9" viewBox="0 0 10 10" fill="none" style={{ flexShrink: 0 }}>
-          <path d="M2.5 3.5L5 6.5L7.5 3.5" stroke="#9CA3AF" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
+        <ChevronDown size={12} strokeWidth={1.5} color="#9CA3AF" style={{ flexShrink: 0 }} />
       </button>
       {open && (
         <div style={{
@@ -1439,9 +1421,7 @@ function DotPicker({ activeProject, onSelect }: {
               }} />
               <span style={{ flex: 1 }}>{p.project}</span>
               {i === activeProject && (
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <path d="M3 7l3 3 5-5" stroke="#E8590C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
+                <Check size={14} strokeWidth={1.5} color="#E8590C" />
               )}
             </HoverRow>
           ))}
@@ -1505,9 +1485,7 @@ function AccentLetterPicker({ activeProject, onSelect }: {
           <span style={{ color: '#E8590C' }}>{active.project.charAt(0).toUpperCase()}</span>
           {active.project.slice(1)}
         </span>
-        <svg width="9" height="9" viewBox="0 0 10 10" fill="none" style={{ flexShrink: 0 }}>
-          <path d="M2.5 3.5L5 6.5L7.5 3.5" stroke="#9CA3AF" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
+        <ChevronDown size={12} strokeWidth={1.5} color="#9CA3AF" style={{ flexShrink: 0 }} />
       </button>
       {open && (
         <div style={{
@@ -1526,9 +1504,7 @@ function AccentLetterPicker({ activeProject, onSelect }: {
                 {p.project.slice(1)}
               </span>
               {i === activeProject && (
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <path d="M3 7l3 3 5-5" stroke="#E8590C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
+                <Check size={14} strokeWidth={1.5} color="#E8590C" />
               )}
             </HoverRow>
           ))}
@@ -1610,9 +1586,7 @@ export function PickerP4() {
                 width: 8, height: 8, borderRadius: '50%', backgroundColor: '#E8590C', flexShrink: 0,
               }} />
               <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{active.project}</span>
-              <svg width="9" height="9" viewBox="0 0 10 10" fill="none" style={{ flexShrink: 0 }}>
-                <path d="M2.5 3.5L5 6.5L7.5 3.5" stroke="#9CA3AF" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+              <ChevronDown size={12} strokeWidth={1.5} color="#9CA3AF" style={{ flexShrink: 0 }} />
             </HoverRow>
             {pickerOpen && (
               <div style={{
@@ -1691,9 +1665,7 @@ export function PickerP5() {
                 {active.project.charAt(0).toUpperCase()}
               </div>
               <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{active.project}</span>
-              <svg width="9" height="9" viewBox="0 0 10 10" fill="none" style={{ flexShrink: 0 }}>
-                <path d="M2.5 3.5L5 6.5L7.5 3.5" stroke="#9CA3AF" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+              <ChevronDown size={12} strokeWidth={1.5} color="#9CA3AF" style={{ flexShrink: 0 }} />
             </HoverRow>
             {pickerOpen && (
               <div style={{
@@ -1773,9 +1745,7 @@ export function PickerP6() {
                 width: 8, height: 8, borderRadius: '50%', backgroundColor: '#E8590C', flexShrink: 0,
               }} />
               <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{active.project}</span>
-              <svg width="9" height="9" viewBox="0 0 10 10" fill="none" style={{ flexShrink: 0 }}>
-                <path d="M2.5 3.5L5 6.5L7.5 3.5" stroke="#9CA3AF" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+              <ChevronDown size={12} strokeWidth={1.5} color="#9CA3AF" style={{ flexShrink: 0 }} />
             </HoverRow>
             {pickerOpen && (
               <div style={{

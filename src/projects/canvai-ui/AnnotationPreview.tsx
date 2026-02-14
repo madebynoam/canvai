@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Check, Pencil } from 'lucide-react'
 
 const ACCENT = '#E8590C'
 const ACCENT_HOVER = '#CF4F0B'
@@ -40,7 +41,7 @@ export function CommentCardPreview() {
           <div style={{
             width: '100%', minHeight: 72, background: SURFACE_ALT,
             color: TEXT_TERTIARY, border: `1px solid ${BORDER}`, borderRadius: 8,
-            padding: 10, fontSize: 13, lineHeight: 1.5,
+            padding: 10, fontSize: 13, lineHeight: 1.5, textWrap: 'pretty',
           }}>
             Describe the change...
           </div>
@@ -79,7 +80,7 @@ export function CommentCardPreview() {
           <div style={{
             width: '100%', minHeight: 72, background: SURFACE_ALT,
             color: TEXT_PRIMARY, border: `1px solid ${BORDER}`, borderRadius: 8,
-            padding: 10, fontSize: 13, lineHeight: 1.5,
+            padding: 10, fontSize: 13, lineHeight: 1.5, textWrap: 'pretty',
           }}>
             Make the font weight 600 and reduce the gap to 4px
           </div>
@@ -118,7 +119,7 @@ export function CommentCardPreview() {
           <div style={{
             width: '100%', minHeight: 72, background: SURFACE_ALT,
             color: TEXT_PRIMARY, border: `1px solid ${BORDER}`, borderRadius: 8,
-            padding: 10, fontSize: 13, lineHeight: 1.5,
+            padding: 10, fontSize: 13, lineHeight: 1.5, textWrap: 'pretty',
           }}>
             Change the active text color to the accent orange
           </div>
@@ -135,9 +136,7 @@ export function CommentCardPreview() {
               display: 'flex', alignItems: 'center', gap: 5,
             }}>
               Send
-              <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
-                <path d="M3 8l4 4 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+              <Check size={14} strokeWidth={2} />
             </button>
           </div>
         </div>
@@ -171,10 +170,7 @@ export function AnnotationElementsPreview() {
                   : `0 2px 8px ${ACCENT_SHADOW}`,
                 transform: state === 'pressed' ? 'scale(0.95)' : 'scale(1)',
               }}>
-                <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
-                  <path d="M13 1.5l3.5 3.5-10 10H3v-3.5l10-10z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                  <path d="M11 3.5l3.5 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
+                <Pencil size={16} strokeWidth={1.5} />
               </div>
               <div style={{ fontSize: 10, color: TEXT_TERTIARY, marginTop: 6 }}>{state}</div>
             </div>

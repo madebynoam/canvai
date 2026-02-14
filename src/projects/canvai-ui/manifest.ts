@@ -1,3 +1,4 @@
+import { AppShellShowcase, TopBarShowcase, ProjectPickerShowcase, IterationSidebarShowcase, AnnotateIdleShowcase, AnnotateTargetingShowcase, AnnotateCommentShowcase, InteractionPlayground } from './V6Showcase'
 import { TopBarPreview } from './TopBarPreview'
 import { ProjectPickerPreview } from './ProjectPickerPreview'
 import { IterationSidebarPreview } from './IterationSidebarPreview'
@@ -9,11 +10,138 @@ import { ButtonSamples } from './ButtonSamples'
 import { RadiusScale } from './RadiusScale'
 import { ShadowScale } from './ShadowScale'
 import { SpacingGrid, InteractionTokens } from './DesignRules'
+import { CommentPinsPreview, CommentStatesPreview, CommentMenuPreview, CommentAuthPreview } from './CommentThread'
+import { CommentAnatomyPreview, CommentCardStatesPreview, CommentAnnotationFlowPreview, CommentPinsAuthPreview } from './CommentThreadV2'
+import { AnnotationManageRecommended, AnnotationManageStates, AnnotationManageUndo, AnnotationManageList } from './AnnotationManage'
+import { MotionPrinciples, MotionReveals, MotionMicroInteractions } from './MotionLanguage'
+import { TokensPalette, TokensTypography } from './SystemTokens'
+import { ComponentButtons, ComponentInputs, ComponentMenus } from './SystemComponents'
+import { CompositionThread, CompositionAnnotation, CompositionNavigation, CompositionFeedback } from './SystemCompositions'
 import type { ProjectManifest } from '../../runtime/types'
 
 const manifest: ProjectManifest = {
   project: 'canvai-ui',
   iterations: [
+    {
+      name: 'V6',
+      pages: [
+        {
+          name: 'App Shell',
+          grid: { columns: 1, columnWidth: 960, rowHeight: 900, gap: 40 },
+          frames: [
+            { id: 'v6-app-shell', title: 'Canvai App Shell', component: AppShellShowcase, props: {} },
+          ],
+        },
+        {
+          name: 'Components',
+          grid: { columns: 3, columnWidth: 520, rowHeight: 640, gap: 40 },
+          frames: [
+            { id: 'v6-topbar', title: 'TopBar', component: TopBarShowcase, props: {} },
+            { id: 'v6-picker', title: 'ProjectPicker', component: ProjectPickerShowcase, props: {} },
+            { id: 'v6-sidebar', title: 'Iteration Sidebar', component: IterationSidebarShowcase, props: {} },
+          ],
+        },
+        {
+          name: 'Annotation Flow',
+          grid: { columns: 3, columnWidth: 420, rowHeight: 700, gap: 40 },
+          frames: [
+            { id: 'v6-ann-idle', title: 'Annotate', component: AnnotateIdleShowcase, props: {} },
+            { id: 'v6-ann-target', title: 'Targeting', component: AnnotateTargetingShowcase, props: {} },
+            { id: 'v6-ann-comment', title: 'Commenting', component: AnnotateCommentShowcase, props: {} },
+          ],
+        },
+        {
+          name: 'Interaction',
+          grid: { columns: 1, columnWidth: 960, rowHeight: 640, gap: 40 },
+          frames: [
+            { id: 'v6-playground', title: 'Interaction Playground', component: InteractionPlayground, props: {} },
+          ],
+        },
+      ],
+    },
+    {
+      name: 'V5',
+      pages: [
+        {
+          name: 'Tokens',
+          grid: { columns: 2, columnWidth: 520, rowHeight: 700, gap: 40 },
+          frames: [
+            { id: 'v5-palette', title: 'Color Palette', component: TokensPalette, props: {} },
+            { id: 'v5-typography', title: 'Type Scale', component: TokensTypography, props: {} },
+          ],
+        },
+        {
+          name: 'Structure',
+          grid: { columns: 2, columnWidth: 520, rowHeight: 600, gap: 40 },
+          frames: [
+            { id: 'v5-spacing', title: '4px Spacing Grid', component: SpacingGrid, props: {} },
+            { id: 'v5-interactions', title: 'Interaction Tokens', component: InteractionTokens, props: {} },
+          ],
+        },
+        {
+          name: 'Components',
+          grid: { columns: 3, columnWidth: 420, rowHeight: 720, gap: 40 },
+          frames: [
+            { id: 'v5-buttons', title: 'Buttons & Controls', component: ComponentButtons, props: {} },
+            { id: 'v5-inputs', title: 'Inputs & Fields', component: ComponentInputs, props: {} },
+            { id: 'v5-menus', title: 'Menus & Overlays', component: ComponentMenus, props: {} },
+          ],
+        },
+        {
+          name: 'Compositions',
+          grid: { columns: 2, columnWidth: 520, rowHeight: 800, gap: 40 },
+          frames: [
+            { id: 'v5-thread', title: 'Comment Thread', component: CompositionThread, props: {} },
+            { id: 'v5-annotation', title: 'Annotation Lifecycle', component: CompositionAnnotation, props: {} },
+            { id: 'v5-navigation', title: 'Navigation Shell', component: CompositionNavigation, props: {} },
+            { id: 'v5-feedback', title: 'Feedback & States', component: CompositionFeedback, props: {} },
+          ],
+        },
+        {
+          name: 'Motion',
+          grid: { columns: 3, columnWidth: 420, rowHeight: 680, gap: 40 },
+          frames: [
+            { id: 'v5-motion-principles', title: 'Principles — Rams + Matas', component: MotionPrinciples, props: {} },
+            { id: 'v5-motion-reveals', title: 'Reveal & Dismiss', component: MotionReveals, props: {} },
+            { id: 'v5-motion-micro', title: 'Micro-interactions', component: MotionMicroInteractions, props: {} },
+          ],
+        },
+      ],
+    },
+    {
+      name: 'V4',
+      pages: [
+        {
+          name: 'Comment Threads Refined',
+          grid: { columns: 2, columnWidth: 480, rowHeight: 900, gap: 40 },
+          frames: [
+            { id: 'comment-anatomy', title: 'Anatomy & Labels', component: CommentAnatomyPreview, props: {} },
+            { id: 'comment-card-states', title: 'Card States', component: CommentCardStatesPreview, props: {} },
+            { id: 'comment-annotation-flow', title: 'Annotation Promotion Flow', component: CommentAnnotationFlowPreview, props: {} },
+            { id: 'comment-pins-auth', title: 'Pins, Auth & FAB', component: CommentPinsAuthPreview, props: {} },
+          ],
+        },
+        {
+          name: 'Motion Language',
+          grid: { columns: 3, columnWidth: 420, rowHeight: 680, gap: 40 },
+          frames: [
+            { id: 'motion-principles', title: 'Principles — Rams + Matas', component: MotionPrinciples, props: {} },
+            { id: 'motion-reveals', title: 'Reveal & Dismiss', component: MotionReveals, props: {} },
+            { id: 'motion-micro', title: 'Micro-interactions', component: MotionMicroInteractions, props: {} },
+          ],
+        },
+        {
+          name: 'Annotation Management',
+          grid: { columns: 2, columnWidth: 440, rowHeight: 560, gap: 40 },
+          frames: [
+            { id: 'ann-manage-rec', title: 'Click → Edit Card (Recommended)', component: AnnotationManageRecommended, props: {} },
+            { id: 'ann-manage-states', title: 'New vs Saved States', component: AnnotationManageStates, props: {} },
+            { id: 'ann-manage-undo', title: 'After Delete — Undo Toast', component: AnnotationManageUndo, props: {} },
+            { id: 'ann-manage-list', title: 'List Panel — Bulk Management', component: AnnotationManageList, props: {} },
+          ],
+        },
+      ],
+    },
     {
       name: 'V3',
       pages: [
@@ -32,6 +160,16 @@ const manifest: ProjectManifest = {
             { id: 'sidebar-opt-l', title: 'L / K + Iterations Header', component: SidebarOptionL, props: {} },
             { id: 'sidebar-opt-m', title: 'M / Linear-Inspired', component: SidebarOptionM, props: {} },
             { id: 'sidebar-opt-n', title: 'N / Micro Chevron Inline', component: SidebarOptionN, props: {} },
+          ],
+        },
+        {
+          name: 'Comment Threads',
+          grid: { columns: 2, columnWidth: 480, rowHeight: 800, gap: 40 },
+          frames: [
+            { id: 'comment-pins', title: 'Comment Pins', component: CommentPinsPreview, props: {} },
+            { id: 'comment-states', title: 'Card States', component: CommentStatesPreview, props: {} },
+            { id: 'comment-menu', title: 'Actions & Annotation Promotion', component: CommentMenuPreview, props: {} },
+            { id: 'comment-auth', title: 'Auth & Empty States', component: CommentAuthPreview, props: {} },
           ],
         },
         {
