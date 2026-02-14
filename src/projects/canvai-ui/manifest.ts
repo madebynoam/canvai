@@ -17,11 +17,30 @@ import { MotionPrinciples, MotionReveals, MotionMicroInteractions } from './Moti
 import { TokensPalette, TokensTypography } from './SystemTokens'
 import { ComponentButtons, ComponentInputs, ComponentMenus } from './SystemComponents'
 import { CompositionThread, CompositionAnnotation, CompositionNavigation, CompositionFeedback } from './SystemCompositions'
+import { FlowStep1_SignIn, FlowStep2_Compose, FlowStep3_Thread, FlowStep4_Pins, FlowStep5_Promote, FlowStep6_DeepLink, FlowStep7_Resolve } from './CommentFlowV7'
 import type { ProjectManifest } from '../../runtime/types'
 
 const manifest: ProjectManifest = {
   project: 'canvai-ui',
   iterations: [
+    {
+      name: 'V7',
+      pages: [
+        {
+          name: 'GitHub Comments Flow',
+          grid: { columns: 2, columnWidth: 560, rowHeight: 440, gap: 40 },
+          frames: [
+            { id: 'v7-step1-signin', title: 'Step 1 — Sign In', component: FlowStep1_SignIn, props: {} },
+            { id: 'v7-step2-compose', title: 'Step 2 — Target & Compose', component: FlowStep2_Compose, props: {} },
+            { id: 'v7-step3-thread', title: 'Step 3 — Thread', component: FlowStep3_Thread, props: {} },
+            { id: 'v7-step4-pins', title: 'Step 4 — Pins', component: FlowStep4_Pins, props: {} },
+            { id: 'v7-step5-promote', title: 'Step 5 — Promote to Annotation', component: FlowStep5_Promote, props: {} },
+            { id: 'v7-step6-deeplink', title: 'Step 6 — Copy Link → Deep Link', component: FlowStep6_DeepLink, props: {} },
+            { id: 'v7-step7-resolve', title: 'Step 7 — Resolve', component: FlowStep7_Resolve, props: {} },
+          ],
+        },
+      ],
+    },
     {
       name: 'V6',
       pages: [
