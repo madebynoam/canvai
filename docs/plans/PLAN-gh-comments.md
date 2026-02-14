@@ -333,9 +333,7 @@ Two round FABs (40px, `borderRadius: 50%`) stack vertically in the bottom-right 
                       ╰───╯
 ```
 
-The comment FAB only appears on shared builds (when `mode === 'shared'`). In dev mode, only the annotation FAB shows.
-
-**Detection:** `GET /mode` returns `{ mode: 'dev' | 'shared' }`. The server knows based on how it was started (`canvai dev` vs `canvai share --serve`).
+Both FABs appear in all served modes (`canvai dev` and `canvai share --serve`). Comments and annotations share the same data source (GitHub repo) so feedback is always visible regardless of mode.
 
 ### Annotation promotion flow
 
@@ -363,21 +361,18 @@ All animations follow the existing motion language:
 
 ## Build mode detection
 
-Comments are a shared-build feature. They should not appear during local dev (where annotations are the primary tool).
+Comments use GitHub Issues as the data source — same repo regardless of mode. The primary commenting surface is the shared GitHub Pages build, where team members leave feedback. The designer sees those comments when they return to local dev.
 
 ### How it works
 
-- `canvai dev` → dev mode → annotation FAB only
-- `canvai share --serve` → shared mode → comment FAB + annotation FAB
-- GitHub Pages deploy → static build → comments only (no annotation server)
+| Mode | Comments | Annotations | GitHub API | Data source |
+|---|---|---|---|---|
+| GitHub Pages (`/canvai-share`) | Read + write | No (static) | Browser → GitHub directly | GitHub Issues |
+| `canvai dev` | Read + write | Read + write | Browser → localhost:4748 → GitHub | GitHub Issues |
 
-For the static build case (GitHub Pages), the comment system talks directly to GitHub API from the browser (no proxy server). This requires the GitHub token to be stored in localStorage after OAuth.
-
-**Decision point:** Do we support comments on static builds (GitHub Pages) or only on served builds? Static builds mean no canvai server, so either:
-- (a) Browser talks directly to GitHub API (token in localStorage — security tradeoff)
-- (b) Comments only work on served builds (simpler, more secure)
-
-**Recommendation:** Start with (b) — served builds only. Add (a) later if needed.
+- **GitHub Pages (MVP):** Team members open the shared link, sign in with GitHub OAuth, and leave comments. The browser talks directly to the GitHub API — no server needed. Token stored in localStorage after OAuth.
+- **Local dev:** Designer sees all comments from the shared build plus can reply. Annotations are also available (separate system, same canvas). API calls go through the canvai server proxy.
+- Both FABs (purple comment + orange annotation) appear in local dev. Only the comment FAB appears on GitHub Pages (no annotation server).
 
 ---
 
@@ -385,21 +380,22 @@ For the static build case (GitHub Pages), the comment system talks directly to G
 
 ### Phase 1: Auth + basic threading (MVP)
 
-**Goal:** Sign in with GitHub, create a comment thread pinned to an element, reply.
+**Goal:** Sign in with GitHub, create a comment thread pinned to an element, reply. Works on both GitHub Pages (shared builds) and local dev.
 
 Files to create:
-- `src/mcp/github.js` — GitHub API wrapper
-- `src/mcp/auth.js` — device flow + token storage
+- `src/mcp/github.js` — GitHub API wrapper (used by server proxy + browser direct)
+- `src/mcp/auth.js` — device flow + token storage (server-side: `~/.canvai/auth.json`, browser-side: localStorage)
 - `src/runtime/CommentOverlay.tsx` — browser UI (compose + view)
 - `src/runtime/comment-types.ts` — TypeScript interfaces
+- `src/runtime/github-client.ts` — browser-side GitHub API client (for static builds)
 
 Files to modify:
-- `src/mcp/http-server.js` — add auth + comment routes
+- `src/mcp/http-server.js` — add auth + comment routes (proxy for local dev)
 - `src/App.tsx` — render `<CommentOverlay />`
 - `src/runtime/index.ts` — export CommentOverlay
 
 **Scope:**
-- [x] GitHub OAuth device flow
+- [x] GitHub OAuth device flow (works in browser for static builds)
 - [x] Create comment thread (GitHub Issue)
 - [x] View thread with messages
 - [x] Reply to thread
@@ -407,6 +403,7 @@ Files to modify:
 - [x] Purple comment FAB
 - [x] Targeting flow (reuse pattern from AnnotationOverlay)
 - [x] Resolve thread (close issue)
+- [x] GitHub Pages support (browser talks directly to GitHub API, token in localStorage)
 
 ### Phase 2: Reactions + menus + annotation promotion
 
@@ -425,9 +422,9 @@ Files to modify:
 - [ ] Annotation promotion flow (queued banner only, disappears on resolve)
 - [ ] SSE events for real-time updates
 
-### Phase 3: Polish + static builds
+### Phase 3: Polish
 
-**Goal:** Edge cases, loading states, error handling, static build support.
+**Goal:** Edge cases, loading states, error handling.
 
 **Scope:**
 - [ ] Loading skeletons for threads
@@ -435,7 +432,6 @@ Files to modify:
 - [ ] Optimistic updates (show message immediately, sync in background)
 - [ ] Comment count badge in TopBar
 - [ ] Keyboard shortcuts (Cmd+Enter to post, Escape to dismiss)
-- [ ] Static build support (direct GitHub API from browser)
 - [ ] `prefers-reduced-motion` respect for all new animations
 
 ---
