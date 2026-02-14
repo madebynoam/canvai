@@ -1,4 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
+import { Check, Pencil, Trash2 } from 'lucide-react'
+import { useReducedMotion } from './useReducedMotion'
 import type { CanvasFrame } from './types'
 
 type Mode = 'idle' | 'targeting' | 'commenting'
@@ -38,6 +40,185 @@ const TEXT_SECONDARY = '#6B7280'
 const TEXT_TERTIARY = '#9CA3AF'
 const FONT = '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif'
 const RADIUS = 10
+
+/* ── Spring presence hook ──
+ * Manages mount/unmount lifecycle with spring enter/exit.
+ * Consumer provides an `apply` callback to map spring value (0→1) to styles.
+ * Returns { ref, render, dismiss } — dismiss() skips exit animation (keyboard shortcut path).
+ */
+function useSpringMount(
+  visible: boolean,
+  apply: (el: HTMLElement, v: number) => void,
+  reducedMotion: boolean,
+) {
+  const ref = useRef<HTMLElement | null>(null)
+  const [render, setRender] = useState(visible)
+  const animRef = useRef(0)
+  const stRef = useRef({ value: visible ? 1 : 0, velocity: 0 })
+  const applyRef = useRef(apply)
+  applyRef.current = apply
+  const instantRef = useRef(false)
+
+  const dismiss = useCallback(() => { instantRef.current = true }, [])
+
+  useEffect(() => {
+    if (visible) {
+      setRender(true)
+      instantRef.current = false
+    }
+
+    // Reduced motion: snap immediately
+    if (reducedMotion) {
+      cancelAnimationFrame(animRef.current)
+      stRef.current.value = visible ? 1 : 0
+      stRef.current.velocity = 0
+      if (ref.current) applyRef.current(ref.current, visible ? 1 : 0)
+      if (!visible) setRender(false)
+      return
+    }
+
+    // Instant dismiss (keyboard shortcut path — Emil: keyboard = no animation)
+    if (!visible && instantRef.current) {
+      cancelAnimationFrame(animRef.current)
+      stRef.current.value = 0
+      stRef.current.velocity = 0
+      if (ref.current) applyRef.current(ref.current, 0)
+      setRender(false)
+      return
+    }
+
+    cancelAnimationFrame(animRef.current)
+    const target = visible ? 1 : 0
+    const tension = 233
+    const friction = 21
+    const DT = 1 / 120
+    let accum = 0
+    let prev = performance.now()
+
+    function step(now: number) {
+      accum += Math.min((now - prev) / 1000, 0.064)
+      prev = now
+      const s = stRef.current
+      while (accum >= DT) {
+        s.velocity += (-tension * (s.value - target) - friction * s.velocity) * DT
+        s.value += s.velocity * DT
+        accum -= DT
+      }
+      if (ref.current) applyRef.current(ref.current, Math.max(0, Math.min(1, s.value)))
+      if (Math.abs(s.value - target) > 0.001 || Math.abs(s.velocity) > 0.001) {
+        animRef.current = requestAnimationFrame(step)
+      } else {
+        s.value = target
+        s.velocity = 0
+        if (ref.current) applyRef.current(ref.current, target)
+        if (!visible) setRender(false)
+      }
+    }
+    animRef.current = requestAnimationFrame(step)
+    return () => cancelAnimationFrame(animRef.current)
+  }, [visible, reducedMotion])
+
+  return { ref, render, dismiss }
+}
+
+/* ── Marker dot with spring-in on mount ── */
+function MarkerDot({ id, comment, rect, onClick, reducedMotion }: {
+  id: number
+  comment: string
+  rect: DOMRect
+  onClick: () => void
+  reducedMotion: boolean
+}) {
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!ref.current || reducedMotion) return
+    const el = ref.current
+    let value = 0.5
+    let velocity = 0
+    const tension = 233
+    const friction = 19
+    const DT = 1 / 120
+    let accum = 0
+    let prev = performance.now()
+    let raf = 0
+
+    function step(now: number) {
+      accum += Math.min((now - prev) / 1000, 0.064)
+      prev = now
+      while (accum >= DT) {
+        velocity += (-tension * (value - 1) - friction * velocity) * DT
+        value += velocity * DT
+        accum -= DT
+      }
+      el.style.transform = `scale(${value})`
+      if (Math.abs(value - 1) > 0.001 || Math.abs(velocity) > 0.001) {
+        raf = requestAnimationFrame(step)
+      } else {
+        el.style.transform = 'scale(1)'
+      }
+    }
+    raf = requestAnimationFrame(step)
+    return () => cancelAnimationFrame(raf)
+  }, [reducedMotion])
+
+  return (
+    <div
+      ref={ref}
+      title={comment}
+      onClick={onClick}
+      style={{
+        position: 'fixed',
+        left: rect.left - 6,
+        top: rect.top - 6,
+        width: 18,
+        height: 18,
+        borderRadius: '50%',
+        backgroundColor: ACCENT,
+        color: '#fff',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: 9,
+        fontWeight: 700,
+        fontFamily: FONT,
+        zIndex: 99997,
+        boxShadow: `0 1px 4px ${ACCENT_SHADOW}`,
+        cursor: 'default',
+        userSelect: 'none',
+        transform: reducedMotion ? 'scale(1)' : 'scale(0.5)',
+      }}
+    >
+      {id}
+    </div>
+  )
+}
+
+/* ── Hover button wrapper ── */
+function HoverButton({ children, onClick, baseStyle, hoverBg, title }: {
+  children: React.ReactNode
+  onClick?: () => void
+  baseStyle: React.CSSProperties
+  hoverBg: string
+  title?: string
+}) {
+  const [hovered, setHovered] = useState(false)
+  return (
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      title={title}
+      style={{
+        ...baseStyle,
+        backgroundColor: hovered ? hoverBg : (baseStyle.backgroundColor ?? baseStyle.background as string ?? 'transparent'),
+        transition: 'background-color 150ms ease',
+      }}
+    >
+      {children}
+    </button>
+  )
+}
 
 // Build a CSS selector path from element up to the frame content boundary
 function buildSelector(el: Element, boundary: Element): string {
@@ -91,6 +272,7 @@ interface AnnotationMarker {
 }
 
 export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual', onPendingChange }: AnnotationOverlayProps) {
+  const reducedMotion = useReducedMotion()
   const [mode, setMode] = useState<Mode>('idle')
   const [highlight, setHighlight] = useState<DOMRect | null>(null)
   const [target, setTarget] = useState<TargetInfo | null>(null)
@@ -103,6 +285,41 @@ export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual', o
   const overlayRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const nextMarkerId = useRef(1)
+
+  // Keep last target/toast around for exit animation content
+  const lastTargetRef = useRef<TargetInfo | null>(null)
+  const lastToastRef = useRef<string | null>(null)
+  if (target) lastTargetRef.current = target
+  if (toast) lastToastRef.current = toast
+
+  // Spring presence for comment card, toast, FAB
+  const cardVisible = mode === 'commenting' && target !== null
+  const card = useSpringMount(
+    cardVisible,
+    (el, v) => {
+      el.style.opacity = `${v}`
+      el.style.transform = `translateY(${(1 - v) * 8}px) scale(${0.96 + 0.04 * v})`
+    },
+    reducedMotion,
+  )
+
+  const toastSpring = useSpringMount(
+    toast !== null,
+    (el, v) => {
+      el.style.opacity = `${v}`
+      el.style.transform = `translateX(-50%) translateY(${(1 - v) * 16}px)`
+    },
+    reducedMotion,
+  )
+
+  const fab = useSpringMount(
+    mode === 'idle',
+    (el, v) => {
+      el.style.opacity = `${v}`
+      el.style.transform = `scale(${0.8 + 0.2 * v})`
+    },
+    reducedMotion,
+  )
 
   // Focus textarea when entering commenting mode
   useEffect(() => {
@@ -137,9 +354,10 @@ export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual', o
     return () => source.close()
   }, [endpoint])
 
-  // Recompute marker positions on scroll/resize/animation
+  // Recompute marker positions every frame via rAF — keeps markers in sync during pan/zoom
   useEffect(() => {
     if (markers.length === 0) return
+    let rafId = 0
     function updateRects() {
       const rects = new Map<number, DOMRect>()
       for (const marker of markers) {
@@ -153,10 +371,10 @@ export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual', o
         } catch { /* selector may not match */ }
       }
       setMarkerRects(rects)
+      rafId = requestAnimationFrame(updateRects)
     }
-    updateRects()
-    const interval = setInterval(updateRects, 500)
-    return () => clearInterval(interval)
+    rafId = requestAnimationFrame(updateRects)
+    return () => cancelAnimationFrame(rafId)
   }, [markers])
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
@@ -286,14 +504,30 @@ export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual', o
     setEditingMarkerId(null)
   }, [])
 
+  const handleDelete = useCallback(() => {
+    if (editingMarkerId === null) return
+    setMarkers(prev => prev.filter(m => m.id !== editingMarkerId))
+    setMode('idle')
+    setTarget(null)
+    setComment('')
+    setEditingMarkerId(null)
+    setToast('Annotation deleted')
+  }, [editingMarkerId])
+
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
       handleCancel()
     }
     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && mode === 'commenting') {
+      // Keyboard-initiated: instant dismiss (Emil: keyboard = no animation)
+      card.dismiss()
       handleApply()
     }
-  }, [handleCancel, handleApply, mode])
+  }, [handleCancel, handleApply, mode, card])
+
+  // Use last-known target/toast for exit animation content
+  const displayTarget = target || lastTargetRef.current
+  const displayToast = toast || lastToastRef.current
 
   return (
     <>
@@ -327,33 +561,29 @@ export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual', o
             borderRadius: 4,
             pointerEvents: 'none',
             zIndex: 99999,
-            transition: 'all 0.05s ease-out',
+            transition: 'left 0.05s ease-out, top 0.05s ease-out, width 0.05s ease-out, height 0.05s ease-out',
           }}
         />
       )}
 
-      {/* Comment card — positioned near target element */}
-      {mode === 'commenting' && target && (() => {
+      {/* Comment card — spring enter/exit, positioned near target element */}
+      {card.render && displayTarget && (() => {
         const cardWidth = 320
-        const cardHeight = 220 // approximate
+        const cardHeight = 220
         const gap = 8
-        // Default: below target
-        let top = target.rect.bottom + gap
-        let left = target.rect.left
-        // If overflows bottom, place above
+        let top = displayTarget.rect.bottom + gap
+        let left = displayTarget.rect.left
         if (top + cardHeight > window.innerHeight) {
-          top = target.rect.top - cardHeight - gap
+          top = displayTarget.rect.top - cardHeight - gap
         }
-        // If overflows right, shift left
         if (left + cardWidth > window.innerWidth - 16) {
           left = window.innerWidth - cardWidth - 16
         }
-        // Clamp left
         if (left < 16) left = 16
-        // Clamp top
         if (top < 16) top = 16
         return (
         <div
+          ref={card.ref as React.RefObject<HTMLDivElement>}
           onKeyDown={handleKeyDown}
           style={{
             position: 'fixed',
@@ -367,23 +597,29 @@ export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual', o
             border: `1px solid ${BORDER}`,
             width: 320,
             fontFamily: FONT,
+            opacity: 0,
+            transform: 'translateY(8px) scale(0.96)',
+            willChange: 'opacity, transform',
           }}
         >
-          {/* Header: component·tag + mode badge */}
+          {/* Header: component·tag + delete icon (when re-editing) */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
             <div style={{ fontSize: 11, color: TEXT_TERTIARY, letterSpacing: '0.02em' }}>
-              {target.componentName} &middot; {target.elementTag}
+              {displayTarget.componentName} &middot; {displayTarget.elementTag}
             </div>
-            {annotateMode === 'manual' ? (
-              <span style={{
-                fontSize: 10, fontWeight: 500, color: TEXT_SECONDARY,
-                backgroundColor: '#F3F4F6', padding: '2px 8px', borderRadius: 10,
-              }}>Manual</span>
-            ) : (
-              <span style={{
-                fontSize: 10, fontWeight: 500, color: '#059669',
-                backgroundColor: '#ECFDF5', padding: '2px 8px', borderRadius: 10,
-              }}>Live</span>
+            {editingMarkerId !== null && (
+              <HoverButton
+                onClick={handleDelete}
+                hoverBg="rgba(0,0,0,0.06)"
+                title="Delete annotation"
+                baseStyle={{
+                  width: 24, height: 24, border: 'none', background: 'transparent',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  borderRadius: 4, color: TEXT_TERTIARY,
+                }}
+              >
+                <Trash2 size={14} strokeWidth={1.5} />
+              </HoverButton>
             )}
           </div>
           <textarea
@@ -407,9 +643,10 @@ export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual', o
             }}
           />
           <div style={{ display: 'flex', gap: 8, marginTop: 10, justifyContent: 'flex-end' }}>
-            <button
+            <HoverButton
               onClick={handleCancel}
-              style={{
+              hoverBg="rgba(0,0,0,0.03)"
+              baseStyle={{
                 padding: '7px 14px',
                 background: 'transparent',
                 color: TEXT_SECONDARY,
@@ -421,11 +658,11 @@ export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual', o
               }}
             >
               Cancel
-            </button>
-            <button
+            </HoverButton>
+            <HoverButton
               onClick={handleApply}
-              disabled={!comment.trim()}
-              style={{
+              hoverBg={comment.trim() ? ACCENT_HOVER : ''}
+              baseStyle={{
                 padding: '7px 14px',
                 background: comment.trim() ? ACCENT : ACCENT_MUTED,
                 color: comment.trim() ? '#fff' : TEXT_TERTIARY,
@@ -443,63 +680,69 @@ export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual', o
               {annotateMode === 'watch' ? (
                 <>
                   Send
-                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
-                    <path d="M3 8l4 4 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
+                  <Check size={14} strokeWidth={2} />
                 </>
               ) : 'Apply'}
-            </button>
+            </HoverButton>
           </div>
         </div>
         )
       })()}
 
-      {/* Annotate icon button — circular, bottom-right */}
-      {mode === 'idle' && (
-        <button
-          onClick={() => setMode('targeting')}
-          onPointerEnter={() => setButtonState('hover')}
-          onPointerLeave={() => setButtonState('idle')}
-          onPointerDown={() => setButtonState('pressed')}
-          onPointerUp={() => setButtonState('hover')}
+      {/* FAB — spring enter/exit on mode change */}
+      {fab.render && (
+        <div
+          ref={fab.ref as React.RefObject<HTMLDivElement>}
           style={{
             position: 'fixed',
             bottom: 16,
             right: 16,
             zIndex: 99999,
-            width: 40,
-            height: 40,
-            borderRadius: '50%',
-            background: buttonState === 'hover' ? ACCENT_HOVER : buttonState === 'pressed' ? ACCENT_PRESSED : ACCENT,
-            color: '#fff',
-            border: 'none',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: buttonState === 'hover'
-              ? `0 4px 16px ${ACCENT_SHADOW}`
-              : `0 2px 8px ${ACCENT_SHADOW}`,
-            transform: buttonState === 'pressed' ? 'scale(0.95)' : 'scale(1)',
-            transition: 'all 0.1s ease',
+            opacity: 0,
+            transform: 'scale(0.8)',
+            willChange: 'opacity, transform',
           }}
         >
-          <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
-            <path d="M13 1.5l3.5 3.5-10 10H3v-3.5l10-10z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M11 3.5l3.5 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </button>
+          <button
+            onClick={() => setMode('targeting')}
+            onPointerEnter={() => setButtonState('hover')}
+            onPointerLeave={() => setButtonState('idle')}
+            onPointerDown={() => setButtonState('pressed')}
+            onPointerUp={() => setButtonState('hover')}
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: '50%',
+              background: buttonState === 'hover' ? ACCENT_HOVER : buttonState === 'pressed' ? ACCENT_PRESSED : ACCENT,
+              color: '#fff',
+              border: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: buttonState === 'hover'
+                ? `0 4px 16px ${ACCENT_SHADOW}`
+                : `0 2px 8px ${ACCENT_SHADOW}`,
+              transform: buttonState === 'pressed' ? 'scale(0.95)' : 'scale(1)',
+              transition: 'transform 0.1s ease, box-shadow 0.1s ease, background-color 0.1s ease',
+            }}
+          >
+            <Pencil size={16} strokeWidth={1.5} />
+          </button>
+        </div>
       )}
 
-      {/* Annotation markers */}
+      {/* Annotation markers — spring scale on placement */}
       {markers.map((marker) => {
         const rect = markerRects.get(marker.id)
         if (!rect) return null
         return (
-          <div
+          <MarkerDot
             key={marker.id}
-            title={marker.comment}
+            id={marker.id}
+            comment={marker.comment}
+            rect={rect}
+            reducedMotion={reducedMotion}
             onClick={() => {
-              // Rebuild target from marker data
               const frameEl = document.querySelector(`[data-frame-id="${marker.frameId}"]`)
               if (!frameEl) return
               const contentEl = frameEl.hasAttribute('data-frame-content') ? frameEl : frameEl.querySelector('[data-frame-content]')
@@ -527,40 +770,19 @@ export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual', o
               setEditingMarkerId(marker.id)
               setMode('commenting')
             }}
-            style={{
-              position: 'fixed',
-              left: rect.left - 6,
-              top: rect.top - 6,
-              width: 18,
-              height: 18,
-              borderRadius: '50%',
-              backgroundColor: ACCENT,
-              color: '#fff',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: 9,
-              fontWeight: 700,
-              fontFamily: FONT,
-              zIndex: 99997,
-              boxShadow: `0 1px 4px ${ACCENT_SHADOW}`,
-              cursor: 'default',
-              userSelect: 'none',
-            }}
-          >
-            {marker.id}
-          </div>
+          />
         )
       })}
 
-      {/* Toast */}
-      {toast && (
+      {/* Toast — spring enter from below, fade exit */}
+      {toastSpring.render && displayToast && (
         <div
+          ref={toastSpring.ref as React.RefObject<HTMLDivElement>}
           style={{
             position: 'fixed',
             bottom: 24,
             left: '50%',
-            transform: 'translateX(-50%)',
+            transform: 'translateX(-50%) translateY(16px)',
             zIndex: 99999,
             padding: '8px 24px',
             background: TEXT_PRIMARY,
@@ -570,9 +792,11 @@ export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual', o
             fontWeight: 500,
             fontFamily: FONT,
             boxShadow: '0 2px 12px rgba(0, 0, 0, 0.12)',
+            opacity: 0,
+            willChange: 'opacity, transform',
           }}
         >
-          {toast}
+          {displayToast}
         </div>
       )}
     </>

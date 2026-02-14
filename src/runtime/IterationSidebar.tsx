@@ -1,4 +1,5 @@
-import { useState, type CSSProperties } from 'react'
+import { useState, useRef, useEffect, useCallback, type CSSProperties } from 'react'
+import { useReducedMotion } from './useReducedMotion'
 
 interface IterationSidebarProps {
   iterations: { name: string; pages: { name: string }[] }[]
@@ -11,6 +12,88 @@ interface IterationSidebarProps {
 const BORDER = '#E5E7EB'
 const TEXT_TERTIARY = '#9CA3AF'
 const FONT = '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif'
+
+/* Gentle spring for page list reveal — animates container height */
+function useHeightSpring(expanded: boolean, reducedMotion: boolean) {
+  const outerRef = useRef<HTMLDivElement>(null)
+  const innerRef = useRef<HTMLDivElement>(null)
+  const animRef = useRef<number>(0)
+  const stateRef = useRef({ value: 0, velocity: 0 })
+
+  const animate = useCallback((target: number) => {
+    cancelAnimationFrame(animRef.current)
+
+    // Reduced motion: snap to target
+    if (reducedMotion) {
+      stateRef.current = { value: target, velocity: 0 }
+      if (outerRef.current) {
+        outerRef.current.style.height = target === 1 ? 'auto' : '0px'
+        outerRef.current.style.opacity = `${target}`
+      }
+      return
+    }
+
+    const tension = 233
+    const friction = 21
+    const DT = 1 / 120
+    let accum = 0
+    let prev = performance.now()
+
+    function step(now: number) {
+      accum += Math.min((now - prev) / 1000, 0.064)
+      prev = now
+      const s = stateRef.current
+      while (accum >= DT) {
+        const spring = -tension * (s.value - target)
+        const damp = -friction * s.velocity
+        s.velocity += (spring + damp) * DT
+        s.value += s.velocity * DT
+        accum -= DT
+      }
+      if (outerRef.current && innerRef.current) {
+        const contentH = innerRef.current.scrollHeight
+        const h = Math.max(0, s.value) * contentH
+        outerRef.current.style.height = `${h}px`
+        outerRef.current.style.opacity = `${Math.max(0, Math.min(1, s.value))}`
+      }
+      if (Math.abs(s.value - target) > 0.001 || Math.abs(s.velocity) > 0.001) {
+        animRef.current = requestAnimationFrame(step)
+      } else {
+        s.value = target
+        s.velocity = 0
+        if (outerRef.current && innerRef.current) {
+          if (target === 1) {
+            outerRef.current.style.height = 'auto'
+          } else {
+            outerRef.current.style.height = '0px'
+          }
+          outerRef.current.style.opacity = `${target}`
+        }
+      }
+    }
+    animRef.current = requestAnimationFrame(step)
+  }, [reducedMotion])
+
+  useEffect(() => {
+    animate(expanded ? 1 : 0)
+    return () => cancelAnimationFrame(animRef.current)
+  }, [expanded, animate])
+
+  return { outerRef, innerRef }
+}
+
+/** Spring-animated expandable wrapper for page lists */
+function ExpandablePages({ expanded, children, reducedMotion }: { expanded: boolean; children: React.ReactNode; reducedMotion: boolean }) {
+  const { outerRef, innerRef } = useHeightSpring(expanded, reducedMotion)
+
+  return (
+    <div ref={outerRef} style={{ overflow: 'hidden', height: expanded ? 'auto' : 0, opacity: expanded ? 1 : 0 }}>
+      <div ref={innerRef}>
+        {children}
+      </div>
+    </div>
+  )
+}
 
 /** Micro chevron — 8px, inline next to text */
 function ChevronMicro({ expanded }: { expanded: boolean }) {
@@ -65,6 +148,7 @@ function HoverRow({ children, active, onClick, style }: {
 }
 
 export function IterationSidebar({ iterations, activeIterationIndex, activePageIndex, onSelect, collapsed }: IterationSidebarProps) {
+  const reducedMotion = useReducedMotion()
   const [expandedSet, setExpandedSet] = useState<Set<number>>(() => new Set([activeIterationIndex]))
 
   // Auto-expand when the active iteration changes
@@ -132,26 +216,28 @@ export function IterationSidebar({ iterations, activeIterationIndex, activePageI
                 <ChevronMicro expanded={expanded} />
               </span>
             </HoverRow>
-            {expanded && iter.pages.map((page, pageIdx) => {
-              const active = iterIdx === activeIterationIndex && pageIdx === activePageIndex
-              return (
-                <HoverRow
-                  key={page.name}
-                  active={active}
-                  onClick={() => onSelect(iterIdx, pageIdx)}
-                  style={{
-                    padding: '0 8px 0 24px',
-                    fontSize: 12,
-                    fontWeight: active ? 500 : 400,
-                    color: active ? '#1F2937' : '#6B7280',
-                  }}
-                >
-                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {page.name}
-                  </span>
-                </HoverRow>
-              )
-            })}
+            <ExpandablePages expanded={expanded} reducedMotion={reducedMotion}>
+              {iter.pages.map((page, pageIdx) => {
+                const active = iterIdx === activeIterationIndex && pageIdx === activePageIndex
+                return (
+                  <HoverRow
+                    key={page.name}
+                    active={active}
+                    onClick={() => onSelect(iterIdx, pageIdx)}
+                    style={{
+                      padding: '0 8px 0 24px',
+                      fontSize: 12,
+                      fontWeight: 400,
+                      color: active ? '#1F2937' : '#6B7280',
+                    }}
+                  >
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {page.name}
+                    </span>
+                  </HoverRow>
+                )
+              })}
+            </ExpandablePages>
           </div>
         )
       })}

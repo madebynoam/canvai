@@ -1,4 +1,7 @@
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { ProjectPicker } from './ProjectPicker'
+import { PanelLeft } from 'lucide-react'
+import { useReducedMotion } from './useReducedMotion'
 
 interface TopBarProps {
   projects: { project: string }[]
@@ -14,16 +17,74 @@ interface TopBarProps {
 const ACCENT = '#E8590C'
 const BORDER = '#E5E7EB'
 const TEXT_TERTIARY = '#9CA3AF'
-const TEXT_SECONDARY = '#6B7280'
 const FONT = '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif'
 
 function SidebarIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-      <rect x="1" y="2" width="12" height="10" rx="1.5" stroke="currentColor" strokeWidth="1.2" />
-      <line x1="5" y1="2" x2="5" y2="12" stroke="currentColor" strokeWidth="1.2" />
-    </svg>
-  )
+  return <PanelLeft size={16} strokeWidth={1.5} />
+}
+
+/* ── Tiny spring for the watch pill ── */
+
+function useWatchPillSpring(visible: boolean, reducedMotion: boolean) {
+  const ref = useRef<HTMLDivElement>(null)
+  const animRef = useRef<number>(0)
+  const stateRef = useRef({ value: 0, velocity: 0 })
+
+  const animate = useCallback((target: number) => {
+    cancelAnimationFrame(animRef.current)
+
+    // Reduced motion: snap to target
+    if (reducedMotion) {
+      stateRef.current = { value: target, velocity: 0 }
+      if (ref.current) {
+        ref.current.style.opacity = `${target}`
+        ref.current.style.transform = `scale(${0.92 + 0.08 * target})`
+      }
+      return
+    }
+
+    // Golden ratio spring: tension 144, damping 1/phi
+    const tension = 144
+    const friction = 15
+    const DT = 1 / 120
+    let accum = 0
+    let prev = performance.now()
+
+    function step(now: number) {
+      accum += Math.min((now - prev) / 1000, 0.064)
+      prev = now
+      const s = stateRef.current
+      while (accum >= DT) {
+        const spring = -tension * (s.value - target)
+        const damp = -friction * s.velocity
+        s.velocity += (spring + damp) * DT
+        s.value += s.velocity * DT
+        accum -= DT
+      }
+      if (ref.current) {
+        ref.current.style.opacity = `${Math.max(0, Math.min(1, s.value))}`
+        ref.current.style.transform = `scale(${0.92 + 0.08 * Math.max(0, Math.min(1, s.value))})`
+      }
+      if (Math.abs(s.value - target) > 0.001 || Math.abs(s.velocity) > 0.001) {
+        animRef.current = requestAnimationFrame(step)
+      } else {
+        s.value = target
+        s.velocity = 0
+        if (ref.current) {
+          ref.current.style.opacity = `${target}`
+          ref.current.style.transform = `scale(${0.92 + 0.08 * target})`
+        }
+      }
+    }
+    animRef.current = requestAnimationFrame(step)
+  }, [reducedMotion])
+
+  useEffect(() => {
+    animate(visible ? 1 : 0)
+    return () => cancelAnimationFrame(animRef.current)
+  }, [visible, animate])
+
+  return ref
 }
 
 export function TopBar({
@@ -36,6 +97,23 @@ export function TopBar({
   sidebarOpen,
   onToggleSidebar,
 }: TopBarProps) {
+  const reducedMotion = useReducedMotion()
+  const [focused, setFocused] = useState(() => document.hasFocus())
+
+  useEffect(() => {
+    const onFocus = () => setFocused(true)
+    const onBlur = () => setFocused(false)
+    window.addEventListener('focus', onFocus)
+    window.addEventListener('blur', onBlur)
+    return () => {
+      window.removeEventListener('focus', onFocus)
+      window.removeEventListener('blur', onBlur)
+    }
+  }, [])
+
+  const showWatch = mode === 'watch' && focused
+  const pillRef = useWatchPillSpring(showWatch, reducedMotion)
+
   return (
     <div
       style={{
@@ -101,33 +179,10 @@ export function TopBar({
           </div>
         )}
 
-        {/* Mode pill — dev only */}
-        {import.meta.env.DEV && (mode === 'manual' ? (
+        {/* Watch mode pill — springs in when watch + window focused */}
+        {import.meta.env.DEV && mode === 'watch' && (
           <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 4,
-              padding: '4px 12px',
-              borderRadius: 12,
-              backgroundColor: '#F3F4F6',
-              fontSize: 11,
-              fontWeight: 500,
-              color: TEXT_SECONDARY,
-            }}
-          >
-            <div
-              style={{
-                width: 8,
-                height: 8,
-                borderRadius: '50%',
-                backgroundColor: TEXT_TERTIARY,
-              }}
-            />
-            Manual
-          </div>
-        ) : (
-          <div
+            ref={pillRef}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -138,6 +193,9 @@ export function TopBar({
               fontSize: 11,
               fontWeight: 500,
               color: '#059669',
+              opacity: 0,
+              transform: 'scale(0.92)',
+              willChange: 'opacity, transform',
             }}
           >
             <div
@@ -151,7 +209,7 @@ export function TopBar({
             />
             Watch
           </div>
-        ))}
+        )}
       </div>
     </div>
   )
