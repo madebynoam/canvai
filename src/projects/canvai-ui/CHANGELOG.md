@@ -1,5 +1,11 @@
 # Changelog
 
+## V8 — System Parts (Cerulean 400)
+
+- **Annotation FAB**: Replaced gradients with flat accent surfaces + inset shadows for physicality. Idle uses bottom inset, hover lightens to A[300], pressed deepens with top inset shadow. (annotation #7)
+- **Annotation Markers**: Replaced gradient fills with flat A[400] + subtle drop shadow. (annotation #7)
+- **Assembly FAB + markers**: Updated to match flat style. (annotation #7)
+
 ## V6 — Polished Showcase (motion audit)
 
 - **App Shell**: Full app shell in watch mode (sidebar open, 3 pending) and manual mode (sidebar collapsed) using real TopBar + IterationSidebar

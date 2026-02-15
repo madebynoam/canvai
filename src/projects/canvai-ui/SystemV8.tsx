@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { PanelLeft, ChevronDown, ChevronRight, Pencil, Check, X, MessageSquare, Send, MoreHorizontal, Trash2, Github, Copy } from 'lucide-react'
+import { PanelLeft, ChevronDown, ChevronRight, SquareMousePointer, Check, X, MessageSquare, Send, MoreHorizontal, Trash2, Github, Copy } from 'lucide-react'
 
 /* ══════════════════════════════════════════════════════
    OKLCH Token System — Cerulean 400
@@ -393,22 +393,21 @@ export function V8AnnotationParts() {
 
       {/* ── FAB States ──────────────────────────── */}
       <div>
-        <PartLabel sub="40×40px circle. Gradient from 300→500. Three states: idle, hover, pressed.">Annotation FAB</PartLabel>
+        <PartLabel sub="40×40px circle. Flat accent. No shadow, no gradient.">Annotation FAB</PartLabel>
         <div style={{ display: 'flex', gap: 24, marginTop: 12, alignItems: 'flex-end' }}>
           {[
-            { label: 'Idle', bg: `linear-gradient(180deg, ${A[300]} 0%, ${A[400]} 100%)`, shadow: '0 1px 3px rgba(0,0,0,0.12), 0 0 0 0.5px rgba(0,0,0,0.06)', scale: 1 },
-            { label: 'Hover', bg: `linear-gradient(180deg, ${A[300]} 0%, ${A[500]} 100%)`, shadow: '0 2px 6px rgba(0,0,0,0.16), 0 0 0 0.5px rgba(0,0,0,0.06)', scale: 1 },
-            { label: 'Pressed', bg: A[500], shadow: 'inset 0 1px 2px rgba(0,0,0,0.15), 0 1px 2px rgba(0,0,0,0.08)', scale: 0.95 },
+            { label: 'Idle', bg: A[400], scale: 1 },
+            { label: 'Hover', bg: A[300], scale: 1 },
+            { label: 'Pressed', bg: A[500], scale: 0.95 },
           ].map(state => (
             <div key={state.label} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
               <div style={{
                 width: 40, height: 40, borderRadius: '50%',
-                background: state.bg, color: '#fff',
+                backgroundColor: state.bg, color: '#fff',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                boxShadow: state.shadow,
                 transform: `scale(${state.scale})`,
               }}>
-                <Pencil size={16} strokeWidth={1.5} />
+                <SquareMousePointer size={20} strokeWidth={1.5} />
               </div>
               <span style={{ fontSize: 8, color: N.txtFaint }}>{state.label}</span>
             </div>
@@ -420,7 +419,6 @@ export function V8AnnotationParts() {
               width: 40, height: 40, borderRadius: '50%',
               backgroundColor: F.comment, color: '#fff',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
             }}>
               <MessageSquare size={16} strokeWidth={1.5} />
             </div>
@@ -537,15 +535,14 @@ export function V8AnnotationParts() {
 
       {/* ── Markers + Toast ──────────────────────────── */}
       <div>
-        <PartLabel sub="18×18px numbered dots. Gradient accent. Track element position via rAF.">Annotation Markers</PartLabel>
+        <PartLabel sub="18×18px numbered dots. Flat accent. Track element position via rAF.">Annotation Markers</PartLabel>
         <div style={{ display: 'flex', gap: 12, marginTop: 12, alignItems: 'center' }}>
           {[1, 2, 3, 4, 5].map(n => (
             <div key={n} style={{
               width: 18, height: 18, borderRadius: '50%',
-              background: `linear-gradient(180deg, ${A[300]} 0%, ${A[400]} 100%)`,
+              backgroundColor: A[400],
               color: '#fff', fontSize: 9, fontWeight: 700, fontFamily: FONT,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08), 0 1px 2px rgba(0,0,0,0.15)',
             }}>{n}</div>
           ))}
         </div>
@@ -827,7 +824,7 @@ export function V8Comments() {
                   width: 28, height: 28, borderRadius: '50%', backgroundColor: F.resolved,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
-                  <Check size={14} strokeWidth={2} color="#fff" />
+                  <Check size={14} strokeWidth={1.5} color="#fff" />
                 </div>
               </div>
               <span style={{ fontSize: 7, color: N.txtFaint }}>Resolved</span>
@@ -1006,10 +1003,9 @@ export function V8Assembly() {
             <div style={{
               position: 'absolute', top: 32, right: 100,
               width: 18, height: 18, borderRadius: '50%',
-              background: `linear-gradient(180deg, ${A[300]} 0%, ${A[400]} 100%)`,
+              backgroundColor: A[400],
               color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: 9, fontWeight: 700,
-              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08), 0 1px 2px rgba(0,0,0,0.15)',
             }}>1</div>
 
             {/* Resolved pin */}
@@ -1019,7 +1015,7 @@ export function V8Assembly() {
               backgroundColor: F.resolved,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
-              <Check size={9} strokeWidth={2} color="#fff" />
+              <Check size={9} strokeWidth={1.5} color="#fff" />
             </div>
 
             {/* FABs */}
@@ -1031,18 +1027,15 @@ export function V8Assembly() {
                 width: 36, height: 36, borderRadius: '50%',
                 backgroundColor: F.comment, color: '#fff',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.10)',
               }}>
                 <MessageSquare size={14} strokeWidth={1.5} />
               </div>
               <div style={{
                 width: 36, height: 36, borderRadius: '50%',
-                background: `linear-gradient(180deg, ${A[300]} 0%, ${A[400]} 100%)`,
-                color: '#fff',
+                backgroundColor: A[400], color: '#fff',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.16)',
               }}>
-                <Pencil size={14} strokeWidth={1.5} />
+                <SquareMousePointer size={14} strokeWidth={1.5} />
               </div>
             </div>
 

@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
-import { Check, Pencil, Trash2 } from 'lucide-react'
+import { Check, SquareMousePointer, Trash2 } from 'lucide-react'
 import { useReducedMotion } from './useReducedMotion'
 import type { CanvasFrame } from './types'
 
@@ -174,7 +174,7 @@ function MarkerDot({ id, comment, rect, onClick, reducedMotion }: {
         width: 18,
         height: 18,
         borderRadius: '50%',
-        background: `linear-gradient(180deg, ${ACCENT_LIFT} 0%, ${ACCENT} 100%)`,
+        backgroundColor: ACCENT,
         color: '#fff',
         display: 'flex',
         alignItems: 'center',
@@ -183,7 +183,6 @@ function MarkerDot({ id, comment, rect, onClick, reducedMotion }: {
         fontWeight: 700,
         fontFamily: FONT,
         zIndex: 99997,
-        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08), 0 1px 2px rgba(0,0,0,0.15), 0 0 0 0.5px rgba(0,0,0,0.06)',
         cursor: 'default',
         userSelect: 'none',
         transform: reducedMotion ? 'scale(1)' : 'scale(0.5)',
@@ -733,24 +732,19 @@ export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual', o
               width: 40,
               height: 40,
               borderRadius: '50%',
-              background: buttonState === 'pressed'
+              backgroundColor: buttonState === 'pressed'
                 ? ACCENT_PRESSED
-                : `linear-gradient(180deg, ${ACCENT_LIFT} 0%, ${buttonState === 'hover' ? ACCENT_HOVER : ACCENT} 100%)`,
+                : buttonState === 'hover' ? ACCENT_HOVER : ACCENT,
               color: '#fff',
               border: 'none',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: buttonState === 'pressed'
-                ? 'inset 0 1px 2px rgba(0,0,0,0.15), 0 1px 2px rgba(0,0,0,0.08)'
-                : buttonState === 'hover'
-                  ? 'inset 0 1px 0 rgba(255,255,255,0.10), 0 2px 6px rgba(0,0,0,0.16), 0 0 0 0.5px rgba(0,0,0,0.06)'
-                  : 'inset 0 1px 0 rgba(255,255,255,0.08), 0 1px 3px rgba(0,0,0,0.12), 0 0 0 0.5px rgba(0,0,0,0.06)',
               transform: buttonState === 'pressed' ? 'scale(0.95)' : 'scale(1)',
-              transition: 'transform 0.1s ease, box-shadow 0.15s ease, background 0.1s ease',
+              transition: 'transform 0.1s ease, background-color 0.1s ease',
             }}
           >
-            <Pencil size={16} strokeWidth={1.5} />
+            <SquareMousePointer size={20} strokeWidth={1.5} />
           </button>
         </div>
       )}
