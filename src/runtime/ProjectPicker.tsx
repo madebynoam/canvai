@@ -122,7 +122,7 @@ export function ProjectPicker({ projects, activeIndex, onSelect }: ProjectPicker
   const containerRef = useRef<HTMLDivElement>(null)
   const dropdownRef = useDropdownSpring(open, reducedMotion)
 
-  // Click-outside to close
+  // Click-outside + Escape to close
   useEffect(() => {
     if (!open) return
     function handleClick(e: MouseEvent) {
@@ -130,8 +130,17 @@ export function ProjectPicker({ projects, activeIndex, onSelect }: ProjectPicker
         setOpen(false)
       }
     }
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        setOpen(false)
+      }
+    }
     document.addEventListener('pointerdown', handleClick)
-    return () => document.removeEventListener('pointerdown', handleClick)
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('pointerdown', handleClick)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
   }, [open])
 
   const active = projects[activeIndex]
