@@ -20,11 +20,52 @@ import { CompositionThread, CompositionAnnotation, CompositionNavigation, Compos
 import { FlowStep1_SignIn, FlowStep2_Compose, FlowStep3_Thread, FlowStep4_Pins, FlowStep5_Promote, FlowStep6_DeepLink, FlowStep7_Resolve } from './CommentFlowV7'
 import { FabColorGrid } from './FabColorExploration'
 import { OklchNeutrals, OklchHueFamilies, OklchPairs } from './OklchPalettes'
+import { V8Palette, V8ShellParts, V8AnnotationParts, V8Comments, V8Assembly } from './SystemV8'
 import type { ProjectManifest } from '../../runtime/types'
 
 const manifest: ProjectManifest = {
   project: 'canvai-ui',
   iterations: [
+    {
+      name: 'V8',
+      pages: [
+        {
+          name: 'Palette',
+          grid: { columns: 1, columnWidth: 640, rowHeight: 560, gap: 40 },
+          frames: [
+            { id: 'v8-palette', title: 'OKLCH Color System — Cerulean 400', component: V8Palette, props: {} },
+          ],
+        },
+        {
+          name: 'Shell Parts',
+          grid: { columns: 1, columnWidth: 760, rowHeight: 900, gap: 40 },
+          frames: [
+            { id: 'v8-shell-parts', title: 'Shell — TopBar, Sidebar, ProjectPicker', component: V8ShellParts, props: {} },
+          ],
+        },
+        {
+          name: 'Annotation Parts',
+          grid: { columns: 1, columnWidth: 760, rowHeight: 900, gap: 40 },
+          frames: [
+            { id: 'v8-annotation-parts', title: 'Annotations — FAB, Card, Markers, Toast', component: V8AnnotationParts, props: {} },
+          ],
+        },
+        {
+          name: 'Comments (Planned)',
+          grid: { columns: 1, columnWidth: 1400, rowHeight: 800, gap: 40 },
+          frames: [
+            { id: 'v8-comments', title: 'Comments System — GitHub-backed (Planned)', component: V8Comments, props: {} },
+          ],
+        },
+        {
+          name: 'Assembly',
+          grid: { columns: 1, columnWidth: 800, rowHeight: 600, gap: 40 },
+          frames: [
+            { id: 'v8-assembly', title: 'Full Assembly — Cerulean 400 on Achromatic Shell', component: V8Assembly, props: {} },
+          ],
+        },
+      ],
+    },
     {
       name: 'V7',
       pages: [
