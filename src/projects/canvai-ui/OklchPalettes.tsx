@@ -1,7 +1,6 @@
 import { useState } from 'react'
-import { MessageSquare, Pencil, Check } from 'lucide-react'
+import { MessageSquare, Pencil, Check, PanelLeft, ChevronDown, ChevronRight, Circle } from 'lucide-react'
 import { FONT, BORDER, TEXT, TEXT_SEC, TEXT_TER } from './tokens'
-import { PanelLeft, ChevronDown, ChevronRight } from 'lucide-react'
 
 /* ── OKLCH Helpers ────────────────────────────── */
 
@@ -323,6 +322,11 @@ interface AccentOption {
   group: string
   accent: { l: number; c: number; h: number }
   commentOverride?: { l: number; c: number; h: number } // override the near-black comment FAB
+  insetCanvas?: boolean
+  threePanel?: boolean
+  noTopbar?: boolean
+  sidebarStatus?: 'top' | 'bottom'
+  sidebarWidth?: number
   note: string
 }
 
@@ -542,6 +546,64 @@ const ACCENTS: AccentOption[] = [
     commentOverride: { l: 0.645, c: 0.018, h: 256 },
     note: 'Braun SK 4. Both FABs are slate — main is darker, secondary lighter. Controls are part of the surface. No color, just density. Orange only on annotation pins.',
   },
+  {
+    name: '34 / Braun Orange — Inset Canvas',
+    group: 'Inset Canvas',
+    accent: { l: 0.62, c: 0.20, h: 55 },
+    insetCanvas: true,
+    note: 'Same Braun orange, but the canvas is inset 10px from the shell edges with 12px border radius. The workspace floats as a card within the chrome.',
+  },
+  {
+    name: '35 / Braun Orange — Three Panel',
+    group: 'Inset Canvas',
+    accent: { l: 0.62, c: 0.20, h: 55 },
+    threePanel: true,
+    note: 'Topbar, sidebar, and canvas are three separate floating panels on the chrome surface. Each has its own border radius. The UI gestalt is three distinct areas.',
+  },
+
+  /* ── G: No Topbar ────────────────────────────── */
+  {
+    name: '37 / No Topbar — Bottom Status',
+    group: 'No Topbar',
+    accent: { l: 0.62, c: 0.20, h: 55 },
+    noTopbar: true, sidebarStatus: 'bottom',
+    note: 'Two-panel layout. No topbar. Project picker and status move to bottom of sidebar. Canvas goes full height.',
+  },
+  {
+    name: '38 / No Topbar — Top Header',
+    group: 'No Topbar',
+    accent: { l: 0.62, c: 0.20, h: 55 },
+    noTopbar: true, sidebarStatus: 'top',
+    note: 'Two-panel layout. Logo and project name become a sidebar header. Status at sidebar bottom. Integrated feel.',
+  },
+  {
+    name: '39 / No Topbar — Inset Canvas',
+    group: 'No Topbar',
+    accent: { l: 0.62, c: 0.20, h: 55 },
+    noTopbar: true, insetCanvas: true, sidebarStatus: 'bottom',
+    note: 'No topbar. Canvas floats inset from the sidebar edge. Two-panel with depth: sidebar is flat, canvas is raised.',
+  },
+  {
+    name: '40 / No Topbar — Two Floating',
+    group: 'No Topbar',
+    accent: { l: 0.62, c: 0.20, h: 55 },
+    noTopbar: true, threePanel: true, sidebarStatus: 'bottom',
+    note: 'No topbar. Sidebar and canvas both float as separate panels on chrome. Two distinct floating areas.',
+  },
+  {
+    name: '41 / No Topbar — Two Floating, Top',
+    group: 'No Topbar',
+    accent: { l: 0.62, c: 0.20, h: 55 },
+    noTopbar: true, threePanel: true, sidebarStatus: 'top',
+    note: 'No topbar. Both panels float. Project name as sidebar header, status at bottom. Maximally clean canvas.',
+  },
+  {
+    name: '42 / No Topbar — Compact Sidebar',
+    group: 'No Topbar',
+    accent: { l: 0.62, c: 0.20, h: 55 },
+    noTopbar: true, sidebarStatus: 'bottom', sidebarWidth: 120,
+    note: 'No topbar. Narrower sidebar (120px) gives the canvas more room. Tighter page labels. Minimal chrome.',
+  },
 ]
 
 /* ── Accent palette (minted tint for inline use) ─── */
@@ -560,6 +622,8 @@ function AccentPreview({ opt }: { opt: AccentOption }) {
   const shadow = 'rgba(0,0,0,0.10)'
   const shadowStrong = 'rgba(0,0,0,0.16)'
   const S = SHELL
+  const floats = opt.threePanel
+  const inset = opt.insetCanvas || floats
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -570,10 +634,16 @@ function AccentPreview({ opt }: { opt: AccentOption }) {
         width: 620, height: 380, borderRadius: 8, overflow: 'hidden',
         border: `1px solid ${S.border}`,
         display: 'flex', flexDirection: 'column', fontFamily: FONT,
+        backgroundColor: floats ? S.chrome : undefined,
+        padding: floats ? 8 : 0,
+        gap: floats ? 8 : 0,
       }}>
         {/* ── Topbar — chrome surface ─────────────── */}
+        {!opt.noTopbar && (
         <div style={{
-          height: 36, backgroundColor: S.chrome, borderBottom: `1px solid ${S.border}`,
+          height: 36, backgroundColor: floats ? S.card : S.chrome,
+          borderBottom: floats ? 'none' : `1px solid ${S.border}`,
+          borderRadius: floats ? 8 : 0,
           display: 'flex', alignItems: 'center', padding: '0 12px', gap: 8, flexShrink: 0,
         }}>
           <PanelLeft size={14} strokeWidth={1.5} color={S.txtTer} />
@@ -591,14 +661,28 @@ function AccentPreview({ opt }: { opt: AccentOption }) {
             borderRadius: 4, backgroundColor: S.chromeSub,
           }}>3 iterations</div>
         </div>
+        )}
 
-        <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+        <div style={{ flex: 1, display: 'flex', overflow: 'hidden', gap: floats ? 8 : 0 }}>
           {/* ── Sidebar — chrome surface ──────────────── */}
           <div style={{
-            width: 148, borderRight: `1px solid ${S.border}`,
-            backgroundColor: S.chrome, padding: '8px 0', flexShrink: 0,
+            width: opt.sidebarWidth ?? 148, borderRight: inset ? 'none' : `1px solid ${S.border}`,
+            backgroundColor: floats ? S.card : S.chrome,
+            borderRadius: floats ? 8 : 0,
+            padding: '8px 0', flexShrink: 0,
             display: 'flex', flexDirection: 'column', gap: 2,
           }}>
+            {/* Sidebar header — project picker (noTopbar + top) */}
+            {opt.noTopbar && opt.sidebarStatus === 'top' && (
+              <>
+                <div style={{ padding: '4px 12px 8px', display: 'flex', alignItems: 'center', gap: 6, borderBottom: `1px solid ${S.border}`, marginBottom: 4 }}>
+                  <div style={{ width: 14, height: 14, borderRadius: 4, backgroundColor: accent, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 7, fontWeight: 700 }}>C</div>
+                  <span style={{ fontSize: 10, fontWeight: 600, color: S.txtPri }}>canvai-ui</span>
+                  <ChevronDown size={8} strokeWidth={1.5} color={S.txtTer} />
+                </div>
+              </>
+            )}
+
             <div style={{ padding: '4px 12px', display: 'flex', alignItems: 'center', gap: 4 }}>
               <ChevronDown size={8} strokeWidth={1.5} color={S.txtTer} />
               <span style={{ fontSize: 10, fontWeight: 600, color: S.txtPri }}>V7</span>
@@ -625,10 +709,42 @@ function AccentPreview({ opt }: { opt: AccentOption }) {
               <ChevronRight size={8} strokeWidth={1.5} color={S.txtFaint} />
               <span style={{ fontSize: 10, color: S.txtTer }}>V5</span>
             </div>
+
+            {/* Sidebar footer — status items (noTopbar) */}
+            {opt.noTopbar && (
+              <div style={{ marginTop: 'auto', padding: '8px 12px 4px', borderTop: `1px solid ${S.border}`, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {opt.sidebarStatus === 'bottom' && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <div style={{ width: 14, height: 14, borderRadius: 4, backgroundColor: accent, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 7, fontWeight: 700 }}>C</div>
+                    <span style={{ fontSize: 9, fontWeight: 500, color: S.txtPri }}>canvai-ui</span>
+                  </div>
+                )}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <Circle size={6} strokeWidth={0} fill={accent} />
+                  <span style={{ fontSize: 8, color: S.txtTer }}>2 pending</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <span style={{ fontSize: 8, color: S.txtFaint }}>watching</span>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* ── Canvas area — lighter than chrome ────── */}
-          <div style={{ flex: 1, backgroundColor: S.canvas, position: 'relative' }}>
+          <div style={{
+            flex: 1,
+            backgroundColor: inset && !floats ? S.chrome : S.canvas,
+            padding: inset && !floats ? 10 : 0,
+            borderRadius: floats ? 12 : 0,
+            overflow: floats ? 'hidden' : undefined,
+          }}>
+          <div style={{
+            backgroundColor: S.canvas,
+            position: 'relative',
+            borderRadius: inset && !floats ? 12 : 0,
+            height: '100%',
+            overflow: inset && !floats ? 'hidden' : undefined,
+          }}>
             {/* Design cards — white on canvas */}
             <div style={{ padding: 20, display: 'flex', gap: 16 }}>
               {/* Card A */}
@@ -740,6 +856,7 @@ function AccentPreview({ opt }: { opt: AccentOption }) {
               </div>
             </div>
           </div>
+          </div>
         </div>
       </div>
 
@@ -789,6 +906,8 @@ const GROUPS: { name: string; description: string; range: [number, number] }[] =
   { name: 'C — Cool Precision', description: 'Blues, indigos, violets, teals. Must feel like precision instruments, not decoration.', range: [16, 24] },
   { name: 'D — Edge Cases', description: 'Near-achromatic accents, material contrast, unusual hues at low chroma. How far can restraint go?', range: [24, 32] },
   { name: 'E — Slate', description: 'Both FABs are cool slate — different densities of the same material. No accent color on controls at all. Braun SK 4 energy.', range: [32, 33] },
+  { name: 'F — Inset Canvas', description: 'Canvas inset from chrome edges with visible border radius. The workspace floats within the shell like a card.', range: [33, 35] },
+  { name: 'G — No Topbar', description: 'Remove the topbar entirely. Two-panel gestalt: sidebar + canvas. Topbar items relocate to the sidebar.', range: [35, 41] },
 ]
 
 export function OklchPairs() {
