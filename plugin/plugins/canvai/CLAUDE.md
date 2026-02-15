@@ -27,7 +27,7 @@ src/projects/
   <project-name>/
     primitives/
       tokens.css         ← CSS custom properties (OKLCH base tokens)
-      spring.ts          ← spring physics engine (golden ratio)
+      spring.ts          ← spring physics engine (optional, chosen at init)
       Button.tsx          ← shared button primitive
       Avatar.tsx          ← shared avatar primitive
       index.ts            ← barrel export + component index
@@ -222,8 +222,17 @@ spring.set(1, (v) => { ref.current.style.transform = `scale(${v})` })
 
 All components import from the `primitives/` folder:
 - **`primitives/tokens.css`** — CSS custom properties (single source of truth for colors, spacing, radius, type scale)
-- **`primitives/spring.ts`** — spring physics hook, presets, golden ratio constants
 - **`primitives/index.ts`** — barrel export for shared components (Button, Avatar, Label, Swatch, HoverButton)
+
+Projects that use spring physics also have `primitives/spring.ts`:
+- **`primitives/spring.ts`** — spring physics hook, presets, golden ratio constants
+
+Not every project uses spring. The motion approach is chosen at init time:
+- **Spring physics** — for interactive components (buttons, toggles, menus, reveals). Import `{ SPRING, useSpring }` from `./spring`.
+- **CSS transitions** — for simple hover states, color changes. Use `transition: background-color 120ms` directly in styles.
+- **No motion** — for static designs, layouts, palette explorations.
+
+To add spring to an existing project: copy `spring.ts` from `_archive/canvai-ui/` or another project into `primitives/`.
 
 ## Primitives workflow
 
@@ -312,6 +321,29 @@ Frozen iterations are read-only snapshots. The `frozen: true` flag in the manife
 - **Primitives** (`primitives/`) — shared across all iterations, always editable
 - **Base tokens** (`primitives/tokens.css`) — changes propagate to unfrozen iterations
 - **CHANGELOG.md** — always appendable
+
+## Before any edit
+
+Every time you are about to modify a file in `src/projects/<name>/`, follow this checklist:
+
+1. **Read `manifest.ts`** — find which iteration owns the file.
+   - If `frozen: true` → STOP. Tell the designer: "That's in a frozen iteration. Use /canvai-iterate to create a new one."
+   - If `frozen: false` → continue.
+
+2. **Check `primitives/index.ts`** — does a shared primitive already handle what you're changing?
+   - If yes → modify the primitive (change propagates everywhere).
+   - If the change is iteration-specific → edit the variation file in `iterations/v<N>/`.
+
+3. **Use CSS custom properties** for all visual values:
+   - Colors → `var(--accent)`, `var(--text-primary)`, etc.
+   - Spacing → `var(--space-4)`, `var(--space-2)`, etc.
+   - Radius → `var(--radius-md)`, `var(--radius-sm)`, etc.
+   - Never hardcode OKLCH, hex, or px values that have a token equivalent.
+   - Reference `primitives/tokens.css` for available tokens.
+
+4. **Log the change** to `CHANGELOG.md` under the current iteration heading.
+
+This applies to chat-based changes, annotation-based changes, and any other edit.
 
 ## Context reading protocol
 

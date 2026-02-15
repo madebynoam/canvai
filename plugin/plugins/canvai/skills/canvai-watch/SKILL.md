@@ -20,9 +20,10 @@ The dev server must be running (`/canvai-dev` or `npx canvai dev`).
 3. **Enter the watch loop:** Call `watch_annotations`. This blocks until the designer submits an annotation from the canvas.
 
 4. **When an annotation arrives:**
-   - Read the `comment`, `componentName`, `selector`, and `computedStyles`
-   - Edit the component file to apply the requested change
-   - Call `resolve_annotation` with the annotation `id`
+   - Follow the **"Before any edit"** protocol (frozen check → primitive check → token usage)
+   - If frozen, resolve with a note and re-enter loop
+   - Edit the component or primitive using `var(--token)` values
+   - Call `resolve_annotation`, log to CHANGELOG.md
    - Call `watch_annotations` again — back to waiting
 
 5. **Exit:** The designer sends any message to break out of watch mode and return to normal chat.

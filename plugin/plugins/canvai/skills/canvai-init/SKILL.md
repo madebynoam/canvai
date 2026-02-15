@@ -27,7 +27,6 @@ Create a new design project inside Canvai and launch the dev environment.
    src/projects/<project-name>/
      primitives/
        tokens.css
-       spring.ts
        index.ts
      iterations/
        v1/
@@ -43,15 +42,23 @@ Create a new design project inside Canvai and launch the dev environment.
    ```
    This starts both Vite and the annotation MCP in one command.
 
-6. **Confirm:** "Project `<project-name>` is ready. Describe a component -- I'll generate its variations and states as a matrix on the canvas."
+6. **Ask about motion:**
+   - "Does this project need interactive motion (spring-animated buttons, toggles, reveals)?"
+   - **Yes, spring physics** → copy `spring.ts` into `primitives/`, add to `primitives/index.ts`
+   - **Yes, CSS transitions** → no extra files needed, note in CHANGELOG that project uses CSS transitions
+   - **No motion** → skip, note in CHANGELOG that project is static
+
+   Motion can always be added later — copy `spring.ts` from the archive or another project.
+
+7. **Confirm:** "Project `<project-name>` is ready. Describe a component -- I'll generate its variations and states as a matrix on the canvas."
 
 ## What happens next
 
 After scaffolding, the project has the following foundation files:
 
 - **`primitives/tokens.css`** -- CSS custom properties defining the OKLCH base palette, spacing grid, radius tiers, and type scale. Every primitive references these via `var(--token-name)`.
-- **`primitives/spring.ts`** -- Spring physics engine with golden-ratio-derived presets (`snappy`, `gentle`, `soft`) and a `useSpring` hook for direct-DOM animation.
 - **`primitives/index.ts`** -- Barrel export and component index. Auto-maintained by the agent: each line is a comment with component name, description, and file path.
+- **`primitives/spring.ts`** (optional) -- Spring physics engine with golden-ratio-derived presets (`snappy`, `gentle`, `soft`) and a `useSpring` hook for direct-DOM animation. Only present if the designer chose spring physics at init time.
 - **`iterations/v1/tokens.css`** -- Iteration-scoped token overrides. Starts empty (inherits everything from base). Frozen iterations pin their visual expression here.
 - **`iterations/v1/index.ts`** -- Variation index for V1. Auto-maintained: each line lists the variation name, description, and file path.
 
@@ -70,7 +77,7 @@ When the designer describes a component, the agent then:
 src/projects/<project-name>/
   primitives/
     tokens.css          <- CSS custom properties (OKLCH base tokens)
-    spring.ts           <- spring physics engine
+    spring.ts           <- spring physics engine (if motion chosen)
     Button.tsx          <- shared button primitive
     index.ts            <- barrel export
   iterations/
