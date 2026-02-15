@@ -41,6 +41,7 @@ export interface PageManifest {
 /** An iteration grouping pages within a project */
 export interface IterationManifest {
   name: string
+  frozen?: boolean
   pages: PageManifest[]
 }
 

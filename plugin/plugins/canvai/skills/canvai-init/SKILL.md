@@ -22,9 +22,19 @@ Create a new design project inside Canvai and launch the dev environment.
    ```
    This creates `index.html`, `vite.config.ts`, `src/App.tsx`, `src/main.tsx`, tsconfigs, and installs peer dependencies. It skips files that already exist.
 
-4. **Create the project folder:**
+4. **Create the project folder with primitives + iterations structure:**
    ```
    src/projects/<project-name>/
+     primitives/
+       tokens.css
+       spring.ts
+       index.ts
+     iterations/
+       v1/
+         tokens.css
+         index.ts
+     manifest.ts
+     CHANGELOG.md
    ```
 
 5. **Launch the dev server** in the background:
@@ -33,32 +43,73 @@ Create a new design project inside Canvai and launch the dev environment.
    ```
    This starts both Vite and the annotation MCP in one command.
 
-6. **Confirm:** "Project `<project-name>` is ready. Describe a component — I'll generate its variations and states as a matrix on the canvas."
+6. **Confirm:** "Project `<project-name>` is ready. Describe a component -- I'll generate its variations and states as a matrix on the canvas."
 
 ## What happens next
 
-After init, the designer describes a component (or attaches a sketch). The agent then:
+After scaffolding, the project has the following foundation files:
 
-1. **Identifies variations** — content scenarios, types, sizes (these become rows)
-2. **Identifies states** — interaction phases, conditions (these become columns)
-3. **Generates the component** — creates `<ComponentName>.tsx` in the project folder
-4. **Generates the manifest** — creates `manifest.ts` with page V1 containing the full matrix of frames
-5. **The canvas auto-discovers the manifest** and renders all frames
+- **`primitives/tokens.css`** -- CSS custom properties defining the OKLCH base palette, spacing grid, radius tiers, and type scale. Every primitive references these via `var(--token-name)`.
+- **`primitives/spring.ts`** -- Spring physics engine with golden-ratio-derived presets (`snappy`, `gentle`, `soft`) and a `useSpring` hook for direct-DOM animation.
+- **`primitives/index.ts`** -- Barrel export and component index. Auto-maintained by the agent: each line is a comment with component name, description, and file path.
+- **`iterations/v1/tokens.css`** -- Iteration-scoped token overrides. Starts empty (inherits everything from base). Frozen iterations pin their visual expression here.
+- **`iterations/v1/index.ts`** -- Variation index for V1. Auto-maintained: each line lists the variation name, description, and file path.
+
+When the designer describes a component, the agent then:
+
+1. **Identifies variations** -- content scenarios, types, sizes (these become rows)
+2. **Identifies states** -- interaction phases, conditions (these become columns)
+3. **Creates shared primitives** -- reusable atoms (Button, Avatar, Label, etc.) go in `primitives/`
+4. **Creates variations** -- each variation is a single file in `iterations/v1/`
+5. **Generates the manifest** -- creates `manifest.ts` with iteration V1 containing the full matrix of frames
+6. **The canvas auto-discovers the manifest** and renders all frames
+
+## Project structure
+
+```
+src/projects/<project-name>/
+  primitives/
+    tokens.css          <- CSS custom properties (OKLCH base tokens)
+    spring.ts           <- spring physics engine
+    Button.tsx          <- shared button primitive
+    index.ts            <- barrel export
+  iterations/
+    v1/
+      tokens.css        <- iteration-scoped overrides (empty = inherit)
+      index.ts          <- variation exports
+      <variation>.tsx   <- design variations
+  manifest.ts
+  CHANGELOG.md
+```
+
+**Key rules:**
+- **Primitives are shared.** Every iteration imports from `primitives/`. No copy-pasting atoms between variations.
+- **One file per variation.** Each variation lives in its own `.tsx` file inside the iteration folder.
+- **Tokens cascade.** `primitives/tokens.css` is the base. `iterations/v1/tokens.css` overrides only what it needs to pin. Unoverridden tokens float with the base.
+- **Frozen iterations are read-only.** Check `frozen` in the manifest before editing any iteration folder.
 
 ## Manifest format
 
 ```ts
-import { MyComponent } from './MyComponent'
+import './primitives/tokens.css'
+import './iterations/v1/tokens.css'
+import { MyComponent } from './iterations/v1/MyComponent'
 import type { ProjectManifest } from 'canvai/runtime'
 
 const manifest: ProjectManifest = {
   project: '<project-name>',
-  pages: [
+  iterations: [
     {
-      name: 'V1 — Initial',
-      grid: { columns: 3, columnWidth: 300, rowHeight: 160, gap: 40 },
-      frames: [
-        { id: '<component>-<variation>-<state>', title: 'Component / Variation / State', component: MyComponent, props: { ... } },
+      name: 'V1',
+      frozen: false,
+      pages: [
+        {
+          name: 'Initial',
+          grid: { columns: 3, columnWidth: 300, rowHeight: 160, gap: 40 },
+          frames: [
+            { id: '<component>-<variation>-<state>', title: 'Component / Variation / State', component: MyComponent, props: { ... } },
+          ],
+        },
       ],
     },
   ],
@@ -67,6 +118,11 @@ const manifest: ProjectManifest = {
 export default manifest
 ```
 
+**Notes:**
+- Both CSS imports are at the top -- base tokens first, then iteration overrides
+- Each iteration has a `frozen` field (`false` for active, `true` for frozen)
+- Pages are nested inside iterations, not at the top level
+
 ## Layout rules
 
 - **Columns** = states, flowing left to right
@@ -74,4 +130,4 @@ export default manifest
 - Frame IDs: `<component>-<variation>-<state>`
 - Frame titles: `Component / Variation / State`
 - The grid config in the manifest controls column width, row height, and gap
-- The layout engine computes x/y positions — never set them manually
+- The layout engine computes x/y positions -- never set them manually

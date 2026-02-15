@@ -52,7 +52,9 @@ function App() {
   const [pendingCount, setPendingCount] = useState(0)
 
   const activeProject: ProjectManifest | undefined = manifests[activeProjectIndex]
-  const activePage = activeProject?.iterations?.[activeIterationIndex]?.pages[activePageIndex]
+  const activeIteration = activeProject?.iterations?.[activeIterationIndex]
+  const iterClass = activeIteration ? \`iter-\${activeIteration.name.toLowerCase()}\` : ''
+  const activePage = activeIteration?.pages[activePageIndex]
   const layoutedFrames = activePage ? layoutFrames(activePage) : []
 
   const { frames, updateFrame, handleResize } = useFrames(layoutedFrames, activePage?.grid)
@@ -83,7 +85,7 @@ function App() {
           }}
         />
 
-        <div style={{ flex: 1 }}>
+        <div className={iterClass} style={{ flex: 1 }}>
           <Canvas>
             {frames.map(frame => (
               <Frame

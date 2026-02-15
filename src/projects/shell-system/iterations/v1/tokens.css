@@ -1,0 +1,4 @@
+/* V1 — inherits all base tokens, no overrides */
+.iter-v1 {
+  /* empty — uses :root tokens as-is */
+}

@@ -25,8 +25,22 @@ Tenets are decision-making tools — each names the alternative and rejects it.
 ```
 src/projects/
   <project-name>/
-    Component.tsx       ← the React component
-    manifest.ts         ← pages × frames (auto-discovered by the canvas)
+    primitives/
+      tokens.css         ← CSS custom properties (OKLCH base tokens)
+      spring.ts          ← spring physics engine (golden ratio)
+      Button.tsx          ← shared button primitive
+      Avatar.tsx          ← shared avatar primitive
+      index.ts            ← barrel export + component index
+    iterations/
+      v1/
+        tokens.css       ← iteration-scoped token overrides
+        index.ts         ← variation exports
+        <variation>.tsx  ← design variations
+      v2/
+        tokens.css       ← different accent, spacing, etc.
+        ...
+    manifest.ts          ← pages × frames (auto-discovered by the canvas)
+    CHANGELOG.md         ← annotation + iteration history
 ```
 
 ## Manifest format
@@ -34,7 +48,10 @@ src/projects/
 Each project has a `manifest.ts` that exports a `ProjectManifest`:
 
 ```ts
-import { MyComponent } from './MyComponent'
+import './primitives/tokens.css'
+import './iterations/v1/tokens.css'
+import './iterations/v2/tokens.css'
+import { MyVariation } from './iterations/v1/my-variation'
 import type { ProjectManifest } from 'canvai/runtime'
 
 const manifest: ProjectManifest = {
@@ -42,21 +59,29 @@ const manifest: ProjectManifest = {
   iterations: [
     {
       name: 'V1',
+      frozen: true,
       pages: [
         {
           name: 'Initial',
           grid: { columns: 3, columnWidth: 300, rowHeight: 160, gap: 40 },
           frames: [
-            { id: 'comp-variant-state', title: 'Comp / Variant / State', component: MyComponent, props: { ... } },
+            { id: 'comp-variant-state', title: 'Comp / Variant / State', component: MyVariation, props: { ... } },
           ],
         },
       ],
+    },
+    {
+      name: 'V2',
+      frozen: false,
+      pages: [ ... ],
     },
   ],
 }
 
 export default manifest
 ```
+
+The manifest imports CSS tokens at the top — base tokens from `primitives/tokens.css`, then each iteration's scoped overrides. The `frozen` flag marks whether an iteration can be edited.
 
 ## Component matrix
 
@@ -89,24 +114,30 @@ Canvai follows a **Braun / Jony Ive** aesthetic — clean, minimal, functional. 
 9. **Environmentally friendly** — Minimal bundle. No heavy animation libraries when 30 lines of spring physics suffice.
 10. **As little design as possible** — Back to purity, back to simplicity. Less, but better.
 
-### Palette
+### Palette (OKLCH)
 
-| Token | Value | Usage |
-|---|---|---|
-| Accent | `#E8590C` | Buttons, highlights, selection outlines |
-| Accent hover | `#CF4F0B` | Hover state for accent elements |
-| Accent muted | `rgba(232, 89, 12, 0.15)` | Disabled accent backgrounds |
-| Accent shadow | `rgba(232, 89, 12, 0.25)` | Focus rings, box shadows |
-| Canvas | `#F3F4F6` | Canvas background (light gray) |
-| Surface | `#FFFFFF` | Cards, popovers, panels |
-| Surface subtle | `#F9FAFB` | Input backgrounds, secondary surfaces |
-| Border | `#E5E7EB` | Borders, dividers |
-| Hover bg | `rgba(0,0,0,0.03)` | Hover background for interactive rows |
-| Active bg | `rgba(0,0,0,0.06)` | Active/pressed background |
-| Danger | `#DC2626` | Destructive actions (delete buttons, error states) |
-| Text primary | `#1F2937` | Body text |
-| Text secondary | `#6B7280` | Labels, captions |
-| Text tertiary | `#9CA3AF` | Hints, metadata |
+All colors are defined in OKLCH — no hex values. The shell is achromatic (c=0, no hue). The accent is the one color.
+
+| Token | CSS var | OKLCH | Usage |
+|---|---|---|---|
+| Surface | `--surface` | `oklch(0.995 0 0)` | Cards, popovers, panels |
+| Chrome | `--chrome` | `oklch(0.955 0 0)` | Sidebar + topbar surface |
+| Canvas | `--canvas-bg` | `oklch(0.975 0 0)` | Workspace background |
+| Border | `--border` | `oklch(0.900 0 0)` | Chrome borders |
+| Border soft | `--border-soft` | `oklch(0.920 0 0)` | Card borders |
+| Text primary | `--text-primary` | `oklch(0.200 0 0)` | Body text |
+| Text secondary | `--text-secondary` | `oklch(0.400 0 0)` | Labels, captions |
+| Text tertiary | `--text-tertiary` | `oklch(0.560 0 0)` | Hints, metadata |
+| Text faint | `--text-faint` | `oklch(0.680 0 0)` | Ghost / placeholder |
+| Accent | `--accent` | `oklch(0.68 0.18 235)` | Buttons, highlights (cerulean) |
+| Accent hover | `--accent-hover` | `oklch(0.78 0.14 235)` | Hover state |
+| Accent muted | `--accent-muted` | `oklch(0.93 0.05 235)` | Tint backgrounds |
+| Success | `--success` | `oklch(0.55 0.14 155)` | Success states |
+| Danger | `--danger` | `oklch(0.52 0.20 28)` | Destructive actions |
+| Hover bg | — | `rgba(0,0,0,0.03)` | Hover background |
+| Active bg | — | `rgba(0,0,0,0.06)` | Active/pressed background |
+
+**Use CSS custom properties** (`var(--accent)`) in component styles instead of hardcoded values. This enables iteration-scoped token overrides.
 
 ### Typography
 
@@ -138,9 +169,10 @@ All spacing values must be multiples of 4: `4, 8, 12, 16, 20, 24, 28, 32`. Never
 
 ### Principles
 
-- **One accent color.** Orange (`#E8590C`) is the only color. Everything else is grayscale. Exception: semantic status colors (green for resolved, red for danger) are allowed in status pills and badges only.
-- **Light canvas.** The background is always `#F3F4F6`, never dark.
-- **Minimal chrome.** Subtle borders (`1px solid #E5E7EB`), soft shadows, no heavy outlines.
+- **All colors in OKLCH.** Never introduce hex values. Use `var(--token)` CSS custom properties or `oklch()` with intentional L/C/H values.
+- **One accent color.** Cerulean (`var(--accent)`) is the only color. Everything else is achromatic (c=0). Exception: semantic status colors (success h=155, danger h=28) are allowed in status indicators only.
+- **Light canvas.** The background is always `var(--canvas-bg)`, never dark.
+- **Minimal chrome.** Subtle borders (`1px solid var(--border)`), soft shadows, no heavy outlines.
 - **4px spacing grid.** All padding, margin, and gap values must be multiples of 4.
 - **Rounded but not bubbly.** `borderRadius: 10` for cards, `8` for menus, `20` for pills. See Border radius section.
 - **Icons: Lucide React** (`lucide-react`). No hand-drawn SVGs. Size tiers: 16px primary actions (menu items, FAB, sidebar toggle), 14px secondary (close, trash, checks, send), 12px decorative (chevrons in triggers). Always `strokeWidth={1.5}`.
@@ -188,9 +220,110 @@ spring.set(1, (v) => { ref.current.style.transform = `scale(${v})` })
 
 #### Shared modules
 
-All V5 components import from two shared files:
-- **`tokens.ts`** — design tokens (single source of truth for colors, fonts)
-- **`spring.ts`** — spring physics hook, presets, golden ratio constants
+All components import from the `primitives/` folder:
+- **`primitives/tokens.css`** — CSS custom properties (single source of truth for colors, spacing, radius, type scale)
+- **`primitives/spring.ts`** — spring physics hook, presets, golden ratio constants
+- **`primitives/index.ts`** — barrel export for shared components (Button, Avatar, Label, Swatch, HoverButton)
+
+## Primitives workflow
+
+Primitives are shared components in `primitives/` that use CSS custom properties for all visual values. They are shared across all iterations.
+
+### When to create a primitive
+
+- A pattern repeats across 2+ variations
+- The component is purely visual (no business logic)
+- It can be styled entirely via CSS custom properties
+
+### When to use a local component instead
+
+- The component is specific to one iteration
+- It needs logic that doesn't generalize
+- The designer wants to experiment without affecting other iterations
+
+### Promotion flow
+
+1. Start as a local component in `iterations/v<N>/`
+2. If it gets reused, extract to `primitives/`
+3. Update both `primitives/index.ts` and the iteration indexes
+
+### Primitives must use CSS custom properties
+
+```tsx
+// Good — respects token overrides
+<div style={{ background: 'var(--accent)', borderRadius: 'var(--radius-md)' }}>
+
+// Bad — hardcoded, won't respond to iteration tokens
+<div style={{ background: 'oklch(0.68 0.18 235)', borderRadius: '8px' }}>
+```
+
+## Token system
+
+Tokens cascade in two layers:
+
+1. **Base tokens** — `primitives/tokens.css` defines `:root` custom properties. These are the defaults.
+2. **Iteration overrides** — `iterations/v<N>/tokens.css` scopes overrides under `.iter-<name>`. These override base tokens for that iteration only.
+
+### How scoping works
+
+The runtime wraps the canvas area in a div with class `iter-<name>` (lowercased iteration name). CSS specificity does the rest:
+
+```css
+/* primitives/tokens.css — defaults */
+:root {
+  --accent: oklch(0.68 0.18 235);
+}
+
+/* iterations/v1/tokens.css — pinned when frozen */
+.iter-v1 {
+  --accent: oklch(0.68 0.18 235);
+}
+
+/* iterations/v2/tokens.css — new direction */
+.iter-v2 {
+  --accent: oklch(0.55 0.18 250);
+}
+```
+
+### Rules
+
+- **Always use `var(--token)`** in component styles. Never hardcode OKLCH values in components.
+- **Base tokens change freely.** Updating `primitives/tokens.css` affects all unfrozen iterations.
+- **Frozen iteration tokens are pinned.** When freezing, copy the current accent (and any overridden tokens) into the iteration's `tokens.css` so it's preserved.
+
+## Freezing rules
+
+Frozen iterations are read-only snapshots. The `frozen: true` flag in the manifest marks them.
+
+### Before editing any file, check the manifest
+
+1. Read `manifest.ts`
+2. Find the iteration that owns the file you're about to edit
+3. If `frozen: true` — **do not edit**. Create a new iteration instead.
+4. If `frozen: false` — edit freely.
+
+### What gets frozen
+
+- All files in `iterations/v<N>/` — variations, tokens.css, index.ts
+- The iteration's entry in the manifest (pages, frames)
+
+### What is NOT frozen
+
+- **Primitives** (`primitives/`) — shared across all iterations, always editable
+- **Base tokens** (`primitives/tokens.css`) — changes propagate to unfrozen iterations
+- **CHANGELOG.md** — always appendable
+
+## Context reading protocol
+
+To minimize context consumption, follow this reading order:
+
+1. **Read `manifest.ts`** — understand project structure, iterations, frozen status
+2. **Read `primitives/index.ts`** — see what shared components exist
+3. **Read the active iteration's `index.ts`** — see what variations exist
+4. **Read `CHANGELOG.md`** — understand recent changes
+5. **Only then** read specific component files as needed
+
+Never read the entire project folder. The index files and CHANGELOG provide enough context to navigate.
 
 ## Feature inventory
 

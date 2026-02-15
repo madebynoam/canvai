@@ -5,7 +5,7 @@ description: Create a new design iteration for the current project
 
 # /canvai-iterate [description]
 
-Create a new version/iteration of the current design as a new entry in the manifest's `iterations` array.
+Freeze the current iteration and create a new one with its own folder, tokens, and variations.
 
 ## Steps
 
@@ -13,31 +13,32 @@ Create a new version/iteration of the current design as a new entry in the manif
 
 2. **Read the current manifest** — `src/projects/<project-name>/manifest.ts`
 
-3. **Add a new iteration** to the `iterations` array in the manifest:
-   - Name it `V<N>` where N is the next version number
-   - Copy the pages from the previous iteration as a starting point
-   - Apply the requested changes to the component or create a new variant
+3. **Find the active iteration.** The last iteration with `frozen: false` (or the last iteration if none are marked).
 
-4. **Modify the component** if needed — update the `.tsx` file or create a new variant file.
+4. **Freeze the active iteration.** Set `frozen: true` in the manifest. Pin the current accent value into the iteration's `tokens.css`:
+   ```css
+   .iter-v1 {
+     --accent: oklch(0.68 0.18 235);  /* pinned */
+   }
+   ```
 
-5. **The canvas picks up the new iteration automatically** via HMR. The designer will see a new collapsible group in the sidebar.
+5. **Create the new iteration folder** — `iterations/v<N>/` with:
+   - `tokens.css` — empty scope class (inherits base tokens), or ask which tokens to override
+   - `index.ts` — empty variation index
+   - Copy specified variation files from the previous iteration (or ask which to carry forward)
 
-6. **Confirm:** "Created V<N>. You can expand it in the sidebar to see its pages."
+6. **Add the new iteration to manifest:**
+   - Add `import './iterations/v<N>/tokens.css'`
+   - Add new iteration entry with `frozen: false`
+   - Import and register any carried-forward variations
 
-## Example
-
-Designer says: "Let's try a version with rounded corners and no shadow"
-
-The agent:
-1. Reads `manifest.ts`, finds V1 with 1 page containing 9 frames
-2. Adds V2 iteration with the same pages but pointing to updated props or a new component variant
-3. Updates the component to support the new style
-4. The sidebar now shows: `▼ V1` (with its pages) and `▼ V2` (with its pages)
+7. **Confirm:** "Created V<N>. Previous iteration V<N-1> is now frozen."
 
 ## Rules
 
-- Never delete or modify existing iterations — they are frozen snapshots
+- **NEVER modify files in a frozen iteration folder** (`iterations/v<N>/` where `frozen: true` in manifest)
 - Always add a new iteration for design versions
-- The component can be shared across iterations (same file, different props) or forked (new file for major changes)
+- Primitives in `primitives/` are shared across all iterations — changes propagate everywhere
+- If a primitive needs to diverge, create a local component in the iteration folder instead
 - Keep iteration names short (e.g. "V1", "V2")
-- Page names within an iteration should be descriptive (e.g. "Design System", "Components", "States")
+- Token overrides in iteration `tokens.css` are scoped via `.iter-<name>` CSS class
