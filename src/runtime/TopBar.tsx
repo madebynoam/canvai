@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { ProjectPicker } from './ProjectPicker'
 import { PanelLeft } from 'lucide-react'
 import { useReducedMotion } from './useReducedMotion'
+import { N, A, W, FONT } from './tokens'
 
 interface TopBarProps {
   projects: { project: string }[]
@@ -13,11 +14,6 @@ interface TopBarProps {
   sidebarOpen: boolean
   onToggleSidebar: () => void
 }
-
-const ACCENT = '#E8590C'
-const BORDER = '#E5E7EB'
-const TEXT_TERTIARY = '#9CA3AF'
-const FONT = '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif'
 
 function SidebarIcon() {
   return <PanelLeft size={16} strokeWidth={1.5} />
@@ -122,8 +118,8 @@ export function TopBar({
         justifyContent: 'space-between',
         minHeight: 40,
         padding: '0 12px',
-        backgroundColor: '#FFFFFF',
-        borderBottom: `1px solid ${BORDER}`,
+        backgroundColor: N.chrome,
+        borderBottom: `1px solid ${N.border}`,
         fontFamily: FONT,
         flexShrink: 0,
       }}
@@ -140,7 +136,7 @@ export function TopBar({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: sidebarOpen ? '#374151' : TEXT_TERTIARY,
+            color: sidebarOpen ? N.txtPri : N.txtTer,
             borderRadius: 4,
           }}
           title={sidebarOpen ? 'Hide sidebar' : 'Show sidebar'}
@@ -164,7 +160,7 @@ export function TopBar({
                 width: 16,
                 height: 16,
                 borderRadius: '50%',
-                backgroundColor: ACCENT,
+                backgroundColor: A[400],
                 color: '#fff',
                 display: 'flex',
                 alignItems: 'center',
@@ -175,7 +171,7 @@ export function TopBar({
             >
               {pendingCount}
             </div>
-            <span style={{ fontSize: 11, color: ACCENT, fontWeight: 500 }}>pending</span>
+            <span style={{ fontSize: 11, color: A[400], fontWeight: 500 }}>pending</span>
           </div>
         )}
 
@@ -189,10 +185,10 @@ export function TopBar({
               gap: 4,
               padding: '4px 12px',
               borderRadius: 12,
-              backgroundColor: '#ECFDF5',
+              backgroundColor: W.bg,
               fontSize: 11,
               fontWeight: 500,
-              color: '#059669',
+              color: W.text,
               opacity: 0,
               transform: 'scale(0.92)',
               willChange: 'opacity, transform',
@@ -203,8 +199,8 @@ export function TopBar({
                 width: 8,
                 height: 8,
                 borderRadius: '50%',
-                backgroundColor: '#10B981',
-                boxShadow: '0 0 4px rgba(16, 185, 129, 0.4)',
+                backgroundColor: W.dot,
+                boxShadow: `0 0 4px ${W.glow}`,
               }}
             />
             Watch

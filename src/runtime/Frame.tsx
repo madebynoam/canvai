@@ -1,6 +1,7 @@
 import { useRef, useCallback, useEffect } from 'react'
 import type { ReactNode } from 'react'
 import { useCanvas } from './Canvas'
+import { N } from './tokens'
 
 interface FrameProps {
   id: string
@@ -91,7 +92,7 @@ export function Frame({ id, title, x, y, width, height, children, onMove, onResi
         onPointerDown={handlePointerDown}
         style={{
           fontSize: 12 / zoom,
-          color: '#999',
+          color: N.txtFaint,
           marginBottom: 8 / zoom,
           whiteSpace: 'nowrap',
           overflow: 'hidden',

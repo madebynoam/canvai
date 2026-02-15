@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { Check, SquareMousePointer, Trash2 } from 'lucide-react'
 import { useReducedMotion } from './useReducedMotion'
+import { N, A, FONT } from './tokens'
 import type { CanvasFrame } from './types'
 
 type Mode = 'idle' | 'targeting' | 'commenting'
@@ -26,19 +27,6 @@ interface AnnotationOverlayProps {
   onPendingChange?: (count: number) => void
 }
 
-// Design tokens — Braun/Ive aesthetic with orange accent
-const ACCENT = '#E8590C'
-const ACCENT_HOVER = '#CF4F0B'
-const ACCENT_PRESSED = '#D4520A'
-const ACCENT_MUTED = 'rgba(232, 89, 12, 0.15)'
-const ACCENT_LIFT = '#F46D12' // saturated bright orange — light hitting the mold, not desaturated
-const SURFACE = '#FFFFFF'
-const SURFACE_ALT = '#F9FAFB'
-const BORDER = '#E5E7EB'
-const TEXT_PRIMARY = '#1F2937'
-const TEXT_SECONDARY = '#6B7280'
-const TEXT_TERTIARY = '#9CA3AF'
-const FONT = '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif'
 const RADIUS = 10
 
 /* ── Spring presence hook ──
@@ -174,7 +162,7 @@ function MarkerDot({ id, comment, rect, onClick, reducedMotion }: {
         width: 18,
         height: 18,
         borderRadius: '50%',
-        backgroundColor: ACCENT,
+        backgroundColor: A[400],
         color: '#fff',
         display: 'flex',
         alignItems: 'center',
@@ -576,7 +564,7 @@ export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual', o
             top: highlight.top - 2,
             width: highlight.width + 4,
             height: highlight.height + 4,
-            border: `2px solid ${ACCENT}`,
+            border: `2px solid ${A[400]}`,
             borderRadius: 4,
             pointerEvents: 'none',
             zIndex: 99999,
@@ -609,11 +597,11 @@ export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual', o
             top,
             left,
             zIndex: 99999,
-            background: SURFACE,
+            background: N.card,
             borderRadius: RADIUS,
             padding: 16,
             boxShadow: '0 4px 24px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0, 0, 0, 0.04)',
-            border: `1px solid ${BORDER}`,
+            border: `1px solid ${N.border}`,
             width: 320,
             fontFamily: FONT,
             opacity: 0,
@@ -623,7 +611,7 @@ export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual', o
         >
           {/* Header: component·tag + delete icon (when re-editing) */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-            <div style={{ fontSize: 11, color: TEXT_TERTIARY, letterSpacing: '0.02em' }}>
+            <div style={{ fontSize: 11, color: N.txtTer, letterSpacing: '0.02em' }}>
               {displayTarget.componentName} &middot; {displayTarget.elementTag}
             </div>
             {editingMarkerId !== null && (
@@ -634,7 +622,7 @@ export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual', o
                 baseStyle={{
                   width: 24, height: 24, border: 'none', background: 'transparent',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  borderRadius: 4, color: TEXT_TERTIARY,
+                  borderRadius: 4, color: N.txtTer,
                 }}
               >
                 <Trash2 size={14} strokeWidth={1.5} />
@@ -649,9 +637,9 @@ export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual', o
             style={{
               width: '100%',
               minHeight: 72,
-              background: SURFACE_ALT,
-              color: TEXT_PRIMARY,
-              border: `1px solid ${BORDER}`,
+              background: N.canvas,
+              color: N.txtPri,
+              border: `1px solid ${N.border}`,
               borderRadius: 8,
               padding: 10,
               fontSize: 13,
@@ -668,8 +656,8 @@ export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual', o
               baseStyle={{
                 padding: '7px 14px',
                 background: 'transparent',
-                color: TEXT_SECONDARY,
-                border: `1px solid ${BORDER}`,
+                color: N.txtSec,
+                border: `1px solid ${N.border}`,
                 borderRadius: 8,
                 fontSize: 12,
                 fontWeight: 500,
@@ -680,11 +668,11 @@ export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual', o
             </HoverButton>
             <HoverButton
               onClick={handleApply}
-              hoverBg={comment.trim() ? ACCENT_HOVER : ''}
+              hoverBg={comment.trim() ? A[300] : ''}
               baseStyle={{
                 padding: '7px 14px',
-                background: comment.trim() ? ACCENT : ACCENT_MUTED,
-                color: comment.trim() ? '#fff' : TEXT_TERTIARY,
+                background: comment.trim() ? A[400] : A[100],
+                color: comment.trim() ? '#fff' : N.txtTer,
                 border: 'none',
                 borderRadius: 8,
                 cursor: 'default',
@@ -733,8 +721,8 @@ export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual', o
               height: 40,
               borderRadius: '50%',
               backgroundColor: buttonState === 'pressed'
-                ? ACCENT_PRESSED
-                : buttonState === 'hover' ? ACCENT_HOVER : ACCENT,
+                ? A[500]
+                : buttonState === 'hover' ? A[300] : A[400],
               color: '#fff',
               border: 'none',
               display: 'flex',
@@ -803,7 +791,7 @@ export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual', o
             transform: 'translateX(-50%) translateY(16px)',
             zIndex: 99999,
             padding: '8px 24px',
-            background: TEXT_PRIMARY,
+            background: N.txtPri,
             color: '#fff',
             borderRadius: 20,
             fontSize: 13,

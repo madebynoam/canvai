@@ -4,11 +4,15 @@
   padding: 0;
 }
 
+#canvai-root *::-webkit-scrollbar {
+  display: none;
+}
+
 html, body, #root {
   width: 100%;
   height: 100%;
   overflow: hidden;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-  background: #F0F0F0;
-  color: #1F2937;
+  background: oklch(0.905 0 0);
+  color: oklch(0.200 0 0);
 }
