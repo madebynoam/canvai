@@ -18,6 +18,8 @@ import { TokensPalette, TokensTypography } from './SystemTokens'
 import { ComponentButtons, ComponentInputs, ComponentMenus } from './SystemComponents'
 import { CompositionThread, CompositionAnnotation, CompositionNavigation, CompositionFeedback } from './SystemCompositions'
 import { FlowStep1_SignIn, FlowStep2_Compose, FlowStep3_Thread, FlowStep4_Pins, FlowStep5_Promote, FlowStep6_DeepLink, FlowStep7_Resolve } from './CommentFlowV7'
+import { FabColorGrid } from './FabColorExploration'
+import { OklchNeutrals, OklchHueFamilies, OklchPairs } from './OklchPalettes'
 import type { ProjectManifest } from '../../runtime/types'
 
 const manifest: ProjectManifest = {
@@ -37,6 +39,28 @@ const manifest: ProjectManifest = {
             { id: 'v7-step5-promote', title: 'Step 5 — Promote to Annotation', component: FlowStep5_Promote, props: {} },
             { id: 'v7-step6-deeplink', title: 'Step 6 — Copy Link → Deep Link', component: FlowStep6_DeepLink, props: {} },
             { id: 'v7-step7-resolve', title: 'Step 7 — Resolve', component: FlowStep7_Resolve, props: {} },
+          ],
+        },
+        {
+          name: 'FAB Colors',
+          grid: { columns: 1, columnWidth: 1600, rowHeight: 1060, gap: 40 },
+          frames: [
+            { id: 'v7-fab-colors', title: 'FAB Color Exploration — 11 Concepts', component: FabColorGrid, props: {} },
+          ],
+        },
+        {
+          name: 'OKLCH Tokens',
+          grid: { columns: 1, columnWidth: 1480, rowHeight: 720, gap: 40 },
+          frames: [
+            { id: 'v7-oklch-neutrals', title: 'Neutral Scales — 6 Hue Tints', component: OklchNeutrals, props: {} },
+            { id: 'v7-oklch-hues', title: 'Hue Families — Tints & Roles', component: OklchHueFamilies, props: {} },
+          ],
+        },
+        {
+          name: 'OKLCH Color Pairs',
+          grid: { columns: 1, columnWidth: 1400, rowHeight: 9000, gap: 40 },
+          frames: [
+            { id: 'v7-oklch-pairs', title: '33 Color Pairs — In Context', component: OklchPairs, props: {} },
           ],
         },
       ],

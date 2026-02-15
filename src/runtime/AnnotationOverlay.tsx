@@ -31,7 +31,7 @@ const ACCENT = '#E8590C'
 const ACCENT_HOVER = '#CF4F0B'
 const ACCENT_PRESSED = '#D4520A'
 const ACCENT_MUTED = 'rgba(232, 89, 12, 0.15)'
-const ACCENT_SHADOW = 'rgba(232, 89, 12, 0.25)'
+const ACCENT_LIFT = '#F46D12' // saturated bright orange — light hitting the mold, not desaturated
 const SURFACE = '#FFFFFF'
 const SURFACE_ALT = '#F9FAFB'
 const BORDER = '#E5E7EB'
@@ -174,7 +174,7 @@ function MarkerDot({ id, comment, rect, onClick, reducedMotion }: {
         width: 18,
         height: 18,
         borderRadius: '50%',
-        backgroundColor: ACCENT,
+        background: `linear-gradient(180deg, ${ACCENT_LIFT} 0%, ${ACCENT} 100%)`,
         color: '#fff',
         display: 'flex',
         alignItems: 'center',
@@ -183,7 +183,7 @@ function MarkerDot({ id, comment, rect, onClick, reducedMotion }: {
         fontWeight: 700,
         fontFamily: FONT,
         zIndex: 99997,
-        boxShadow: `0 1px 4px ${ACCENT_SHADOW}`,
+        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08), 0 1px 2px rgba(0,0,0,0.15), 0 0 0 0.5px rgba(0,0,0,0.06)',
         cursor: 'default',
         userSelect: 'none',
         transform: reducedMotion ? 'scale(1)' : 'scale(0.5)',
@@ -515,15 +515,37 @@ export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual', o
   }, [editingMarkerId])
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      handleCancel()
-    }
     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && mode === 'commenting') {
       // Keyboard-initiated: instant dismiss (Emil: keyboard = no animation)
       card.dismiss()
       handleApply()
     }
-  }, [handleCancel, handleApply, mode, card])
+  }, [handleApply, mode, card])
+
+  // Global Escape to dismiss targeting/commenting mode
+  useEffect(() => {
+    if (mode === 'idle') return
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        handleCancel()
+      }
+    }
+    document.addEventListener('keydown', onKeyDown)
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [mode, handleCancel])
+
+  // Click-outside to dismiss comment card
+  useEffect(() => {
+    if (mode !== 'commenting') return
+    function handlePointerDown(e: MouseEvent) {
+      const cardEl = card.ref.current
+      if (cardEl && !cardEl.contains(e.target as Node)) {
+        handleCancel()
+      }
+    }
+    document.addEventListener('pointerdown', handlePointerDown)
+    return () => document.removeEventListener('pointerdown', handlePointerDown)
+  }, [mode, handleCancel, card.ref])
 
   // Use last-known target/toast for exit animation content
   const displayTarget = target || lastTargetRef.current
@@ -537,8 +559,6 @@ export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual', o
           ref={overlayRef}
           onPointerMove={handlePointerMove}
           onPointerDown={handleClick}
-          onKeyDown={handleKeyDown}
-          tabIndex={0}
           style={{
             position: 'fixed',
             inset: 0,
@@ -713,17 +733,21 @@ export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual', o
               width: 40,
               height: 40,
               borderRadius: '50%',
-              background: buttonState === 'hover' ? ACCENT_HOVER : buttonState === 'pressed' ? ACCENT_PRESSED : ACCENT,
+              background: buttonState === 'pressed'
+                ? ACCENT_PRESSED
+                : `linear-gradient(180deg, ${ACCENT_LIFT} 0%, ${buttonState === 'hover' ? ACCENT_HOVER : ACCENT} 100%)`,
               color: '#fff',
               border: 'none',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: buttonState === 'hover'
-                ? `0 4px 16px ${ACCENT_SHADOW}`
-                : `0 2px 8px ${ACCENT_SHADOW}`,
+              boxShadow: buttonState === 'pressed'
+                ? 'inset 0 1px 2px rgba(0,0,0,0.15), 0 1px 2px rgba(0,0,0,0.08)'
+                : buttonState === 'hover'
+                  ? 'inset 0 1px 0 rgba(255,255,255,0.10), 0 2px 6px rgba(0,0,0,0.16), 0 0 0 0.5px rgba(0,0,0,0.06)'
+                  : 'inset 0 1px 0 rgba(255,255,255,0.08), 0 1px 3px rgba(0,0,0,0.12), 0 0 0 0.5px rgba(0,0,0,0.06)',
               transform: buttonState === 'pressed' ? 'scale(0.95)' : 'scale(1)',
-              transition: 'transform 0.1s ease, box-shadow 0.1s ease, background-color 0.1s ease',
+              transition: 'transform 0.1s ease, box-shadow 0.15s ease, background 0.1s ease',
             }}
           >
             <Pencil size={16} strokeWidth={1.5} />
