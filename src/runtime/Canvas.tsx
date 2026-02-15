@@ -2,6 +2,18 @@ import { useRef, useState, useEffect, createContext, useContext } from 'react'
 
 const MIN_ZOOM = 0.1
 const MAX_ZOOM = 5
+const VP_KEY = 'canvai:vp:'
+
+function saveViewport(key: string, x: number, y: number, zoom: number) {
+  try { localStorage.setItem(VP_KEY + key, JSON.stringify({ x, y, zoom })) } catch {}
+}
+
+function loadViewport(key: string): { x: number; y: number; zoom: number } | null {
+  try {
+    const raw = localStorage.getItem(VP_KEY + key)
+    return raw ? JSON.parse(raw) : null
+  } catch { return null }
+}
 
 const CanvasContext = createContext({ zoom: 1, pan: { x: 0, y: 0 } })
 
@@ -11,9 +23,10 @@ export function useCanvas() {
 
 interface CanvasProps {
   children?: React.ReactNode
+  pageKey?: string
 }
 
-export function Canvas({ children }: CanvasProps) {
+export function Canvas({ children, pageKey }: CanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
   const [pan, setPan] = useState({ x: 0, y: 0 })
@@ -26,6 +39,7 @@ export function Canvas({ children }: CanvasProps) {
   const dragStartRef = useRef({ x: 0, y: 0 })
   const panStartRef = useRef({ x: 0, y: 0 })
   const commitRafRef = useRef<number>(0)
+  const prevPageKeyRef = useRef<string | undefined>(pageKey)
 
   panRef.current = pan
   zoomRef.current = zoom
@@ -127,6 +141,36 @@ export function Canvas({ children }: CanvasProps) {
       container.removeEventListener('pointerup', handlePointerUp)
     }
   }, [])
+
+  // Persist viewport per page + spring-restore on page switch
+  useEffect(() => {
+    if (prevPageKeyRef.current === pageKey) return
+
+    // Save viewport for the page we're leaving
+    if (prevPageKeyRef.current) {
+      saveViewport(prevPageKeyRef.current, panRef.current.x, panRef.current.y, zoomRef.current)
+    }
+    prevPageKeyRef.current = pageKey
+
+    // Load saved viewport or default to origin (first visit)
+    const saved = pageKey ? loadViewport(pageKey) : null
+    const newPan = { x: saved?.x ?? 0, y: saved?.y ?? 0 }
+    const newZoom = saved?.zoom ?? zoomRef.current
+
+    panRef.current = newPan
+    zoomRef.current = newZoom
+    applyTransform(newPan, newZoom)
+    commitState(newPan, newZoom)
+  }, [pageKey])
+
+  // Save viewport on tab close
+  useEffect(() => {
+    function onUnload() {
+      if (pageKey) saveViewport(pageKey, panRef.current.x, panRef.current.y, zoomRef.current)
+    }
+    window.addEventListener('beforeunload', onUnload)
+    return () => window.removeEventListener('beforeunload', onUnload)
+  }, [pageKey])
 
   // Keyboard shortcuts
   useEffect(() => {

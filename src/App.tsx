@@ -73,7 +73,7 @@ function App() {
 
         {/* Canvas */}
         <div style={{ flex: 1 }}>
-          <Canvas>
+          <Canvas pageKey={`${activeProjectIndex}-${activeIterationIndex}-${activePageIndex}`}>
             {frames.map(frame => (
               <Frame
                 key={frame.id}
