@@ -78,6 +78,12 @@ function SpringDropdown({ items, onClose }: {
     })
   }, [])
 
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+  }, [onClose])
+
   return (
     <>
       <div style={{ position: 'fixed', inset: 0, zIndex: 99 }} onClick={onClose} />
@@ -289,6 +295,13 @@ export function FlowStep1_SignIn() {
     }
   }, [phase])
 
+  useEffect(() => {
+    if (phase === 'idle') return
+    const handleKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setPhase('idle') }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+  }, [phase])
+
   return (
     <div style={{ fontFamily: FONT, display: 'flex', flexDirection: 'column', gap: 20, padding: 8 }}>
       <div style={{
@@ -354,8 +367,10 @@ export function FlowStep1_SignIn() {
 
         {/* Auth card */}
         {phase !== 'idle' && (
+          <>
+          <div style={{ position: 'absolute', inset: 0, zIndex: 9 }} onClick={() => setPhase('idle')} />
           <div ref={cardRef} style={{
-            position: 'absolute', bottom: 72, right: 16,
+            position: 'absolute', bottom: 72, right: 16, zIndex: 10,
             width: 260, backgroundColor: SURFACE, borderRadius: 10, padding: 16,
             border: `1px solid ${BORDER}`,
             boxShadow: '0 4px 24px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04)',
@@ -427,6 +442,7 @@ export function FlowStep1_SignIn() {
               </>
             )}
           </div>
+          </>
         )}
       </div>
 
@@ -458,6 +474,13 @@ export function FlowStep2_Compose() {
         }
       })
     }
+  }, [phase])
+
+  useEffect(() => {
+    if (phase === 'idle') return
+    const handleKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setPhase('idle') }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
   }, [phase])
 
   return (
@@ -1098,28 +1121,19 @@ export function FlowStep7_Resolve() {
       </div>
 
       <MiniCanvas style={{ width: 380, height: 180 }}>
-        {/* Pin — fades on resolve */}
-        <div ref={pinRef} style={{ position: 'absolute', top: 16, left: 84 }}>
-          {resolved ? (
+        {/* Pin — hidden when resolved */}
+        {!resolved && (
+          <div ref={pinRef} style={{ position: 'absolute', top: 16, left: 84 }}>
+            <Avatar name="Gustav" size={28} />
             <div style={{
-              width: 28, height: 28, borderRadius: '50%', backgroundColor: '#D1D5DB',
+              position: 'absolute', top: -4, right: -8,
+              minWidth: 16, height: 16, borderRadius: 8, backgroundColor: PURPLE,
+              color: '#fff', fontSize: 9, fontWeight: 700, fontFamily: FONT,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-              <Check size={14} strokeWidth={2} color="#fff" />
-            </div>
-          ) : (
-            <>
-              <Avatar name="Gustav" size={28} />
-              <div style={{
-                position: 'absolute', top: -4, right: -8,
-                minWidth: 16, height: 16, borderRadius: 8, backgroundColor: PURPLE,
-                color: '#fff', fontSize: 9, fontWeight: 700, fontFamily: FONT,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                padding: '0 4px', border: `2px solid ${CANVAS}`,
-              }}>2</div>
-            </>
-          )}
-        </div>
+              padding: '0 4px', border: `2px solid ${CANVAS}`,
+            }}>2</div>
+          </div>
+        )}
 
         {/* Resolve button overlay */}
         {!resolved && (
@@ -1143,13 +1157,13 @@ export function FlowStep7_Resolve() {
             position: 'absolute', bottom: 12, left: '50%', transform: 'translateX(-50%)',
             fontSize: 11, color: TEXT_TER,
           }}>
-            Pin fades · GitHub Issue closes
+            Pin hidden · GitHub Issue closes
           </div>
         )}
       </MiniCanvas>
 
       <Note>
-        Click ✓ in the thread header to resolve. The avatar pin fades to a gray checkmark at 50% opacity. The GitHub Issue closes automatically.
+        Click ✓ in the thread header to resolve. The avatar pin disappears entirely. The GitHub Issue closes automatically.
       </Note>
     </div>
   )
