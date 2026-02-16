@@ -43,7 +43,6 @@ export function TopBar({
         minHeight: 40,
         padding: `0 ${S.md}px`,
         backgroundColor: N.chrome,
-        borderBottom: `1px solid ${N.borderSoft}`,
         fontFamily: FONT,
         flexShrink: 0,
         position: 'relative',
