@@ -10,10 +10,19 @@ A design studio on an infinite canvas where every design is live React code. Des
 
 ### 1. Install the Claude Code plugin
 
+In your **terminal**, add the canvai marketplace:
+
 ```bash
 claude plugin marketplace add madebynoam/canvai
-claude plugin install canvai@canvai
 ```
+
+Then open **Claude Code** and install the plugin:
+
+```
+/plugin install canvai@canvai
+```
+
+Restart your Claude Code session for the plugin to activate.
 
 ### 2. Create a project
 
