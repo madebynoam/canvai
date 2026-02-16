@@ -237,8 +237,9 @@ If a component has internal navigation (tabs, sidebar nav, segmented sections), 
 
 1. Read \\\`manifest.ts\\\` — is the iteration frozen? If yes, stop.
 2. Check \\\`components/index.ts\\\` — does the component exist? If not, create it first.
-3. Hierarchy check — pages use components, components use tokens.
-4. Log to \\\`CHANGELOG.md\\\`.
+3. When creating a new component — add to \\\`index.ts\\\` AND add a showcase entry to the Components page.
+4. Hierarchy check — pages use components, components use tokens.
+5. Log to \\\`CHANGELOG.md\\\`.
 `
 
 export const tsconfigNodeJson = `{

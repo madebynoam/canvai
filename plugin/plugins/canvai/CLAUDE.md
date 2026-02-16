@@ -144,7 +144,8 @@ Before editing any file in `src/projects/<name>/v<N>/`:
 3. **Check `components/index.ts`** — does a component already exist for what you need?
    - Yes → import and use it.
    - No → create it in `components/` first, add to `index.ts`, then use it in the page.
-4. **Log to `CHANGELOG.md`** — every design change gets recorded.
+4. **When creating a new component** — add it to `components/index.ts` AND add a showcase entry to the Components page (`pages/components.tsx`) with its variations and states. The barrel and the showcase are two separate registrations — both are mandatory.
+5. **Log to `CHANGELOG.md`** — every design change gets recorded.
 
 ## Manifest format
 
