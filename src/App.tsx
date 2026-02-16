@@ -77,7 +77,7 @@ function App() {
         />
 
         {/* Canvas — elevated, inset from chrome base */}
-        <div className={iterClass} style={{ flex: 1, backgroundColor: N.chrome, padding: `0 ${E.inset}px ${E.inset}px` }}>
+        <div className={iterClass} style={{ flex: 1, backgroundColor: N.chrome, padding: `${E.insetTop}px ${E.inset}px ${E.inset}px` }}>
           <div style={{
             width: '100%',
             height: '100%',

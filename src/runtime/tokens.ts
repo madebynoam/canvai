@@ -40,6 +40,7 @@ export const A = {
 
 /* Canvas elevation — inset from chrome, rounded, subtle shadow */
 export const E = {
+  insetTop: 6,
   inset:  12,
   radius: 12,
   shadow: `0 1px 3px rgba(0,0,0,0.04), 0 0 0 1px ${oklch(0.915, 0.003, 80)}`,
