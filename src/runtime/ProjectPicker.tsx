@@ -164,7 +164,7 @@ export function ProjectPicker({ projects, activeIndex, onSelect }: ProjectPicker
           style={{
             width: S.xl,
             height: S.xl,
-            borderRadius: R.control,
+            borderRadius: '50%',
             backgroundColor: A.accent,
             color: 'oklch(1 0 0)',
             display: 'flex',

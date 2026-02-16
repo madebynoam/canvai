@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
-import { Check, Pencil, Trash2 } from 'lucide-react'
+import { Check, SquareMousePointer, Trash2 } from 'lucide-react'
 import { useReducedMotion } from './useReducedMotion'
 import { N, A, S, R, T, ICON, FONT } from './tokens'
 import type { CanvasFrame } from './types'
@@ -700,8 +700,8 @@ export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual', o
           ref={fab.ref as React.RefObject<HTMLDivElement>}
           style={{
             position: 'fixed',
-            bottom: S.lg,
-            right: S.lg,
+            bottom: S.lg + S.md,
+            right: S.lg + S.md,
             zIndex: 99999,
             opacity: 0,
             transform: 'scale(0.8)',
@@ -735,7 +735,7 @@ export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual', o
               transition: 'transform 0.1s ease, box-shadow 0.15s ease, background 0.1s ease',
             }}
           >
-            <Pencil size={ICON.lg} strokeWidth={1.5} />
+            <SquareMousePointer size={S.xl} strokeWidth={1.5} />
           </button>
         </div>
       )}

@@ -40,15 +40,15 @@ function SidebarRow({ children, icon, active, onClick }: {
       onMouseLeave={() => setHovered(false)}
       style={{
         display: 'flex', alignItems: 'center', gap: S.sm,
-        width: active ? `calc(100% - ${S.lg}px)` : '100%',
+        width: `calc(100% - ${S.lg}px)`,
         border: 'none',
-        padding: active ? `${S.xs}px ${S.sm}px` : `${S.xs}px ${S.lg}px`,
-        margin: active ? `0 ${S.sm}px` : '0',
-        borderRadius: active ? R.control : 0,
+        padding: `${S.xs}px ${S.sm}px`,
+        margin: `0 ${S.sm}px`,
+        borderRadius: R.control,
         backgroundColor: active ? N.chromeSub : hovered ? 'rgba(0,0,0,0.03)' : 'transparent',
         fontFamily: FONT, textAlign: 'left',
         fontSize: T.body,
-        fontWeight: active ? 500 : 400,
+        fontWeight: 400,
         color: active ? N.txtPri : N.txtSec,
         cursor: 'default',
       }}

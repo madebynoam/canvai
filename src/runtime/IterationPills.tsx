@@ -219,7 +219,7 @@ export function IterationPills({ items, activeIndex, onSelect }: IterationPillsP
         style={{
           width: needsSlide ? VIEWPORT_W : 'auto',
           overflow: 'hidden',
-          borderRadius: R.card,
+          borderRadius: R.pill,
           backgroundColor: N.chromeSub,
           padding: PAD,
           touchAction: 'none',
@@ -243,7 +243,7 @@ export function IterationPills({ items, activeIndex, onSelect }: IterationPillsP
               style={{
                 position: 'absolute', top: 0, left: 0,
                 width: PILL_W, height: '100%',
-                borderRadius: R.card,
+                borderRadius: R.pill,
                 backgroundColor: N.card,
                 boxShadow: '0 1px 2px rgba(0,0,0,0.06)',
                 transform: `translateX(${getHighlightX(active)}px)`,
@@ -260,7 +260,7 @@ export function IterationPills({ items, activeIndex, onSelect }: IterationPillsP
                 width: PILL_W,
                 flexShrink: 0,
                 border: 'none', cursor: 'default',
-                padding: `${S.xs}px ${S.sm}px`, borderRadius: R.card,
+                padding: `${S.xs}px ${S.sm}px`, borderRadius: R.pill,
                 fontSize: T.pill, fontWeight: isActive ? 600 : 400,
                 fontFamily: FONT,
                 backgroundColor: !canDrag && isActive ? N.card : 'transparent',

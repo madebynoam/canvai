@@ -22,7 +22,7 @@ export const N = {
   canvas:     oklch(0.972, 0.003, 80),
   card:       oklch(0.993, 0.003, 80),
   border:     oklch(0.895, 0.005, 80),
-  borderSoft: oklch(0.915, 0.003, 80),
+  borderSoft: oklch(0.925, 0.003, 80),
   txtPri:     oklch(0.180, 0.005, 80),
   txtSec:     oklch(0.380, 0.005, 80),
   txtTer:     oklch(0.540, 0.005, 80),
