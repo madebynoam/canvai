@@ -200,6 +200,47 @@ export const tsconfigAppJson = `{
 }
 `
 
+export const claudeMd = `# Project Rules
+
+These rules are enforced by the agent. Do not remove this file.
+
+## Component hierarchy
+
+\`\`\`
+Tokens (v<N>/tokens.css)     → OKLCH custom properties, all visual values
+  ↓
+Components (v<N>/components/) → use ONLY var(--token), can compose each other
+  ↓
+Pages (v<N>/pages/)           → import ONLY from ../components/, no raw styled HTML
+\`\`\`
+
+## Hard constraints
+
+- **All colors in OKLCH.** No hex values. No rgb. No hsl.
+- **All spacing multiples of 4.** 0, 4, 8, 12, 16, 20, 24… Font sizes exempt.
+- **Components use only \\\`var(--token)\\\`.** No hardcoded colors, backgrounds, borders.
+- **Pages import only from \\\`../components/\\\`.** Never inline styled HTML in pages.
+- **Components must be interactive.** Inputs typeable, buttons clickable, menus openable. No static mockups — the whole point is that everything works.
+- **Iterations named V1, V2, V3.** Sequential, never descriptive.
+
+## Mandatory pages
+
+Every project must include:
+- **Tokens** — renders color swatches, typography scale, spacing grid from \\\`tokens.css\\\`
+- **Components** — shows all building blocks individually with variations and states
+
+## Interactive navigation
+
+If a component has internal navigation (tabs, sidebar nav, segmented sections), handle it with React state inside one component. Do not split navigable sections into separate frames — the point is that it works, not that it looks right in a screenshot.
+
+## Before any edit
+
+1. Read \\\`manifest.ts\\\` — is the iteration frozen? If yes, stop.
+2. Check \\\`components/index.ts\\\` — does the component exist? If not, create it first.
+3. Hierarchy check — pages use components, components use tokens.
+4. Log to \\\`CHANGELOG.md\\\`.
+`
+
 export const tsconfigNodeJson = `{
   "compilerOptions": {
     "target": "ES2022",

@@ -109,6 +109,10 @@ Rules:
 
 ## Iteration model
 
+### Naming
+
+Iterations are always named **V1, V2, V3, ...** — sequential, uppercase V + number. Never use descriptive names, dates, or any other format. The folder is `v1/`, `v2/`, etc. (lowercase). The manifest `name` is `'V1'`, `'V2'`, etc. (uppercase).
+
 ### Creating iterations (`/canvai-iterate`)
 
 1. Freeze the current iteration in the manifest (`frozen: true`)
@@ -201,6 +205,18 @@ When the designer describes a component, think through its **variations** and **
 
 - Frame IDs: `<component>-<variation>-<state>`
 - Frame titles: `Component / Variation / State`
+
+### Mandatory pages
+
+Every project must include:
+- **Tokens** — renders color swatches, typography scale, and spacing grid from `tokens.css`. Makes the token system visible on the canvas.
+- **Components** — shows all building blocks individually with their variations and states.
+
+### Interactive navigation
+
+The matrix model (variations × states as separate frames) is for **isolated component states**. For components with internal navigation (tabs, sidebar nav, segmented sections), do NOT split navigable sections into separate frames. That produces static snapshots where nothing is clickable.
+
+Instead, build one interactive component with React state that actually swaps content on click. One frame, one component, full interactivity. If a page has internal navigation, the navigation must work.
 
 ## Design language
 
