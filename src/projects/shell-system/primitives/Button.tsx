@@ -31,7 +31,7 @@ export function Button({ children, variant = 'primary', ...props }: {
   const variants: Record<string, React.CSSProperties> = {
     primary: {
       background: hovered ? 'var(--accent-hover)' : 'var(--accent)',
-      color: '#fff',
+      color: 'oklch(1 0 0)',
     },
     outline: {
       background: 'transparent',

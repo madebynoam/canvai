@@ -1,0 +1,30 @@
+/* V3 — Linear-inspired: sidebar on base surface, canvas elevated + inset.
+   Same warm neutrals as V2. Accent: signal red (h=28).
+   Structural change, not chromatic — the hierarchy is spatial, not color-based. */
+
+.iter-v3 {
+  /* Inherit V2 warm neutrals */
+  --surface: oklch(0.993 0.003 80);
+  --chrome: oklch(0.952 0.003 80);
+  --chrome-active: oklch(0.935 0.003 80);
+  --canvas-bg: oklch(0.972 0.003 80);
+  --border: oklch(0.895 0.005 80);
+  --border-soft: oklch(0.915 0.003 80);
+
+  --text-primary: oklch(0.180 0.005 80);
+  --text-secondary: oklch(0.380 0.005 80);
+  --text-tertiary: oklch(0.540 0.005 80);
+  --text-faint: oklch(0.660 0.003 80);
+
+  /* Signal red accent — h=28 */
+  --accent: oklch(0.52 0.20 28);
+  --accent-hover: oklch(0.62 0.18 28);
+  --accent-muted: oklch(0.92 0.05 28);
+  --accent-strong: oklch(0.46 0.18 28);
+  --accent-border: oklch(0.85 0.08 28);
+
+  /* V3-specific: canvas elevation */
+  --canvas-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 0 0 1px var(--border-soft);
+  --canvas-radius: 12px;
+  --canvas-inset: 12px;
+}

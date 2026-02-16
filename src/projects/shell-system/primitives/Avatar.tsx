@@ -1,5 +1,5 @@
 /** Circular avatar with letter fallback. */
-export function Avatar({ letter, size = 28, bg, color = '#fff' }: {
+export function Avatar({ letter, size = 28, bg, color = 'oklch(1 0 0)' }: {
   letter: string; size?: number; bg?: string; color?: string
 }) {
   return (
