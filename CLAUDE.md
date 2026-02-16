@@ -49,6 +49,13 @@ If you remove/rename a runtime export, you MUST:
 2. Add a migration in `src/cli/migrations/`
 3. Run `npm test` to verify the contract holds
 
+### Scaffolded file changes (CRITICAL)
+
+`src/App.tsx` and other files from `src/cli/templates.js` are **consumer-owned** — they're copied during `canvai init` and live in the consumer's project, not in `node_modules`. Changing a template does NOT update existing consumers. If you change ANY scaffolded template, you MUST:
+1. Update the template in `src/cli/templates.js`
+2. Write a migration in `src/cli/migrations/` to patch existing consumer files
+3. Bump the version via `./scripts/bump-version.sh`
+
 ### Pre-push checklist
 
 1. `npm test` passes (export contract + migration tests)
