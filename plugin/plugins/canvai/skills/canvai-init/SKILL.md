@@ -20,11 +20,19 @@ Create a new design project inside Canvai and launch the dev environment.
    ```bash
    npx canvai init
    ```
-   This creates `index.html`, `vite.config.ts`, `src/App.tsx`, `src/main.tsx`, tsconfigs, and installs peer dependencies. It skips files that already exist.
+   This creates `index.html`, `vite.config.ts`, `src/App.tsx`, `src/main.tsx`, `.claude/settings.json` (frozen guard hook), tsconfigs, and installs peer dependencies. It skips files that already exist.
 
-4. **Create the project folder:**
+4. **Create the project folder structure:**
    ```
    src/projects/<project-name>/
+     v1/
+       tokens.css             ← OKLCH custom properties (.iter-v1 + :root scope)
+       components/
+         index.ts             ← barrel export (empty initially)
+       pages/                 ← empty initially
+       spring.ts              ← if motion is needed (copy from canvai template)
+     manifest.ts
+     CHANGELOG.md
    ```
 
 5. **Launch the dev server** in the background:
@@ -39,26 +47,57 @@ Create a new design project inside Canvai and launch the dev environment.
 
 After init, the designer describes a component (or attaches a sketch). The agent then:
 
-1. **Identifies variations** — content scenarios, types, sizes (these become rows)
-2. **Identifies states** — interaction phases, conditions (these become columns)
-3. **Generates the component** — creates `<ComponentName>.tsx` in the project folder
-4. **Generates the manifest** — creates `manifest.ts` with page V1 containing the full matrix of frames
-5. **The canvas auto-discovers the manifest** and renders all frames
+1. **Creates components first** — build each component in `v1/components/`, export from `v1/components/index.ts`
+2. **Identifies variations** — content scenarios, types, sizes (these become rows)
+3. **Identifies states** — interaction phases, conditions (these become columns)
+4. **Creates pages** — pages in `v1/pages/` that compose components from `../components/`
+5. **Always includes a "Components" page** — a page showing all building blocks individually
+6. **Generates the manifest** — `manifest.ts` with iteration V1 containing all pages
+7. **The canvas auto-discovers the manifest** and renders all frames
+
+## Component hierarchy
+
+The agent MUST follow the three-layer hierarchy:
+
+```
+Tokens (v1/tokens.css)      → CSS custom properties, all visual values
+  ↓
+Components (v1/components/)  → building blocks, use ONLY tokens
+  ↓
+Pages (v1/pages/)            → compositions, import ONLY from ../components/
+```
+
+If a page needs a button, create `Button.tsx` in `components/` FIRST, then import it in the page. Never inline styled HTML in page files.
 
 ## Manifest format
 
 ```ts
-import { MyComponent } from './MyComponent'
 import type { ProjectManifest } from 'canvai/runtime'
+import './v1/tokens.css'
+import { ComponentsPage } from './v1/pages/components'
+import { MainPage } from './v1/pages/main'
 
 const manifest: ProjectManifest = {
   project: '<project-name>',
-  pages: [
+  iterations: [
     {
-      name: 'V1 — Initial',
-      grid: { columns: 3, columnWidth: 300, rowHeight: 160, gap: 40 },
-      frames: [
-        { id: '<component>-<variation>-<state>', title: 'Component / Variation / State', component: MyComponent, props: { ... } },
+      name: 'V1',
+      frozen: false,
+      pages: [
+        {
+          name: 'Components',
+          grid: { columns: 3, columnWidth: 300, rowHeight: 160, gap: 40 },
+          frames: [
+            { id: 'v1-btn-primary', title: 'Button / Primary / Default', component: ComponentsPage, props: { variant: 'primary' } },
+          ],
+        },
+        {
+          name: 'Main',
+          grid: { columns: 1, columnWidth: 800, rowHeight: 560, gap: 40 },
+          frames: [
+            { id: 'v1-main', title: 'Main Composition', component: MainPage },
+          ],
+        },
       ],
     },
   ],
@@ -66,6 +105,26 @@ const manifest: ProjectManifest = {
 
 export default manifest
 ```
+
+## Spring module
+
+If the designer wants motion, create `v1/spring.ts` with golden ratio spring physics:
+
+```ts
+import { useRef, useEffect, useCallback } from 'react'
+
+export const PHI = (1 + Math.sqrt(5)) / 2
+
+export const SPRING = {
+  snappy: { tension: 233, friction: 19 },
+  gentle: { tension: 144, friction: 15 },
+  soft: { tension: 89, friction: 12 },
+}
+
+// ... useSpring hook (fixed-timestep 120Hz physics)
+```
+
+Components import spring as `import { SPRING, useSpring } from '../spring'`.
 
 ## Layout rules
 

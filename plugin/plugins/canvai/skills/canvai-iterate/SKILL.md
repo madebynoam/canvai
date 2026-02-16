@@ -5,39 +5,52 @@ description: Create a new design iteration for the current project
 
 # /canvai-iterate [description]
 
-Create a new version/iteration of the current design as a new entry in the manifest's `iterations` array.
+Create a new iteration as a complete snapshot copy of the current active iteration. The old iteration is frozen, the new one becomes active.
 
 ## Steps
 
 1. **Identify the active project.** Look at which project the designer has been working on (check recent file edits in `src/projects/`).
 
-2. **Read the current manifest** — `src/projects/<project-name>/manifest.ts`
+2. **Read the current manifest** — `src/projects/<project-name>/manifest.ts`. Find the active iteration (the last one with `frozen: false`).
 
-3. **Add a new iteration** to the `iterations` array in the manifest:
-   - Name it `V<N>` where N is the next version number
-   - Copy the pages from the previous iteration as a starting point
-   - Apply the requested changes to the component or create a new variant
+3. **Freeze the active iteration.** In the manifest, set `frozen: true` on the current iteration.
 
-4. **Modify the component** if needed — update the `.tsx` file or create a new variant file.
+4. **Copy the entire iteration folder:**
+   ```bash
+   cp -r src/projects/<project-name>/v<N>/ src/projects/<project-name>/v<N+1>/
+   ```
+   This copies EVERYTHING — tokens, components, pages, spring.ts. The new iteration is a complete, self-contained snapshot.
 
-5. **The canvas picks up the new iteration automatically** via HMR. The designer will see a new collapsible group in the sidebar.
+5. **Rename the CSS scope** in `v<N+1>/tokens.css`:
+   - Replace `.iter-v<N>` with `.iter-v<N+1>` (all occurrences)
 
-6. **Confirm:** "Created V<N>. You can expand it in the sidebar to see its pages."
+6. **Add the new iteration to the manifest:**
+   - Add a new entry to the `iterations` array with `name: 'V<N+1>'` and `frozen: false`
+   - Copy all pages from the previous iteration's manifest entry
+   - Update all import paths: `./v<N>/` → `./v<N+1>/`
+   - Add the CSS import: `import './v<N+1>/tokens.css'`
+
+7. **Log to CHANGELOG.md:** "Created V<N+1> from V<N>"
+
+8. **Confirm:** "Created V<N+1>. The previous iteration (V<N>) is now frozen. You can see V<N+1> in the iteration pills."
 
 ## Example
 
 Designer says: "Let's try a version with rounded corners and no shadow"
 
 The agent:
-1. Reads `manifest.ts`, finds V1 with 1 page containing 9 frames
-2. Adds V2 iteration with the same pages but pointing to updated props or a new component variant
-3. Updates the component to support the new style
-4. The sidebar now shows: `▼ V1` (with its pages) and `▼ V2` (with its pages)
+1. Reads `manifest.ts`, finds V2 is active (`frozen: false`)
+2. Sets V2 to `frozen: true`
+3. Runs `cp -r v2/ v3/`
+4. Renames `.iter-v2` → `.iter-v3` in `v3/tokens.css`
+5. Adds V3 iteration to manifest with updated imports
+6. Makes the requested changes (rounded corners, no shadow) in `v3/components/`
+7. The iteration pills now show V1, V2, V3 — with V3 active
 
 ## Rules
 
-- Never delete or modify existing iterations — they are frozen snapshots
-- Always add a new iteration for design versions
-- The component can be shared across iterations (same file, different props) or forked (new file for major changes)
-- Keep iteration names short (e.g. "V1", "V2")
-- Page names within an iteration should be descriptive (e.g. "Design System", "Components", "States")
+- **Copy EVERYTHING.** Pages added in V2 carry forward to V3. Components created in V2 carry forward. The folder copy handles this automatically.
+- **Forward-only.** Never merge, never delete iterations. Old iterations are frozen snapshots.
+- **No cross-iteration imports.** Each `v<N>/` is completely self-contained. Never import from `../v1/components/` in `v2/`.
+- **One active iteration.** Only the last iteration (with `frozen: false`) can be edited.
+- **Keep iteration names short.** `V1`, `V2`, `V3` — not descriptions.

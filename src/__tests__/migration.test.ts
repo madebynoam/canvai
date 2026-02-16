@@ -329,7 +329,8 @@ describe('migration 0.0.16 integration', () => {
     // Manifests should have iterations: [{ pages: [...] }]
     expect(appTsx).toContain('iterations?.[activeIterationIndex]')
     expect(appTsx).toContain('.pages[activePageIndex]')
-    expect(appTsx).toContain('iterations?.length')
+    // TopBar receives iterations array directly
+    expect(appTsx).toContain('iterations={activeProject?.iterations')
   })
 })
 

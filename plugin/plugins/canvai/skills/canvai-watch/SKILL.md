@@ -21,8 +21,14 @@ The dev server must be running (`/canvai-dev` or `npx canvai dev`).
 
 4. **When an annotation arrives:**
    - Read the `comment`, `componentName`, `selector`, and `computedStyles`
-   - Edit the component file to apply the requested change
+   - **Follow the guard protocol** (see CLAUDE.md "Before any edit"):
+     1. Check if the target iteration is frozen — if so, resolve with a note and continue watching
+     2. Check component hierarchy — if target is in `pages/`, route changes through `components/`
+     3. Check `components/index.ts` for existing components before creating new ones
+   - Map the annotation to the relevant file in `v<N>/components/` or `v<N>/pages/`
+   - Edit the component/page file to apply the requested change
    - Call `resolve_annotation` with the annotation `id`
+   - Log the change to `CHANGELOG.md`
    - Call `watch_annotations` again — back to waiting
 
 5. **Exit:** The designer sends any message to break out of watch mode and return to normal chat.

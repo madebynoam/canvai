@@ -40,7 +40,7 @@ createRoot(document.getElementById('root')!).render(
 `
 
 export const appTsx = `import { useState } from 'react'
-import { Canvas, Frame, useFrames, layoutFrames, TopBar, IterationSidebar, AnnotationOverlay } from 'canvai/runtime'
+import { Canvas, Frame, useFrames, layoutFrames, TopBar, IterationPills, IterationSidebar, AnnotationOverlay } from 'canvai/runtime'
 import { manifests } from 'virtual:canvai-manifests'
 import type { ProjectManifest } from 'canvai/runtime'
 
@@ -48,11 +48,13 @@ function App() {
   const [activeProjectIndex, setActiveProjectIndex] = useState(0)
   const [activeIterationIndex, setActiveIterationIndex] = useState(0)
   const [activePageIndex, setActivePageIndex] = useState(0)
+  const [sidebarOpen, setSidebarOpen] = useState(true)
   const [mode] = useState<'manual' | 'watch'>('manual')
   const [pendingCount, setPendingCount] = useState(0)
 
   const activeProject: ProjectManifest | undefined = manifests[activeProjectIndex]
-  const activePage = activeProject?.iterations?.[activeIterationIndex]?.pages[activePageIndex]
+  const activeIteration = activeProject?.iterations?.[activeIterationIndex]
+  const activePage = activeIteration?.pages[activePageIndex]
   const layoutedFrames = activePage ? layoutFrames(activePage) : []
 
   const { frames, updateFrame, handleResize } = useFrames(layoutedFrames, activePage?.grid)
@@ -67,20 +69,25 @@ function App() {
           setActiveIterationIndex(0)
           setActivePageIndex(0)
         }}
-        iterationCount={activeProject?.iterations?.length ?? 0}
+        iterations={activeProject?.iterations ?? []}
+        activeIterationIndex={activeIterationIndex}
+        onSelectIteration={(i) => {
+          setActiveIterationIndex(i)
+          setActivePageIndex(0)
+        }}
         pendingCount={pendingCount}
         mode={mode}
+        sidebarOpen={sidebarOpen}
+        onToggleSidebar={() => setSidebarOpen(o => !o)}
       />
 
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
         <IterationSidebar
-          iterations={activeProject?.iterations ?? []}
-          activeIterationIndex={activeIterationIndex}
+          iterationName={activeIteration?.name ?? ''}
+          pages={activeIteration?.pages ?? []}
           activePageIndex={activePageIndex}
-          onSelect={(iterIdx, pageIdx) => {
-            setActiveIterationIndex(iterIdx)
-            setActivePageIndex(pageIdx)
-          }}
+          onSelectPage={setActivePageIndex}
+          collapsed={!sidebarOpen}
         />
 
         <div style={{ flex: 1 }}>
@@ -133,6 +140,23 @@ export const viteEnvDts = `/// <reference types="vite/client" />
 declare module 'virtual:canvai-manifests' {
   import type { ProjectManifest } from 'canvai/runtime'
   export const manifests: ProjectManifest[]
+}
+`
+
+export const claudeSettingsJson = `{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node node_modules/canvai/src/cli/hooks/frozen-guard.js"
+          }
+        ]
+      }
+    ]
+  }
 }
 `
 

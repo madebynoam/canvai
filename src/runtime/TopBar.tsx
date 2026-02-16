@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { ProjectPicker } from './ProjectPicker'
+import { IterationPills } from './IterationPills'
 import { PanelLeft } from 'lucide-react'
 import { useReducedMotion } from './useReducedMotion'
 
@@ -7,7 +8,9 @@ interface TopBarProps {
   projects: { project: string }[]
   activeProjectIndex: number
   onSelectProject: (index: number) => void
-  iterationCount: number
+  iterations: { name: string }[]
+  activeIterationIndex: number
+  onSelectIteration: (index: number) => void
   pendingCount: number
   mode: 'manual' | 'watch'
   sidebarOpen: boolean
@@ -91,7 +94,9 @@ export function TopBar({
   projects,
   activeProjectIndex,
   onSelectProject,
-  iterationCount,
+  iterations,
+  activeIterationIndex,
+  onSelectIteration,
   pendingCount,
   mode,
   sidebarOpen,
@@ -129,7 +134,7 @@ export function TopBar({
       }}
     >
       {/* Left section: sidebar toggle + project picker */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: '0 0 auto' }}>
         <button
           onClick={onToggleSidebar}
           style={{
@@ -154,8 +159,19 @@ export function TopBar({
         />
       </div>
 
+      {/* Center section: iteration pills */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: '1 1 auto' }}>
+        {iterations.length > 0 && (
+          <IterationPills
+            items={iterations.map(iter => iter.name)}
+            activeIndex={activeIterationIndex}
+            onSelect={onSelectIteration}
+          />
+        )}
+      </div>
+
       {/* Right section — annotation UI hidden in production builds */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: '0 0 auto' }}>
         {/* Pending count */}
         {import.meta.env.DEV && pendingCount > 0 && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

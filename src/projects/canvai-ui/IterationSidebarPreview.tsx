@@ -6,14 +6,9 @@ interface IterationSidebarPreviewProps {
 }
 
 export function IterationSidebarPreview({ count }: IterationSidebarPreviewProps) {
-  const [activeIterationIndex, setActiveIterationIndex] = useState(0)
   const [activePageIndex, setActivePageIndex] = useState(0)
-  const iterations = Array.from({ length: count }, (_, i) => ({
-    name: `V${i + 1}`,
-    pages: [
-      { name: ['Initial', 'Refined', 'Final', 'Polish', 'Ship'][i] ?? `Page ${i + 1}` },
-      { name: 'Components' },
-    ],
+  const pages = Array.from({ length: count }, (_, i) => ({
+    name: ['Initial', 'Refined', 'Final', 'Polish', 'Ship'][i] ?? `Page ${i + 1}`,
   }))
 
   return (
@@ -25,13 +20,11 @@ export function IterationSidebarPreview({ count }: IterationSidebarPreviewProps)
       display: 'flex',
     }}>
       <IterationSidebar
-        iterations={iterations}
-        activeIterationIndex={activeIterationIndex}
+        iterationName="V1"
+        pages={pages}
         activePageIndex={activePageIndex}
-        onSelect={(iterIdx, pageIdx) => {
-          setActiveIterationIndex(iterIdx)
-          setActivePageIndex(pageIdx)
-        }}
+        onSelectPage={setActivePageIndex}
+        collapsed={false}
       />
       <div style={{
         flex: 1,

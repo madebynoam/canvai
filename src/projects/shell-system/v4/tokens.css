@@ -1,0 +1,36 @@
+/* V4 — Session dial shell.
+   Inherits V3's elevated canvas + warm neutrals.
+   Adds tokens for the iteration dial and sidebar section headers. */
+
+.iter-v4 {
+  /* Warm neutrals — same as V2/V3 */
+  --surface: oklch(0.993 0.003 80);
+  --chrome: oklch(0.952 0.003 80);
+  --chrome-active: oklch(0.935 0.003 80);
+  --canvas-bg: oklch(0.972 0.003 80);
+  --border: oklch(0.895 0.005 80);
+  --border-soft: oklch(0.915 0.003 80);
+
+  --text-primary: oklch(0.180 0.005 80);
+  --text-secondary: oklch(0.380 0.005 80);
+  --text-tertiary: oklch(0.540 0.005 80);
+  --text-faint: oklch(0.660 0.003 80);
+
+  /* Accent — signal red from V3 */
+  --accent: oklch(0.52 0.20 28);
+  --accent-hover: oklch(0.62 0.18 28);
+  --accent-muted: oklch(0.92 0.05 28);
+  --accent-strong: oklch(0.46 0.18 28);
+  --accent-border: oklch(0.85 0.08 28);
+
+  /* Canvas elevation — from V3 */
+  --canvas-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 0 0 1px var(--border-soft);
+  --canvas-radius: 12px;
+  --canvas-inset: 12px;
+
+  /* V4-specific: dial track */
+  --dial-track: oklch(0.900 0.003 80);
+  --dial-thumb: oklch(0.300 0.005 80);
+  --dial-tick: oklch(0.800 0.003 80);
+  --dial-tick-active: oklch(0.300 0.005 80);
+}

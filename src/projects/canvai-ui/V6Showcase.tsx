@@ -191,7 +191,9 @@ export function AppShellShowcase() {
             projects={DEMO_PROJECTS}
             activeProjectIndex={0}
             onSelectProject={() => {}}
-            iterationCount={5}
+            iterations={DEMO_ITERATIONS}
+            activeIterationIndex={0}
+            onSelectIteration={() => {}}
             pendingCount={3}
             mode="watch"
             sidebarOpen={sidebarOpen1}
@@ -199,10 +201,10 @@ export function AppShellShowcase() {
           />
           <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
             <IterationSidebar
-              iterations={DEMO_ITERATIONS}
-              activeIterationIndex={0}
+              iterationName={DEMO_ITERATIONS[0].name}
+              pages={DEMO_ITERATIONS[0].pages}
               activePageIndex={0}
-              onSelect={() => {}}
+              onSelectPage={() => {}}
               collapsed={!sidebarOpen1}
             />
             <div style={{ flex: 1, background: '#F3F4F6', position: 'relative' }}>
@@ -236,7 +238,9 @@ export function AppShellShowcase() {
             projects={DEMO_PROJECTS}
             activeProjectIndex={0}
             onSelectProject={() => {}}
-            iterationCount={5}
+            iterations={DEMO_ITERATIONS}
+            activeIterationIndex={0}
+            onSelectIteration={() => {}}
             pendingCount={0}
             mode="manual"
             sidebarOpen={sidebarOpen2}
@@ -244,10 +248,10 @@ export function AppShellShowcase() {
           />
           <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
             <IterationSidebar
-              iterations={DEMO_ITERATIONS}
-              activeIterationIndex={0}
+              iterationName={DEMO_ITERATIONS[0].name}
+              pages={DEMO_ITERATIONS[0].pages}
               activePageIndex={0}
-              onSelect={() => {}}
+              onSelectPage={() => {}}
               collapsed={!sidebarOpen2}
             />
             <div style={{ flex: 1, background: '#F3F4F6', position: 'relative' }}>
@@ -292,7 +296,9 @@ export function TopBarShowcase() {
               projects={DEMO_PROJECTS}
               activeProjectIndex={0}
               onSelectProject={() => {}}
-              iterationCount={5}
+              iterations={DEMO_ITERATIONS}
+            activeIterationIndex={0}
+            onSelectIteration={() => {}}
               pendingCount={0}
               mode="manual"
               sidebarOpen={true}
@@ -309,7 +315,9 @@ export function TopBarShowcase() {
               projects={DEMO_PROJECTS}
               activeProjectIndex={0}
               onSelectProject={() => {}}
-              iterationCount={5}
+              iterations={DEMO_ITERATIONS}
+            activeIterationIndex={0}
+            onSelectIteration={() => {}}
               pendingCount={3}
               mode="watch"
               sidebarOpen={true}
@@ -326,7 +334,9 @@ export function TopBarShowcase() {
               projects={DEMO_PROJECTS}
               activeProjectIndex={1}
               onSelectProject={() => {}}
-              iterationCount={3}
+              iterations={DEMO_ITERATIONS.slice(0, 3)}
+              activeIterationIndex={0}
+              onSelectIteration={() => {}}
               pendingCount={0}
               mode="watch"
               sidebarOpen={false}
@@ -445,7 +455,6 @@ function PickerAlwaysOpen({ projects, activeIndex }: { projects: { project: stri
    ═══════════════════════════════════════════════════════════════════ */
 
 export function IterationSidebarShowcase() {
-  const [activeIter, setActiveIter] = useState(0)
   const [activePage, setActivePage] = useState(0)
 
   return (
@@ -455,16 +464,16 @@ export function IterationSidebarShowcase() {
       <div style={{ display: 'flex', gap: 48, alignItems: 'flex-start' }}>
         {/* Expanded */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <StateLabel>Expanded — 5 iterations, active page</StateLabel>
+          <StateLabel>Expanded — flat page list</StateLabel>
           <div style={{
             borderRadius: 8, overflow: 'hidden', border: `1px solid ${BORDER}`,
             height: 400, background: '#FAFAFA',
           }}>
             <IterationSidebar
-              iterations={DEMO_ITERATIONS}
-              activeIterationIndex={activeIter}
+              iterationName={DEMO_ITERATIONS[0].name}
+              pages={DEMO_ITERATIONS[0].pages}
               activePageIndex={activePage}
-              onSelect={(i, p) => { setActiveIter(i); setActivePage(p) }}
+              onSelectPage={setActivePage}
               collapsed={false}
             />
           </div>
@@ -479,10 +488,10 @@ export function IterationSidebarShowcase() {
             display: 'flex', alignItems: 'stretch',
           }}>
             <IterationSidebar
-              iterations={DEMO_ITERATIONS}
-              activeIterationIndex={0}
+              iterationName={DEMO_ITERATIONS[0].name}
+              pages={DEMO_ITERATIONS[0].pages}
               activePageIndex={0}
-              onSelect={() => {}}
+              onSelectPage={() => {}}
               collapsed={true}
             />
           </div>
@@ -1030,7 +1039,9 @@ export function InteractionPlayground() {
           projects={DEMO_PROJECTS}
           activeProjectIndex={activeProject}
           onSelectProject={setActiveProject}
-          iterationCount={5}
+          iterations={DEMO_ITERATIONS}
+          activeIterationIndex={activeIter}
+          onSelectIteration={setActiveIter}
           pendingCount={pgMarkers.length}
           mode="watch"
           sidebarOpen={sidebarOpen}
@@ -1040,10 +1051,10 @@ export function InteractionPlayground() {
         <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
           {/* Sidebar */}
           <IterationSidebar
-            iterations={DEMO_ITERATIONS}
-            activeIterationIndex={activeIter}
+            iterationName={DEMO_ITERATIONS[activeIter]?.name ?? 'V1'}
+            pages={DEMO_ITERATIONS[activeIter]?.pages ?? []}
             activePageIndex={activePage}
-            onSelect={(i, p) => { setActiveIter(i); setActivePage(p) }}
+            onSelectPage={setActivePage}
             collapsed={!sidebarOpen}
           />
 

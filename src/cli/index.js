@@ -16,6 +16,7 @@ import {
   tsconfigJson,
   tsconfigAppJson,
   tsconfigNodeJson,
+  claudeSettingsJson,
 } from './templates.js'
 import { runMigrations, writeMarker, getCanvaiVersion } from './migrate.js'
 
@@ -34,6 +35,7 @@ function scaffold() {
     ['src/App.tsx', appTsx],
     ['src/index.css', indexCss],
     ['src/vite-env.d.ts', viteEnvDts],
+    ['.claude/settings.json', claudeSettingsJson],
   ]
 
   let wrote = 0

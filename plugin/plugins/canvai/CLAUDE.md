@@ -17,39 +17,169 @@ Tenets are decision-making tools — each names the alternative and rejects it.
 1. **`/canvai-init <project-name>`** — Creates a new design project, installs canvai if needed, starts the dev server + annotation MCP.
 2. **Describe** — The designer describes the component (or attaches a sketch). The agent generates the component with variations and states as a manifest.
 3. **Annotate** — The designer clicks "Annotate" on the canvas, selects an element, types a comment, and clicks "Apply". The annotation is pushed to the agent automatically via the MCP watch loop.
-4. **`/canvai-iterate`** — Creates a new iteration in the manifest. Old iterations are frozen.
+4. **`/canvai-iterate`** — Creates a new iteration (complete snapshot copy). Old iterations are frozen.
 5. **`/canvai-ship`** — PR the finished components to a production codebase.
 
 ## Project structure
 
+Each project uses **snapshot iterations** — every iteration is a complete, self-contained folder. No shared state across iterations.
+
 ```
-src/projects/
-  <project-name>/
-    Component.tsx       ← the React component
-    manifest.ts         ← pages × frames (auto-discovered by the canvas)
+src/projects/<project-name>/
+  v1/                        ← complete snapshot (the active iteration)
+    tokens.css               ← OKLCH custom properties (.iter-v1 scope)
+    components/              ← building blocks
+      index.ts               ← barrel export
+      Button.tsx, Input.tsx, Form.tsx...
+    pages/                   ← compositions (import ONLY from ../components/)
+      settings.tsx, shell.tsx...
+    spring.ts                ← optional, per iteration
+  v2/                        ← literal copy of v1, then modified
+    tokens.css
+    components/
+    pages/
+    spring.ts
+  manifest.ts                ← declares iterations, pages, frames
+  CHANGELOG.md               ← running record of design decisions
 ```
+
+## Component hierarchy (mandatory)
+
+Three layers, strict dependency direction:
+
+```
+Tokens (v<N>/tokens.css)     → CSS custom properties, all visual values
+  ↓
+Components (v<N>/components/) → building blocks, use ONLY tokens, can compose each other
+  ↓
+Pages (v<N>/pages/)           → compositions, import ONLY from ../components/
+```
+
+| Layer | Location | Rule |
+|-------|----------|------|
+| Tokens | `v<N>/tokens.css` | All visual values. OKLCH only. Scoped to `.iter-v<N>`. |
+| Components | `v<N>/components/` | Use ONLY `var(--token)`. Can compose other components. |
+| Pages | `v<N>/pages/` | Import ONLY from `../components/`. No raw styled HTML. |
+
+### The rule
+
+If a page needs a button, it imports `Button` from `../components/`. If `Button` doesn't exist yet, create it in `components/` FIRST, then use it in the page. Never inline a styled `<button>` in a page file.
+
+Components can compose other components. `Form` imports `Button` + `Input`. All flat in `components/`. No nesting, no atomic classification.
+
+### Components barrel export
+
+Every component in `v<N>/components/` must be re-exported from `v<N>/components/index.ts`. Pages import from the barrel:
+
+```ts
+import { Button, Input, Avatar } from '../components'
+```
+
+## Token system
+
+Each iteration owns its complete token set, scoped under `.iter-v<N>`. No cascade across iterations. The first iteration also includes `:root` fallbacks.
+
+```css
+/* v1/tokens.css */
+:root,
+.iter-v1 {
+  --surface: oklch(0.995 0 0);
+  --chrome: oklch(0.952 0.003 80);
+  --text-primary: oklch(0.180 0.005 80);
+  --accent: oklch(0.52 0.14 155);
+  /* ... complete set ... */
+}
+```
+
+```css
+/* v2/tokens.css — completely standalone */
+.iter-v2 {
+  --surface: oklch(0.993 0.003 80);
+  --chrome: oklch(0.940 0.005 80);
+  --text-primary: oklch(0.200 0.005 80);
+  --accent: oklch(0.55 0.16 28);
+  /* ... complete set ... */
+}
+```
+
+Rules:
+- **All colors in OKLCH.** Never introduce a raw hex value.
+- Every iteration has the COMPLETE token set — no inheriting from a base.
+- Scope class `.iter-v<N>` is applied by the canvas frame wrapper.
+
+## Iteration model
+
+### Creating iterations (`/canvai-iterate`)
+
+1. Freeze the current iteration in the manifest (`frozen: true`)
+2. **Literal folder copy:** `cp -r v<N>/ v<N+1>/`
+3. Rename CSS scope: `.iter-v<N>` → `.iter-v<N+1>` in `v<N+1>/tokens.css`
+4. Add new iteration to manifest with `frozen: false`
+5. Update import paths from `v<N>` to `v<N+1>`
+
+### Freezing rules
+
+Everything in a frozen iteration folder is immutable. The `frozen: true` flag in the manifest is enforced by a PreToolUse hook — the agent cannot edit files in a frozen iteration's folder.
+
+No exceptions. If you need to change something, create a new iteration.
+
+### Forward-only
+
+- Never merge iterations. Never delete iterations.
+- No cross-iteration imports. Each `v<N>/` is completely self-contained.
+- Later iterations carry forward ALL pages from previous iterations (the folder copy handles this).
+
+## Before any edit (guard protocol)
+
+Before editing any file in `src/projects/<name>/v<N>/`:
+
+1. **Read `manifest.ts`** — check if `v<N>` is `frozen: true`. If frozen, stop.
+2. **Component hierarchy check:**
+   - Editing a file in `pages/`? → It MUST import only from `../components/`. No raw styled HTML.
+   - Editing a file in `components/`? → It MUST use only `var(--token)` for visual values. No hardcoded colors.
+3. **Check `components/index.ts`** — does a component already exist for what you need?
+   - Yes → import and use it.
+   - No → create it in `components/` first, add to `index.ts`, then use it in the page.
+4. **Log to `CHANGELOG.md`** — every design change gets recorded.
 
 ## Manifest format
 
-Each project has a `manifest.ts` that exports a `ProjectManifest`:
-
 ```ts
-import { MyComponent } from './MyComponent'
 import type { ProjectManifest } from 'canvai/runtime'
+import './v1/tokens.css'
+import './v2/tokens.css'
+import { ShellPage } from './v1/pages/shell'
+import { ComponentsPage } from './v1/pages/components'
+import { ShellPage as ShellPageV2 } from './v2/pages/shell'
 
 const manifest: ProjectManifest = {
   project: 'my-project',
   iterations: [
     {
       name: 'V1',
+      frozen: true,
       pages: [
         {
-          name: 'Initial',
+          name: 'Components',
           grid: { columns: 3, columnWidth: 300, rowHeight: 160, gap: 40 },
           frames: [
-            { id: 'comp-variant-state', title: 'Comp / Variant / State', component: MyComponent, props: { ... } },
+            { id: 'v1-btn-primary', title: 'Button / Primary', component: ComponentsPage },
           ],
         },
+        {
+          name: 'Shell',
+          grid: { columns: 1, columnWidth: 800, rowHeight: 560, gap: 40 },
+          frames: [
+            { id: 'v1-shell', title: 'Shell Assembly', component: ShellPage },
+          ],
+        },
+      ],
+    },
+    {
+      name: 'V2',
+      frozen: false,
+      pages: [
+        /* ... carried forward + new pages ... */
       ],
     },
   ],
@@ -168,7 +298,7 @@ Canvai springs are derived from the Fibonacci sequence and the golden ratio (phi
 | `gentle` | 144 | 15 | 0.625 | Cards, panels, sidebars, menus |
 | `soft` | 89 | 12 | 0.636 | Tooltips, toasts, page transitions |
 
-All three presets share the golden damping character. They differ in speed, not feel. The shared module lives at `spring.ts` — import `{ SPRING, useSpring }` from there.
+All three presets share the golden damping character. They differ in speed, not feel. The spring module lives at `v<N>/spring.ts` — import `{ SPRING, useSpring }` from there.
 
 #### When to use springs vs CSS
 
@@ -178,19 +308,13 @@ All three presets share the golden damping character. They differ in speed, not 
 
 #### Spring implementation
 
-Use the shared `useSpring` hook from `spring.ts`. It drives `ref.style.transform` via `requestAnimationFrame` with fixed-timestep physics (120Hz) and an accumulator pattern for frame-rate independence. No React state for animation values — direct DOM updates for 60fps+.
+Use the `useSpring` hook from `v<N>/spring.ts`. It drives `ref.style.transform` via `requestAnimationFrame` with fixed-timestep physics (120Hz) and an accumulator pattern for frame-rate independence. No React state for animation values — direct DOM updates for 60fps+.
 
 ```ts
-import { SPRING, useSpring } from './spring'
+import { SPRING, useSpring } from '../spring'
 const spring = useSpring(SPRING.gentle)
 spring.set(1, (v) => { ref.current.style.transform = `scale(${v})` })
 ```
-
-#### Shared modules
-
-All V5 components import from two shared files:
-- **`tokens.ts`** — design tokens (single source of truth for colors, fonts)
-- **`spring.ts`** — spring physics hook, presets, golden ratio constants
 
 ## Feature inventory
 
@@ -202,9 +326,10 @@ This is a hard constraint. Before rendering any component or feature, check this
 |---|---|
 | `Canvas` | Infinite pannable/zoomable surface. Renders Frame children at absolute positions. |
 | `Frame` | Draggable card on the canvas. Title bar + content area. Wraps a single component instance. |
-| `TopBar` | Top navigation bar. Shows project picker, sidebar toggle, watch mode pill, pending annotation count. |
+| `TopBar` | Top navigation bar. Shows project picker, sidebar toggle, iteration pills (center), watch mode pill, pending annotation count. |
 | `ProjectPicker` | Dropdown to switch between design projects. Orange letter avatar + chevron trigger. |
-| `IterationSidebar` | Collapsible left sidebar listing iterations and their pages. Click to navigate. |
+| `IterationPills` | Pill strip in TopBar center for switching iterations. Click, drag-to-scrub, arrows + counter for 5+ items. |
+| `IterationSidebar` | Collapsible left sidebar showing the active iteration's pages as a flat list. |
 | `AnnotationOverlay` | Fixed overlay for the annotation workflow: FAB button, targeting crosshair, highlight box, comment card, numbered markers, toast notifications. |
 
 ### Does NOT exist
@@ -243,10 +368,12 @@ The canvas has a built-in annotation overlay. The designer clicks "Annotate", se
 
 When an annotation arrives (via either mode):
 1. Read the annotation — it includes `frameId`, `componentName`, `selector`, `comment`, and `computedStyles`
-2. Map the `componentName` and `selector` to the relevant component file and element
-3. Apply the requested changes to the component code
-4. Call `resolve_annotation` with the annotation ID
-5. **Log the change** to `src/projects/<project-name>/CHANGELOG.md` (create if it doesn't exist)
+2. **Follow the guard protocol** — check frozen status, component hierarchy
+3. Map the `componentName` and `selector` to the relevant file in `v<N>/components/` or `v<N>/pages/`
+4. If the change targets a page, ensure changes go through components (create/modify a component, then use it)
+5. Apply the requested changes
+6. Call `resolve_annotation` with the annotation ID
+7. **Log the change** to `src/projects/<project-name>/CHANGELOG.md`
 
 ### Change history
 
@@ -255,13 +382,14 @@ Every annotation fix must be logged in the project's `CHANGELOG.md`. This provid
 ```markdown
 # Changelog
 
-## V1 — Initial
+## V1
 
 - **button > span**: Changed font size from 14px to 16px (annotation #1)
 - **card > h2**: Updated color to #1F2937 (annotation #2)
 
-## V2 — Refined
+## V2
 
+- Created V2 from V1
 - **input**: Added 8px padding and border-radius 6px (annotation #3)
 ```
 
