@@ -98,7 +98,7 @@ function App() {
             boxShadow: E.shadow,
             overflow: 'hidden',
           }}>
-            <Canvas>
+            <Canvas pageKey={\`\${activeProject?.project ?? ''}-\${activeIteration?.name ?? ''}-\${activePage?.name ?? ''}\`}>
               {frames.map(frame => (
                 <Frame
                   key={frame.id}
