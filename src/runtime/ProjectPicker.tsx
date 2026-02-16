@@ -165,7 +165,7 @@ export function ProjectPicker({ projects, activeIndex, onSelect }: ProjectPicker
             width: 20,
             height: 20,
             borderRadius: 4,
-            backgroundColor: A[400],
+            backgroundColor: A.accent,
             color: '#fff',
             display: 'flex',
             alignItems: 'center',
@@ -225,7 +225,7 @@ export function ProjectPicker({ projects, activeIndex, onSelect }: ProjectPicker
                 width: 20,
                 height: 20,
                 borderRadius: 4,
-                backgroundColor: i === activeIndex ? A[400] : N.border,
+                backgroundColor: i === activeIndex ? A.accent : N.border,
                 color: i === activeIndex ? '#fff' : N.txtSec,
                 display: 'flex',
                 alignItems: 'center',
@@ -239,7 +239,7 @@ export function ProjectPicker({ projects, activeIndex, onSelect }: ProjectPicker
             </div>
             <span style={{ flex: 1, textAlign: 'left' }}>{p.project}</span>
             {i === activeIndex && (
-              <Check size={14} strokeWidth={1.5} color={A[400]} />
+              <Check size={14} strokeWidth={1.5} color={A.accent} />
             )}
           </HoverRow>
         ))}

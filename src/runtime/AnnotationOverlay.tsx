@@ -162,7 +162,7 @@ function MarkerDot({ id, comment, rect, onClick, reducedMotion }: {
         width: 18,
         height: 18,
         borderRadius: '50%',
-        backgroundColor: A[400],
+        backgroundColor: A.accent,
         color: '#fff',
         display: 'flex',
         alignItems: 'center',
@@ -564,7 +564,7 @@ export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual', o
             top: highlight.top - 2,
             width: highlight.width + 4,
             height: highlight.height + 4,
-            border: `2px solid ${A[400]}`,
+            border: `2px solid ${A.accent}`,
             borderRadius: 4,
             pointerEvents: 'none',
             zIndex: 99999,
@@ -668,10 +668,10 @@ export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual', o
             </HoverButton>
             <HoverButton
               onClick={handleApply}
-              hoverBg={comment.trim() ? A[300] : ''}
+              hoverBg={comment.trim() ? A.hover : ''}
               baseStyle={{
                 padding: '7px 14px',
-                background: comment.trim() ? A[400] : A[100],
+                background: comment.trim() ? A.accent : A.muted,
                 color: comment.trim() ? '#fff' : N.txtTer,
                 border: 'none',
                 borderRadius: 8,
@@ -721,8 +721,8 @@ export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual', o
               height: 40,
               borderRadius: '50%',
               backgroundColor: buttonState === 'pressed'
-                ? A[500]
-                : buttonState === 'hover' ? A[300] : A[400],
+                ? A.strong
+                : buttonState === 'hover' ? A.hover : A.accent,
               color: '#fff',
               border: 'none',
               display: 'flex',

@@ -160,7 +160,7 @@ export function TopBar({
                 width: 16,
                 height: 16,
                 borderRadius: '50%',
-                backgroundColor: A[400],
+                backgroundColor: A.accent,
                 color: '#fff',
                 display: 'flex',
                 alignItems: 'center',
@@ -171,7 +171,7 @@ export function TopBar({
             >
               {pendingCount}
             </div>
-            <span style={{ fontSize: 11, color: A[400], fontWeight: 500 }}>pending</span>
+            <span style={{ fontSize: 11, color: A.accent, fontWeight: 500 }}>pending</span>
           </div>
         )}
 
