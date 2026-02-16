@@ -40,7 +40,7 @@ createRoot(document.getElementById('root')!).render(
 `
 
 export const appTsx = `import { useState } from 'react'
-import { Canvas, Frame, useFrames, layoutFrames, TopBar, IterationPills, IterationSidebar, AnnotationOverlay } from 'canvai/runtime'
+import { Canvas, Frame, useFrames, layoutFrames, TopBar, IterationPills, IterationSidebar, AnnotationOverlay, N, E } from 'canvai/runtime'
 import { manifests } from 'virtual:canvai-manifests'
 import type { ProjectManifest } from 'canvai/runtime'
 
@@ -90,24 +90,32 @@ function App() {
           collapsed={!sidebarOpen}
         />
 
-        <div style={{ flex: 1 }}>
-          <Canvas>
-            {frames.map(frame => (
-              <Frame
-                key={frame.id}
-                id={frame.id}
-                title={frame.title}
-                x={frame.x}
-                y={frame.y}
-                width={frame.width}
-                height={frame.height}
-                onMove={(id, newX, newY) => updateFrame(id, { x: newX, y: newY })}
-                onResize={handleResize}
-              >
-                <frame.component {...(frame.props ?? {})} />
-              </Frame>
-            ))}
-          </Canvas>
+        <div style={{ flex: 1, backgroundColor: N.chrome, padding: E.inset }}>
+          <div style={{
+            width: '100%', height: '100%',
+            borderRadius: E.radius,
+            backgroundColor: N.canvas,
+            boxShadow: E.shadow,
+            overflow: 'hidden',
+          }}>
+            <Canvas>
+              {frames.map(frame => (
+                <Frame
+                  key={frame.id}
+                  id={frame.id}
+                  title={frame.title}
+                  x={frame.x}
+                  y={frame.y}
+                  width={frame.width}
+                  height={frame.height}
+                  onMove={(id, newX, newY) => updateFrame(id, { x: newX, y: newY })}
+                  onResize={handleResize}
+                >
+                  <frame.component {...(frame.props ?? {})} />
+                </Frame>
+              ))}
+            </Canvas>
+          </div>
         </div>
       </div>
 
