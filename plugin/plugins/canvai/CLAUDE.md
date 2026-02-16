@@ -219,64 +219,97 @@ Canvai follows a **Braun / Jony Ive** aesthetic — clean, minimal, functional. 
 9. **Environmentally friendly** — Minimal bundle. No heavy animation libraries when 30 lines of spring physics suffice.
 10. **As little design as possible** — Back to purity, back to simplicity. Less, but better.
 
-### Palette
+### OKLCH Palette
 
-| Token | Value | Usage |
+All colors MUST be in OKLCH. No hex values. Every color belongs to a cohesive perceptual system.
+
+**Warm neutrals — h=80, c=0.003 (shell material):**
+
+| Token | OKLCH | Role |
 |---|---|---|
-| Accent | `#E8590C` | Buttons, highlights, selection outlines |
-| Accent hover | `#CF4F0B` | Hover state for accent elements |
-| Accent muted | `rgba(232, 89, 12, 0.15)` | Disabled accent backgrounds |
-| Accent shadow | `rgba(232, 89, 12, 0.25)` | Focus rings, box shadows |
-| Canvas | `#F3F4F6` | Canvas background (light gray) |
-| Surface | `#FFFFFF` | Cards, popovers, panels |
-| Surface subtle | `#F9FAFB` | Input backgrounds, secondary surfaces |
-| Border | `#E5E7EB` | Borders, dividers |
-| Hover bg | `rgba(0,0,0,0.03)` | Hover background for interactive rows |
-| Active bg | `rgba(0,0,0,0.06)` | Active/pressed background |
-| Danger | `#DC2626` | Destructive actions (delete buttons, error states) |
-| Text primary | `#1F2937` | Body text |
-| Text secondary | `#6B7280` | Labels, captions |
-| Text tertiary | `#9CA3AF` | Hints, metadata |
+| `chrome` | `oklch(0.952 0.003 80)` | Sidebar + topbar surface |
+| `chromeSub` | `oklch(0.935 0.003 80)` | Hover/active on chrome |
+| `canvas` | `oklch(0.972 0.003 80)` | Workspace background |
+| `card` | `oklch(0.993 0.003 80)` | Cards on canvas |
+| `border` | `oklch(0.895 0.005 80)` | Chrome borders |
+| `borderSoft` | `oklch(0.925 0.003 80)` | Card borders (softer) |
+| `txtPri` | `oklch(0.180 0.005 80)` | Primary text |
+| `txtSec` | `oklch(0.380 0.005 80)` | Secondary text |
+| `txtTer` | `oklch(0.540 0.005 80)` | Tertiary text |
+| `txtFaint` | `oklch(0.660 0.003 80)` | Ghost / placeholder |
+
+**Accent — signal red h=28 (Braun TG 60 record button):**
+
+| Token | OKLCH | Role |
+|---|---|---|
+| `accent` | `oklch(0.52 0.20 28)` | Primary action |
+| `hover` | `oklch(0.62 0.18 28)` | Hover state |
+| `muted` | `oklch(0.92 0.05 28)` | Subtle backgrounds |
+| `strong` | `oklch(0.46 0.18 28)` | High contrast accent text |
+| `border` | `oklch(0.85 0.08 28)` | Accent borders |
+
+**Watch mode — indicator green h=155 (Braun SK 4 power light):**
+
+| Token | OKLCH | Role |
+|---|---|---|
+| `bg` | `oklch(0.92 0.04 155)` | Watch pill background |
+| `dot` | `oklch(0.52 0.14 155)` | Watch dot |
+| `text` | `oklch(0.40 0.12 155)` | Watch text |
+
+**Functional:**
+
+| Token | OKLCH | Role |
+|---|---|---|
+| `success` | `oklch(0.55 0.14 155)` | Success states |
+| `danger` | `oklch(0.52 0.20 28)` | Destructive actions |
+
+**Interaction states:** Hover `rgba(0,0,0,0.03)`, Active `rgba(0,0,0,0.06)`.
 
 ### Typography
 
 - **Font:** `-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif`
-- **Mono:** `SF Mono, Monaco, Inconsolata, monospace` (for code values, technical labels)
-- **Scale:** 24px display, 18px heading, 15px subheading, 13px body, 12px caption, 11px meta, 10px micro, 9px tiny
-- **Weights:** 400 regular, 500 medium, 600 semibold, 700 bold
-- **Line-height:** 1.5 for body (13px and below), 1.4 for headings (15px and above)
-- **Uppercase labels:** `fontSize: 13, fontWeight: 600, color: TEXT_TER, textTransform: 'uppercase', letterSpacing: '0.05em'`
+- **Mono:** `SF Mono, Monaco, Inconsolata, monospace` (code values, technical labels)
+- **Scale (token names):** `label: 9px`, `pill: 10px`, `caption: 11px`, `body: 12px`, `title: 13px`
+- **Weights:** 400 regular, 500 medium, 600 semibold
+- **Uppercase section headers:** `fontSize: T.label (9), fontWeight: 600, color: txtFaint, textTransform: 'uppercase', letterSpacing: '0.08em'`
 
 ### Spacing (4px grid)
 
-All spacing values must be multiples of 4: `4, 8, 12, 16, 20, 24, 28, 32`. Never use `3px`, `5px`, `6px`, `10px`, or other off-grid values for padding, margin, or gap. The only exception is `1px` or `2px` for borders and fine adjustments.
+All spacing values must be multiples of 4. Token names: `xs: 4`, `sm: 8`, `md: 12`, `lg: 16`, `xl: 20`, `xxl: 24`. Never use off-grid values. The only exception is `1px` or `2px` for borders.
 
-### Border radius
+### Border radius (tiered)
 
-- **Cards, panels, inputs:** `borderRadius: 10` (standard)
-- **Dropdown menus, small cards:** `borderRadius: 8`
-- **Pill buttons, pills, toasts:** `borderRadius: 20`
-- **Inline items (dropdown options, sidebar rows):** `borderRadius: 4`
-- **Small controls (checkboxes, swatches):** `borderRadius: 4`
+| Token | Value | Usage |
+|---|---|---|
+| `control` | `4px` | Buttons, active rows, toggles |
+| `card` | `8px` | Cards, dropdowns |
+| `panel` | `12px` | Canvas, modals, large surfaces |
+| `pill` | `20px` | Toast pills, full-round elements |
 
-### Shadows
+### Elevation
 
-- **Cards:** `boxShadow: '0 4px 24px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04)'`
-- **Dropdown menus:** `boxShadow: '0 4px 16px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04)'`
-- **Toasts:** `boxShadow: '0 2px 12px rgba(0,0,0,0.12)'`
-- **Subtle (skeleton, light cards):** `boxShadow: '0 2px 8px rgba(0,0,0,0.04)'`
+Canvas is inset from chrome with `12px` padding, `12px` border-radius, and a subtle shadow: `0 1px 3px rgba(0,0,0,0.04), 0 0 0 1px oklch(0.915 0.003 80)`.
+
+### Icon sizes (Lucide React)
+
+| Token | Size | Usage |
+|---|---|---|
+| `sm` | `12px` | Decorative: chevrons, sidebar icons |
+| `md` | `14px` | Secondary: close, trash, checks |
+| `lg` | `16px` | Primary: menu items, FAB, topbar actions |
+
+Always `strokeWidth={1.5}`. Always from `lucide-react`. No hand-drawn SVGs.
 
 ### Principles
 
-- **One accent color.** Orange (`#E8590C`) is the only color. Everything else is grayscale. Exception: semantic status colors (green for resolved, red for danger) are allowed in status pills and badges only.
-- **Light canvas.** The background is always `#F3F4F6`, never dark.
-- **Minimal chrome.** Subtle borders (`1px solid #E5E7EB`), soft shadows, no heavy outlines.
-- **4px spacing grid.** All padding, margin, and gap values must be multiples of 4.
-- **Rounded but not bubbly.** `borderRadius: 10` for cards, `8` for menus, `20` for pills. See Border radius section.
-- **Icons: Lucide React** (`lucide-react`). No hand-drawn SVGs. Size tiers: 16px primary actions (menu items, FAB, sidebar toggle), 14px secondary (close, trash, checks, send), 12px decorative (chevrons in triggers). Always `strokeWidth={1.5}`.
-- **`text-wrap: pretty`** on all text elements. Cast as `React.CSSProperties` in TypeScript. No widows.
-- **Components must be interactive.** Text inputs should be typeable, menus should open on click, buttons should have hover/active states. No static mockups.
-- **Menus dismiss on outside click.** Every dropdown/popover must close when clicking outside. Use a fixed overlay (`position: fixed, inset: 0`) or a `pointerdown` listener on `document`.
+- **All colors in OKLCH.** No hex values. Derive every color from the OKLCH system.
+- **Achromatic shell (c <= 0.003).** The shell has no hue. Only the accent has color.
+- **One accent hue.** Everything else is warm neutral grayscale.
+- **4px spacing grid.** Every spacing value must be a multiple of 4. Font sizes exempt.
+- **`cursor: default`** for all shell UI. Never `cursor: pointer`.
+- **`text-wrap: pretty`** on all text elements. No widows.
+- **Components must be interactive.** Text inputs typeable, menus open on click, buttons have hover/active states.
+- **Menus dismiss on outside click.** Use `pointerdown` listener on `document` or a fixed overlay.
 
 ### Motion
 

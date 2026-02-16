@@ -11,3 +11,10 @@
 - Watch pill always visible: green (W tokens, h=155) when active, gray when off. Removed spring animation.
 - Remove glow/shadow from watch dot
 - IterationPills container + handle + buttons now use R.pill (20px) for consistent pill shape
+- ProjectPicker: add `forceOpen` prop, show open-state preview in Components page for annotation
+
+## V2 — Accent Exploration
+
+- 10 OKLCH accent color options: Signal Red, Coral, Amber, Olive, Emerald, Teal, Cyan, Blue, Indigo, Violet
+- Each shown with button, badge, letter icon, outline variant, and text link
+- V1 frozen

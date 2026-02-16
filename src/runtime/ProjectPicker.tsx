@@ -7,6 +7,7 @@ interface ProjectPickerProps {
   projects: { project: string }[]
   activeIndex: number
   onSelect: (index: number) => void
+  forceOpen?: boolean
 }
 
 /* Snappy spring for dropdown reveal — scale + opacity + translateY */
@@ -109,16 +110,16 @@ function HoverRow({ children, active, onClick, style }: {
   )
 }
 
-export function ProjectPicker({ projects, activeIndex, onSelect }: ProjectPickerProps) {
+export function ProjectPicker({ projects, activeIndex, onSelect, forceOpen = false }: ProjectPickerProps) {
   const reducedMotion = useReducedMotion()
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(forceOpen)
   const [triggerHovered, setTriggerHovered] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const dropdownRef = useDropdownSpring(open, reducedMotion)
 
-  // Click-outside + Escape to close
+  // Click-outside + Escape to close (skip when forceOpen)
   useEffect(() => {
-    if (!open) return
+    if (!open || forceOpen) return
     function handleClick(e: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setOpen(false)
@@ -144,7 +145,7 @@ export function ProjectPicker({ projects, activeIndex, onSelect }: ProjectPicker
     <div ref={containerRef} style={{ position: 'relative', fontFamily: FONT }}>
       {/* Trigger */}
       <button
-        onClick={() => setOpen(o => !o)}
+        onClick={() => !forceOpen && setOpen(o => !o)}
         onMouseEnter={() => setTriggerHovered(true)}
         onMouseLeave={() => setTriggerHovered(false)}
         style={{
@@ -211,7 +212,7 @@ export function ProjectPicker({ projects, activeIndex, onSelect }: ProjectPicker
             active={i === activeIndex}
             onClick={() => {
               onSelect(i)
-              setOpen(false)
+              if (!forceOpen) setOpen(false)
             }}
             style={{
               gap: S.sm,
@@ -224,7 +225,7 @@ export function ProjectPicker({ projects, activeIndex, onSelect }: ProjectPicker
               style={{
                 width: S.xl,
                 height: S.xl,
-                borderRadius: R.control,
+                borderRadius: '50%',
                 backgroundColor: i === activeIndex ? A.accent : N.border,
                 color: i === activeIndex ? 'oklch(1 0 0)' : N.txtSec,
                 display: 'flex',

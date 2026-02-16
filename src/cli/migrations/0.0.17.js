@@ -33,6 +33,9 @@ export function applies(fileContents) {
   // Detect missing sidebarOpen state
   if (app.includes('TopBar') && !app.includes('sidebarOpen')) return true
 
+  // Detect missing pageKey on Canvas
+  if (app.includes('<Canvas>') && !app.includes('pageKey')) return true
+
   return false
 }
 
@@ -104,6 +107,14 @@ export function migrate(fileContents) {
     app = app.replace(
       /<IterationSidebar\s*\n\s*iterations=\{[^}]+\}\s*\n\s*activeIterationIndex=\{activeIterationIndex\}\s*\n\s*activePageIndex=\{activePageIndex\}\s*\n\s*onSelect=\{[^}]+\{[^}]*\}[^}]*\}[^/]*/,
       `<IterationSidebar\n          iterationName={activeIteration?.name ?? ''}\n          pages={activeIteration?.pages ?? []}\n          activePageIndex={activePageIndex}\n          onSelectPage={setActivePageIndex}\n          collapsed={!sidebarOpen}\n        `
+    )
+  }
+
+  // 7. Add pageKey to Canvas for viewport persistence
+  if (app.includes('<Canvas>') && !app.includes('pageKey')) {
+    app = app.replace(
+      '<Canvas>',
+      '<Canvas pageKey={`${activeProject?.project ?? \'\'}-${activeIteration?.name ?? \'\'}-${activePage?.name ?? \'\'}`}>'
     )
   }
 
