@@ -120,7 +120,7 @@ export function IterationSidebar({ iterationName, pages, activePageIndex, onSele
       {/* Iteration pages section */}
       {iterPages.length > 0 && (
         <div style={{ marginTop: systemPages.length > 0 ? S.md : 0 }}>
-          <SectionHeader>{iterationName} Pages</SectionHeader>
+          <SectionHeader>Pages</SectionHeader>
           {iterPages.map(ip => (
             <SidebarRow
               key={ip.name}
