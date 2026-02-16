@@ -116,22 +116,23 @@ Canvai follows a **Braun / Jony Ive** aesthetic — clean, minimal, functional. 
 
 ### Palette (OKLCH)
 
-All colors are defined in OKLCH — no hex values. The shell is achromatic (c=0, no hue). The accent is the one color.
+All colors are defined in OKLCH — no hex values. The shell uses warm neutrals (h=80, c=0.003 — Rams palette). The accent is the one color.
 
 | Token | CSS var | OKLCH | Usage |
 |---|---|---|---|
-| Surface | `--surface` | `oklch(0.995 0 0)` | Cards, popovers, panels |
-| Chrome | `--chrome` | `oklch(0.955 0 0)` | Sidebar + topbar surface |
-| Canvas | `--canvas-bg` | `oklch(0.975 0 0)` | Workspace background |
-| Border | `--border` | `oklch(0.900 0 0)` | Chrome borders |
-| Border soft | `--border-soft` | `oklch(0.920 0 0)` | Card borders |
-| Text primary | `--text-primary` | `oklch(0.200 0 0)` | Body text |
-| Text secondary | `--text-secondary` | `oklch(0.400 0 0)` | Labels, captions |
-| Text tertiary | `--text-tertiary` | `oklch(0.560 0 0)` | Hints, metadata |
-| Text faint | `--text-faint` | `oklch(0.680 0 0)` | Ghost / placeholder |
-| Accent | `--accent` | `oklch(0.68 0.18 235)` | Buttons, highlights (cerulean) |
-| Accent hover | `--accent-hover` | `oklch(0.78 0.14 235)` | Hover state |
-| Accent muted | `--accent-muted` | `oklch(0.93 0.05 235)` | Tint backgrounds |
+| Surface | `--surface` | `oklch(0.993 0.003 80)` | Cards, popovers, panels |
+| Chrome | `--chrome` | `oklch(0.952 0.003 80)` | Sidebar + topbar surface |
+| Canvas | `--canvas-bg` | `oklch(0.972 0.003 80)` | Workspace background |
+| Border | `--border` | `oklch(0.895 0.005 80)` | Chrome borders |
+| Border soft | `--border-soft` | `oklch(0.915 0.003 80)` | Card borders |
+| Text primary | `--text-primary` | `oklch(0.180 0.005 80)` | Body text |
+| Text secondary | `--text-secondary` | `oklch(0.380 0.005 80)` | Labels, captions |
+| Text tertiary | `--text-tertiary` | `oklch(0.540 0.005 80)` | Hints, metadata |
+| Text faint | `--text-faint` | `oklch(0.660 0.003 80)` | Ghost / placeholder |
+| Accent | `--accent` | project-defined | Buttons, highlights (one hue) |
+| Accent hover | `--accent-hover` | project-defined | Hover state |
+| Accent muted | `--accent-muted` | project-defined | Tint backgrounds |
+| Accent strong | `--accent-strong` | project-defined | Pressed / emphasis |
 | Success | `--success` | `oklch(0.55 0.14 155)` | Success states |
 | Danger | `--danger` | `oklch(0.52 0.20 28)` | Destructive actions |
 | Hover bg | — | `rgba(0,0,0,0.03)` | Hover background |
@@ -170,7 +171,7 @@ All spacing values must be multiples of 4: `4, 8, 12, 16, 20, 24, 28, 32`. Never
 ### Principles
 
 - **All colors in OKLCH.** Never introduce hex values. Use `var(--token)` CSS custom properties or `oklch()` with intentional L/C/H values.
-- **One accent color.** Cerulean (`var(--accent)`) is the only color. Everything else is achromatic (c=0). Exception: semantic status colors (success h=155, danger h=28) are allowed in status indicators only.
+- **One accent color.** `var(--accent)` is the only color. Everything else is warm neutral (h=80, c=0.003). Exception: semantic status colors (success h=155, danger h=28) are allowed in status indicators only.
 - **Light canvas.** The background is always `var(--canvas-bg)`, never dark.
 - **Minimal chrome.** Subtle borders (`1px solid var(--border)`), soft shadows, no heavy outlines.
 - **4px spacing grid.** All padding, margin, and gap values must be multiples of 4.
@@ -334,14 +335,19 @@ Every time you are about to modify a file in `src/projects/<name>/`, follow this
    - If yes → modify the primitive (change propagates everywhere).
    - If the change is iteration-specific → edit the variation file in `iterations/v<N>/`.
 
-3. **Use CSS custom properties** for all visual values:
+3. **Check the Feature Inventory** — is everything you're adding a real runtime feature?
+   - If the file renders shell UI (TopBar, Sidebar, Canvas, etc.), only include components from the "Runtime components" table.
+   - If a component is in the "Does NOT exist" list — do not add it. Not to the shell, not to a variation that depicts the shell.
+   - New UI primitives (Toggle, Checkbox, etc.) can be created in `primitives/` and demoed in palette/showcase pages — but never added to the shell layout itself unless the runtime actually has them.
+
+4. **Use CSS custom properties** for all visual values:
    - Colors → `var(--accent)`, `var(--text-primary)`, etc.
    - Spacing → `var(--space-4)`, `var(--space-2)`, etc.
    - Radius → `var(--radius-md)`, `var(--radius-sm)`, etc.
    - Never hardcode OKLCH, hex, or px values that have a token equivalent.
    - Reference `primitives/tokens.css` for available tokens.
 
-4. **Log the change** to `CHANGELOG.md` under the current iteration heading.
+5. **Log the change** to `CHANGELOG.md` under the current iteration heading.
 
 This applies to chat-based changes, annotation-based changes, and any other edit.
 
@@ -393,6 +399,84 @@ The following features are **not implemented** and must never be rendered, refer
 ### Rule
 
 If a designer asks for a feature not in this inventory, the agent must say: "That feature doesn't exist in Canvai yet. Would you like to design it as a new component instead?" — never invent UI for features that aren't built.
+
+## Design system guard (mandatory post-write validation)
+
+After writing or editing ANY `.tsx` file in `src/projects/`, scan every line of the file you just wrote and verify each rule below. Do not skip this. Do not assume the code is correct because you "know" the rules — validate the output.
+
+### Primitives check (do this FIRST)
+
+Before writing any inline styles, read `primitives/index.ts` to see what components exist. For every element you're about to write:
+
+1. **Does a primitive already do this?** → Use it. `Button` for buttons, `Avatar` for avatars, `HoverButton` for icon buttons, `Label` for section headings. Don't reinvent them inline.
+2. **Does a primitive almost do this but not quite?** → Use the primitive and pass props to customize. If the props don't exist, extend the primitive — don't bypass it.
+3. **Does no primitive fit?** → Write inline, but add a comment explaining WHY:
+
+```tsx
+{/* Override: raw <button> because tree disclosure needs custom layout
+    (chevron + label + badge) that Button/HoverButton don't support. */}
+```
+
+If you find yourself writing `backgroundColor: 'var(--accent)', color: 'oklch(1 0 0)', display: 'flex', alignItems: 'center', justifyContent: 'center'` inline — that's a `Button variant="primary"`. Use the primitive.
+
+If a pattern repeats twice in the same file without a primitive, flag it as a candidate for extraction to `primitives/`.
+
+### Values to scan
+
+**Every numeric spacing value** (padding, margin, gap, width, height, top, left, right, bottom, inset):
+- Must be a multiple of 4: `0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 48, 64`
+- Exception: `1px` or `2px` for borders and fine adjustments only
+- Violation examples: `3px`, `5px`, `6px`, `7px`, `9px`, `10px`, `13px`, `14px`, `15px`, `18px`
+
+**Every color value**:
+- Must be a CSS custom property (`var(--token)`) or `oklch()`. Never `#hex`, never `rgb()`, never `hsl()`
+- `rgba(0,0,0,0.03)` and `rgba(0,0,0,0.06)` are allowed for hover/active overlays and shadows only
+- `#fff` → `oklch(1 0 0)`. `#000` → `oklch(0 0 0)`. No exceptions
+- Inline `oklch()` values in component code are a smell — should they be a `var(--token)` in `tokens.css` instead?
+
+**Every border-radius value**:
+- Allowed tiers: `4` (controls, inline items), `8` (menus, small cards), `10` (cards, panels, inputs), `12` (large cards), `20` (pills, toasts), `'50%'` (circles)
+- Violation examples: `3`, `5`, `6`, `7`, `9`, `11`, `14`, `15`
+
+**Every icon** (`lucide-react`):
+- Size tiers: `16` (primary actions), `14` (secondary), `12` (decorative/chevrons)
+- No other sizes: `8`, `10`, `13`, `15`, `18`, `20` are all violations
+- Must have `strokeWidth={1.5}` — no other value
+
+**Every text element** (`<span>`, `<div>` with text, `<p>`, `<label>`):
+- Should have `textWrap: 'pretty'` (cast to `React.CSSProperties` in TypeScript if needed)
+
+**Every `backgroundColor`** — surface hierarchy check:
+
+The token system has three surface layers. They form a stack — darker at the base, lighter as you elevate. Before writing any `backgroundColor`, determine which layer the element sits on:
+
+```
+Layer 0 — Base (chrome)       oklch L ≈ 0.952   Sidebar, shell material
+Layer 1 — Workspace (canvas)  oklch L ≈ 0.972   Canvas area, lighter than base
+Layer 2 — Elevated (surface)  oklch L ≈ 0.993   Cards, popovers, floating indicators
+```
+
+Rules:
+- An element's background must be lighter than its parent's background. The stack always reads `chrome → canvas-bg → surface` as you nest inward.
+- If the base is `--chrome`, children sitting directly on it use `--canvas-bg` or `--surface` — never `--chrome` again.
+- Floating elements on the canvas (badges, pills, FABs) use `--surface` — they need to pop from `--canvas-bg`.
+- Cards inside cards are a smell. Two levels of elevation is the max.
+- Before writing any layout, sketch the hierarchy: "base is X, workspace is Y, cards are Z." Then verify every `backgroundColor` in the file follows that stack.
+
+Violation examples:
+- Base is `--surface` (0.993) and canvas is `--canvas-bg` (0.972) → canvas is DARKER than the base, hierarchy is inverted
+- Sidebar and canvas both use `--chrome` → no differentiation, flat
+- A card on the canvas uses `--canvas-bg` instead of `--surface` → doesn't elevate
+
+### How to run
+
+After writing a component, re-read the file and check each rule. If you find violations, fix them immediately before moving on. This is not optional — it is the same as a lint pass. Code with off-grid spacing, hex colors, or inverted surface hierarchy is broken code.
+
+### Why this exists
+
+The agent (you) pattern-matches from existing code. If V1 has `#fff` and `padding: '3px 10px'`, V2 copies those violations, V3 copies V2, and the entire design system erodes. This guard breaks the chain. Every new file starts clean.
+
+The surface hierarchy guard exists because the agent grabs tokens by name without thinking about what layer it's on. `--surface` sounds right for a base — but it's the lightest token, meant for elevated cards. Choosing the wrong token makes the whole layout flat or inverted. Think in layers, not names.
 
 ## Annotation flow (push-driven)
 

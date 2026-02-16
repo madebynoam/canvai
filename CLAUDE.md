@@ -103,22 +103,22 @@ The runtime shell (`src/runtime/` — TopBar, IterationSidebar, ProjectPicker, A
 
 All colors MUST be defined in OKLCH. No random hex values. Every color is part of a cohesive perceptual system with intentional lightness (L), chroma (C), and hue (H) relationships. The OKLCH exploration lives in `src/projects/canvai-ui/OklchPalettes.tsx`.
 
-**Shell palette — achromatic (c=0, no hue opinion):**
+**Shell palette — warm neutrals (h=80, c=0.003 — Rams palette):**
 
 | Token | OKLCH | Role |
 |---|---|---|
-| Chrome | `oklch(0.955 0 0)` | Sidebar + topbar surface |
-| Chrome active | `oklch(0.940 0 0)` | Hover/active on chrome |
-| Canvas | `oklch(0.975 0 0)` | Workspace — lighter than chrome |
-| Card | `oklch(0.995 0 0)` | Cards on canvas — near-white |
-| Border | `oklch(0.900 0 0)` | Chrome borders |
-| Border soft | `oklch(0.920 0 0)` | Card borders (softer) |
-| Text primary | `oklch(0.200 0 0)` | Primary text |
-| Text secondary | `oklch(0.400 0 0)` | Secondary text |
-| Text tertiary | `oklch(0.560 0 0)` | Tertiary text |
-| Text faint | `oklch(0.680 0 0)` | Ghost / placeholder |
+| Chrome | `oklch(0.952 0.003 80)` | Sidebar + topbar surface |
+| Chrome active | `oklch(0.935 0.003 80)` | Hover/active on chrome |
+| Canvas | `oklch(0.972 0.003 80)` | Workspace — lighter than chrome |
+| Card | `oklch(0.993 0.003 80)` | Cards on canvas — near-white |
+| Border | `oklch(0.895 0.005 80)` | Chrome borders |
+| Border soft | `oklch(0.915 0.003 80)` | Card borders (softer) |
+| Text primary | `oklch(0.180 0.005 80)` | Primary text |
+| Text secondary | `oklch(0.380 0.005 80)` | Secondary text |
+| Text tertiary | `oklch(0.540 0.005 80)` | Tertiary text |
+| Text faint | `oklch(0.660 0.003 80)` | Ghost / placeholder |
 
-**Accent** — the ONE color. Defined by L/C/H values from the OKLCH palette exploration. Currently orange at `oklch(0.62 0.20 55)`. Everything else is achromatic.
+**Accent** — the ONE color. Braun indicator green (SK 4 power light) at `oklch(0.52 0.14 155)`. Everything else is warm neutral.
 
 **Rules:**
 - **All colors in OKLCH.** Never introduce a raw hex value. Derive every color from the OKLCH system — adjust L (lightness), C (chroma), or H (hue) intentionally. Hex values like `#E5E7EB` are legacy; new code uses `oklch()`.
