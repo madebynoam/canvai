@@ -1,19 +1,13 @@
 import { useState, useRef, useEffect, useCallback, type CSSProperties } from 'react'
 import { ChevronDown, Check } from 'lucide-react'
 import { useReducedMotion } from './useReducedMotion'
+import { N, A, S, R, T, ICON, FONT } from './tokens'
 
 interface ProjectPickerProps {
   projects: { project: string }[]
   activeIndex: number
   onSelect: (index: number) => void
 }
-
-const ACCENT = '#E8590C'
-const SURFACE = '#FFFFFF'
-const BORDER = '#E5E7EB'
-const TEXT_PRIMARY = '#1F2937'
-const TEXT_SECONDARY = '#6B7280'
-const FONT = '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif'
 
 /* Snappy spring for dropdown reveal — scale + opacity + translateY */
 function useDropdownSpring(open: boolean, reducedMotion: boolean) {
@@ -28,7 +22,7 @@ function useDropdownSpring(open: boolean, reducedMotion: boolean) {
     if (reducedMotion) {
       stateRef.current = { value: target, velocity: 0 }
       if (ref.current) {
-        ref.current.style.transform = target === 1 ? 'scale(1) translateY(0)' : 'scale(0.92) translateY(-4px)'
+        ref.current.style.transform = target === 1 ? 'scale(1) translateY(0)' : `scale(0.92) translateY(-${S.xs}px)`
         ref.current.style.opacity = `${target}`
       }
       return
@@ -54,7 +48,7 @@ function useDropdownSpring(open: boolean, reducedMotion: boolean) {
       if (ref.current) {
         const v = Math.max(0, Math.min(1, s.value))
         const scale = 0.92 + 0.08 * v
-        const ty = (1 - v) * -4
+        const ty = (1 - v) * -S.xs
         ref.current.style.transform = `scale(${scale}) translateY(${ty}px)`
         ref.current.style.opacity = `${v}`
       }
@@ -65,7 +59,7 @@ function useDropdownSpring(open: boolean, reducedMotion: boolean) {
         s.velocity = 0
         if (ref.current) {
           const scale = 0.92 + 0.08 * target
-          ref.current.style.transform = `scale(${scale}) translateY(${target === 1 ? 0 : -4}px)`
+          ref.current.style.transform = `scale(${scale}) translateY(${target === 1 ? 0 : -S.xs}px)`
           ref.current.style.opacity = `${target}`
         }
       }
@@ -103,7 +97,7 @@ function HoverRow({ children, active, onClick, style }: {
       onMouseLeave={() => setHovered(false)}
       style={{
         display: 'flex', alignItems: 'center', width: '100%',
-        border: 'none', borderRadius: 4,
+        border: 'none', borderRadius: R.control,
         backgroundColor: bg,
         fontFamily: FONT, textAlign: 'left',
         transition: 'background-color 0.1s ease',
@@ -156,38 +150,38 @@ export function ProjectPicker({ projects, activeIndex, onSelect }: ProjectPicker
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: 8,
-          padding: '4px 8px',
+          gap: S.sm,
+          padding: `${S.xs}px ${S.sm}px`,
           background: triggerHovered ? 'rgba(0, 0, 0, 0.04)' : 'transparent',
           border: 'none',
-          borderRadius: 4,
+          borderRadius: R.control,
           fontFamily: FONT,
           transition: 'background-color 0.1s ease',
         }}
       >
-        {/* Orange square with first letter */}
+        {/* Accent square with first letter */}
         <div
           style={{
-            width: 20,
-            height: 20,
-            borderRadius: 4,
-            backgroundColor: ACCENT,
-            color: '#fff',
+            width: S.xl,
+            height: S.xl,
+            borderRadius: R.control,
+            backgroundColor: A.accent,
+            color: 'oklch(1 0 0)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: 10,
+            fontSize: T.pill,
             fontWeight: 600,
             flexShrink: 0,
           }}
         >
           {active.project.charAt(0).toUpperCase()}
         </div>
-        <span style={{ fontSize: 13, fontWeight: 500, color: TEXT_PRIMARY }}>
+        <span style={{ fontSize: T.title, fontWeight: 500, color: N.txtPri }}>
           {active.project}
         </span>
         {/* Chevron */}
-        <ChevronDown size={12} strokeWidth={1.5} color="#9CA3AF" style={{ flexShrink: 0 }} />
+        <ChevronDown size={ICON.sm} strokeWidth={1.5} color={N.txtTer} style={{ flexShrink: 0 }} />
       </button>
 
       {/* Dropdown — always rendered, spring drives scaleY + opacity */}
@@ -197,16 +191,16 @@ export function ProjectPicker({ projects, activeIndex, onSelect }: ProjectPicker
           position: 'absolute',
           top: '100%',
           left: 0,
-          marginTop: 4,
+          marginTop: S.xs,
           width: 220,
-          background: SURFACE,
-          borderRadius: 8,
-          border: `1px solid ${BORDER}`,
-          boxShadow: '0 4px 16px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0, 0, 0, 0.04)',
-          padding: 4,
+          background: N.card,
+          borderRadius: R.card,
+          border: `1px solid ${N.border}`,
+          boxShadow: `0 ${S.xs}px ${S.lg}px rgba(0, 0, 0, 0.08), 0 1px ${S.xs}px rgba(0, 0, 0, 0.04)`,
+          padding: S.xs,
           zIndex: 100,
           transformOrigin: 'top left',
-          transform: 'scale(0.92) translateY(-4px)',
+          transform: `scale(0.92) translateY(-${S.xs}px)`,
           opacity: 0,
           pointerEvents: open ? 'auto' : 'none',
         }}
@@ -220,23 +214,23 @@ export function ProjectPicker({ projects, activeIndex, onSelect }: ProjectPicker
               setOpen(false)
             }}
             style={{
-              gap: 8,
-              padding: '8px 8px',
-              fontSize: 13,
-              color: TEXT_PRIMARY,
+              gap: S.sm,
+              padding: `${S.sm}px ${S.sm}px`,
+              fontSize: T.title,
+              color: N.txtPri,
             }}
           >
             <div
               style={{
-                width: 20,
-                height: 20,
-                borderRadius: 4,
-                backgroundColor: i === activeIndex ? ACCENT : BORDER,
-                color: i === activeIndex ? '#fff' : TEXT_SECONDARY,
+                width: S.xl,
+                height: S.xl,
+                borderRadius: R.control,
+                backgroundColor: i === activeIndex ? A.accent : N.border,
+                color: i === activeIndex ? 'oklch(1 0 0)' : N.txtSec,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: 10,
+                fontSize: T.pill,
                 fontWeight: 600,
                 flexShrink: 0,
               }}
@@ -245,7 +239,7 @@ export function ProjectPicker({ projects, activeIndex, onSelect }: ProjectPicker
             </div>
             <span style={{ flex: 1, textAlign: 'left' }}>{p.project}</span>
             {i === activeIndex && (
-              <Check size={14} strokeWidth={1.5} color={ACCENT} />
+              <Check size={ICON.md} strokeWidth={1.5} color={A.accent} />
             )}
           </HoverRow>
         ))}

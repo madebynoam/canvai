@@ -1,12 +1,13 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useReducedMotion } from './useReducedMotion'
+import { N, S, R, T, ICON, FONT } from './tokens'
 
 /**
  * IterationPills — Pill strip with draggable highlight.
  *
- * Click a pill → highlight springs to it.
- * Drag → highlight slides continuously with the finger.
+ * Click a pill -> highlight springs to it.
+ * Drag -> highlight slides continuously with the finger.
  * When it crosses into the next pill slot, the active item
  * updates (and the strip slides if there are 5+ items).
  * On release, highlight springs to snap on the active pill.
@@ -17,17 +18,11 @@ import { useReducedMotion } from './useReducedMotion'
  */
 
 const PILL_W = 32
-const GAP = 2
+const GAP = S.xs
 const STEP = PILL_W + GAP
 const VIEWPORT_W = 140
-const PAD = 2
+const PAD = S.xs
 const DRAG_THRESHOLD = 3
-
-const BORDER = '#E5E7EB'
-const TEXT_PRIMARY = '#1F2937'
-const TEXT_FAINT = '#D1D5DB'
-const TEXT_SECONDARY = '#6B7280'
-const FONT = '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif'
 
 /* ── Inline spring (no dependency on project spring.ts) ── */
 
@@ -206,15 +201,15 @@ export function IterationPills({ items, activeIndex, onSelect }: IterationPillsP
   if (items.length === 0) return null
 
   return (
-    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, cursor: 'default', fontFamily: FONT }}>
+    <div style={{ display: 'inline-flex', alignItems: 'center', gap: S.xs, cursor: 'default', fontFamily: FONT }}>
       {needsSlide && (
         <button onClick={() => springTo(active - 1)} style={{
           border: 'none', background: 'none', cursor: 'default', padding: 0,
-          color: active > 0 ? TEXT_SECONDARY : BORDER,
+          color: active > 0 ? N.txtSec : N.border,
           display: 'flex', alignItems: 'center',
           opacity: active > 0 ? 1 : 0.4,
         }}>
-          <ChevronLeft size={12} strokeWidth={1.5} />
+          <ChevronLeft size={ICON.sm} strokeWidth={1.5} />
         </button>
       )}
 
@@ -224,8 +219,8 @@ export function IterationPills({ items, activeIndex, onSelect }: IterationPillsP
         style={{
           width: needsSlide ? VIEWPORT_W : 'auto',
           overflow: 'hidden',
-          borderRadius: 8,
-          backgroundColor: '#F3F4F6',
+          borderRadius: R.card,
+          backgroundColor: N.chromeSub,
           padding: PAD,
           touchAction: 'none',
           userSelect: 'none',
@@ -248,8 +243,8 @@ export function IterationPills({ items, activeIndex, onSelect }: IterationPillsP
               style={{
                 position: 'absolute', top: 0, left: 0,
                 width: PILL_W, height: '100%',
-                borderRadius: 8,
-                backgroundColor: '#FFFFFF',
+                borderRadius: R.card,
+                backgroundColor: N.card,
                 boxShadow: '0 1px 2px rgba(0,0,0,0.06)',
                 transform: `translateX(${getHighlightX(active)}px)`,
                 willChange: 'transform',
@@ -265,11 +260,11 @@ export function IterationPills({ items, activeIndex, onSelect }: IterationPillsP
                 width: PILL_W,
                 flexShrink: 0,
                 border: 'none', cursor: 'default',
-                padding: '4px 8px', borderRadius: 8,
-                fontSize: 10, fontWeight: isActive ? 600 : 400,
+                padding: `${S.xs}px ${S.sm}px`, borderRadius: R.card,
+                fontSize: T.pill, fontWeight: isActive ? 600 : 400,
                 fontFamily: FONT,
-                backgroundColor: !canDrag && isActive ? '#FFFFFF' : 'transparent',
-                color: isActive ? TEXT_PRIMARY : TEXT_FAINT,
+                backgroundColor: !canDrag && isActive ? N.card : 'transparent',
+                color: isActive ? N.txtPri : N.txtFaint,
                 boxShadow: !canDrag && isActive ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
                 whiteSpace: 'nowrap', textAlign: 'center',
                 userSelect: 'none',
@@ -283,17 +278,17 @@ export function IterationPills({ items, activeIndex, onSelect }: IterationPillsP
       {needsSlide && (
         <button onClick={() => springTo(active + 1)} style={{
           border: 'none', background: 'none', cursor: 'default', padding: 0,
-          color: active < items.length - 1 ? TEXT_SECONDARY : BORDER,
+          color: active < items.length - 1 ? N.txtSec : N.border,
           display: 'flex', alignItems: 'center',
           opacity: active < items.length - 1 ? 1 : 0.4,
         }}>
-          <ChevronRight size={12} strokeWidth={1.5} />
+          <ChevronRight size={ICON.sm} strokeWidth={1.5} />
         </button>
       )}
 
       {needsSlide && (
         <span style={{
-          fontSize: 9, color: TEXT_FAINT,
+          fontSize: T.label, color: N.txtFaint,
           fontVariantNumeric: 'tabular-nums',
           userSelect: 'none',
         }}>{active + 1}/{items.length}</span>

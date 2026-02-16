@@ -1,4 +1,6 @@
-import { useState, type CSSProperties } from 'react'
+import { useState } from 'react'
+import { Palette, Layers } from 'lucide-react'
+import { N, S, R, T, ICON, FONT } from './tokens'
 
 interface IterationSidebarProps {
   iterationName: string
@@ -8,23 +10,28 @@ interface IterationSidebarProps {
   collapsed: boolean
 }
 
-const BORDER = '#E5E7EB'
-const FONT = '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif'
+/* Section header — uppercase, faint, spaced */
+function SectionHeader({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{
+      padding: `0 ${S.lg}px`, marginBottom: S.xs,
+      fontSize: T.label, fontWeight: 600, color: N.txtFaint,
+      textTransform: 'uppercase', letterSpacing: '0.08em',
+      textWrap: 'pretty',
+    } as React.CSSProperties}>
+      {children}
+    </div>
+  )
+}
 
-/** Row with subtle hover bg and optional active highlight */
-function HoverRow({ children, active, onClick, style }: {
+/* Sidebar row — icon + label, active state */
+function SidebarRow({ children, icon, active, onClick }: {
   children: React.ReactNode
+  icon?: React.ReactNode
   active?: boolean
   onClick?: () => void
-  style?: CSSProperties
 }) {
   const [hovered, setHovered] = useState(false)
-
-  const bg = active
-    ? 'rgba(0, 0, 0, 0.06)'
-    : hovered
-      ? 'rgba(0, 0, 0, 0.03)'
-      : 'transparent'
 
   return (
     <button
@@ -32,16 +39,24 @@ function HoverRow({ children, active, onClick, style }: {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        display: 'flex', alignItems: 'center', width: '100%',
-        border: 'none', borderRadius: 4,
-        backgroundColor: bg,
+        display: 'flex', alignItems: 'center', gap: S.sm,
+        width: active ? `calc(100% - ${S.lg}px)` : '100%',
+        border: 'none',
+        padding: active ? `${S.xs}px ${S.sm}px` : `${S.xs}px ${S.lg}px`,
+        margin: active ? `0 ${S.sm}px` : '0',
+        borderRadius: active ? R.control : 0,
+        backgroundColor: active ? N.chromeSub : hovered ? 'rgba(0,0,0,0.03)' : 'transparent',
         fontFamily: FONT, textAlign: 'left',
-        transition: 'background-color 0.1s ease',
-        minHeight: 28,
-        ...style,
+        fontSize: T.body,
+        fontWeight: active ? 500 : 400,
+        color: active ? N.txtPri : N.txtSec,
+        cursor: 'default',
       }}
     >
-      {children}
+      {icon}
+      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        {children}
+      </span>
     </button>
   )
 }
@@ -49,50 +64,74 @@ function HoverRow({ children, active, onClick, style }: {
 export function IterationSidebar({ iterationName, pages, activePageIndex, onSelectPage, collapsed }: IterationSidebarProps) {
   if (pages.length === 0) return null
 
+  /* Split pages into system pages (Tokens, Components) and iteration pages */
+  const systemNames = ['Tokens', 'Components']
+  const systemPages: { name: string; index: number }[] = []
+  const iterPages: { name: string; index: number }[] = []
+
+  pages.forEach((page, i) => {
+    if (systemNames.includes(page.name)) {
+      systemPages.push({ name: page.name, index: i })
+    } else {
+      iterPages.push({ name: page.name, index: i })
+    }
+  })
+
+  const iconForSystem = (name: string) => {
+    if (name === 'Tokens') return <Palette size={ICON.sm} strokeWidth={1.5} style={{ color: N.txtFaint, flexShrink: 0 }} />
+    if (name === 'Components') return <Layers size={ICON.sm} strokeWidth={1.5} style={{ color: N.txtFaint, flexShrink: 0 }} />
+    return null
+  }
+
   return (
     <div style={{
-      width: collapsed ? 0 : 184,
-      borderRight: collapsed ? 'none' : `1px solid ${BORDER}`,
-      backgroundColor: '#FAFAFA',
-      padding: collapsed ? '4px 0' : '4px 4px',
+      width: collapsed ? 0 : 160,
+      backgroundColor: N.chrome,
+      padding: `${S.md}px 0`,
       display: 'flex',
       flexDirection: 'column',
-      gap: 0,
-      transition: 'width 0.15s ease, padding 0.15s ease',
+      transition: 'width 0.15s ease',
       overflow: 'hidden',
       flexShrink: 0,
       fontFamily: FONT,
     }}>
-      {/* Iteration name — read-only label (switching happens via pills in TopBar) */}
-      <div style={{
-        padding: '8px 8px 4px',
-        fontSize: 12, fontWeight: 500, color: '#374151',
-        whiteSpace: 'nowrap', flexShrink: 0,
-      }}>
-        {iterationName}
-      </div>
+      {/* System section */}
+      {systemPages.length > 0 && (
+        <div style={{ marginBottom: S.lg }}>
+          <SectionHeader>System</SectionHeader>
+          {systemPages.map(sp => (
+            <SidebarRow
+              key={sp.name}
+              icon={iconForSystem(sp.name)}
+              active={sp.index === activePageIndex}
+              onClick={() => onSelectPage(sp.index)}
+            >
+              {sp.name}
+            </SidebarRow>
+          ))}
+        </div>
+      )}
 
-      {/* Flat page list */}
-      {pages.map((page, pageIdx) => {
-        const active = pageIdx === activePageIndex
-        return (
-          <HoverRow
-            key={page.name}
-            active={active}
-            onClick={() => onSelectPage(pageIdx)}
-            style={{
-              padding: '0 8px 0 16px',
-              fontSize: 12,
-              fontWeight: 400,
-              color: active ? '#1F2937' : '#6B7280',
-            }}
-          >
-            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {page.name}
-            </span>
-          </HoverRow>
-        )
-      })}
+      {/* Divider */}
+      {systemPages.length > 0 && iterPages.length > 0 && (
+        <div style={{ height: 1, backgroundColor: N.borderSoft, margin: `0 ${S.lg}px` }} />
+      )}
+
+      {/* Iteration pages section */}
+      {iterPages.length > 0 && (
+        <div style={{ marginTop: systemPages.length > 0 ? S.md : 0 }}>
+          <SectionHeader>{iterationName} Pages</SectionHeader>
+          {iterPages.map(ip => (
+            <SidebarRow
+              key={ip.name}
+              active={ip.index === activePageIndex}
+              onClick={() => onSelectPage(ip.index)}
+            >
+              {ip.name}
+            </SidebarRow>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

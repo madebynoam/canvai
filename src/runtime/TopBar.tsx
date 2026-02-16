@@ -3,6 +3,7 @@ import { ProjectPicker } from './ProjectPicker'
 import { IterationPills } from './IterationPills'
 import { PanelLeft } from 'lucide-react'
 import { useReducedMotion } from './useReducedMotion'
+import { N, A, S, R, T, ICON, FONT } from './tokens'
 
 interface TopBarProps {
   projects: { project: string }[]
@@ -17,13 +18,8 @@ interface TopBarProps {
   onToggleSidebar: () => void
 }
 
-const ACCENT = '#E8590C'
-const BORDER = '#E5E7EB'
-const TEXT_TERTIARY = '#9CA3AF'
-const FONT = '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif'
-
 function SidebarIcon() {
-  return <PanelLeft size={16} strokeWidth={1.5} />
+  return <PanelLeft size={ICON.lg} strokeWidth={1.5} />
 }
 
 /* ── Tiny spring for the watch pill ── */
@@ -126,27 +122,27 @@ export function TopBar({
         alignItems: 'center',
         justifyContent: 'space-between',
         minHeight: 40,
-        padding: '0 12px',
-        backgroundColor: '#FFFFFF',
-        borderBottom: `1px solid ${BORDER}`,
+        padding: `0 ${S.md}px`,
+        backgroundColor: N.chrome,
+        borderBottom: `1px solid ${N.border}`,
         fontFamily: FONT,
         flexShrink: 0,
       }}
     >
       {/* Left section: sidebar toggle + project picker */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: '0 0 auto' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: S.sm, flex: '0 0 auto' }}>
         <button
           onClick={onToggleSidebar}
           style={{
-            width: 24,
-            height: 24,
+            width: S.xxl,
+            height: S.xxl,
             border: 'none',
             background: 'transparent',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: sidebarOpen ? '#374151' : TEXT_TERTIARY,
-            borderRadius: 4,
+            color: sidebarOpen ? N.txtPri : N.txtTer,
+            borderRadius: R.control,
           }}
           title={sidebarOpen ? 'Hide sidebar' : 'Show sidebar'}
         >
@@ -171,27 +167,27 @@ export function TopBar({
       </div>
 
       {/* Right section — annotation UI hidden in production builds */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: '0 0 auto' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: S.md, flex: '0 0 auto' }}>
         {/* Pending count */}
         {import.meta.env.DEV && pendingCount > 0 && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: S.sm }}>
             <div
               style={{
-                width: 16,
-                height: 16,
+                width: S.lg,
+                height: S.lg,
                 borderRadius: '50%',
-                backgroundColor: ACCENT,
-                color: '#fff',
+                backgroundColor: A.accent,
+                color: 'oklch(1 0 0)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: 9,
+                fontSize: T.label,
                 fontWeight: 600,
               }}
             >
               {pendingCount}
             </div>
-            <span style={{ fontSize: 11, color: ACCENT, fontWeight: 500 }}>pending</span>
+            <span style={{ fontSize: T.caption, color: A.accent, fontWeight: 500 }}>pending</span>
           </div>
         )}
 
@@ -202,13 +198,14 @@ export function TopBar({
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: 4,
-              padding: '4px 12px',
-              borderRadius: 12,
-              backgroundColor: '#ECFDF5',
-              fontSize: 11,
+              gap: S.xs,
+              padding: `${S.xs}px ${S.md}px`,
+              borderRadius: R.card,
+              backgroundColor: A.muted,
+              border: `1px solid ${A.border}`,
+              fontSize: T.pill,
               fontWeight: 500,
-              color: '#059669',
+              color: A.strong,
               opacity: 0,
               transform: 'scale(0.92)',
               willChange: 'opacity, transform',
@@ -216,11 +213,11 @@ export function TopBar({
           >
             <div
               style={{
-                width: 8,
-                height: 8,
+                width: S.sm,
+                height: S.sm,
                 borderRadius: '50%',
-                backgroundColor: '#10B981',
-                boxShadow: '0 0 4px rgba(16, 185, 129, 0.4)',
+                backgroundColor: A.accent,
+                boxShadow: `0 0 ${S.xs}px ${A.accent}`,
               }}
             />
             Watch
