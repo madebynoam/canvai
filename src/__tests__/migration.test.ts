@@ -331,6 +331,9 @@ describe('migration 0.0.16 integration', () => {
     expect(appTsx).toContain('.pages?.[activePageIndex]')
     // TopBar receives iterations array directly
     expect(appTsx).toContain('iterations={activeProject?.iterations')
+    // Iteration CSS scoping
+    expect(appTsx).toContain('iterClass')
+    expect(appTsx).toContain('className={iterClass}')
   })
 })
 

@@ -57,6 +57,7 @@ function App() {
   )
 
   const activeIteration = activeProject?.iterations?.[activeIterationIndex]
+  const iterClass = activeIteration ? \`iter-\${activeIteration.name.toLowerCase()}\` : ''
   const activePage = activeIteration?.pages?.[activePageIndex]
   const layoutedFrames = activePage ? layoutFrames(activePage) : []
 
@@ -86,7 +87,7 @@ function App() {
           collapsed={!sidebarOpen}
         />
 
-        <div style={{ flex: 1, backgroundColor: N.chrome, padding: \`\${E.insetTop}px \${E.inset}px \${E.inset}px\` }}>
+        <div className={iterClass} style={{ flex: 1, backgroundColor: N.chrome, padding: \`\${E.insetTop}px \${E.inset}px \${E.inset}px\` }}>
           <div style={{
             width: '100%', height: '100%',
             borderRadius: E.radius,
