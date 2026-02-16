@@ -40,21 +40,24 @@ createRoot(document.getElementById('root')!).render(
 `
 
 export const appTsx = `import { useState } from 'react'
-import { Canvas, Frame, useFrames, layoutFrames, TopBar, IterationPills, IterationSidebar, AnnotationOverlay, N, E } from 'canvai/runtime'
+import { Canvas, Frame, useFrames, useNavMemory, layoutFrames, TopBar, IterationPills, IterationSidebar, AnnotationOverlay, N, E } from 'canvai/runtime'
 import { manifests } from 'virtual:canvai-manifests'
 import type { ProjectManifest } from 'canvai/runtime'
 
 function App() {
   const [activeProjectIndex, setActiveProjectIndex] = useState(0)
-  const [activeIterationIndex, setActiveIterationIndex] = useState(0)
-  const [activePageIndex, setActivePageIndex] = useState(0)
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [mode] = useState<'manual' | 'watch'>('manual')
   const [pendingCount, setPendingCount] = useState(0)
 
   const activeProject: ProjectManifest | undefined = manifests[activeProjectIndex]
+  const { iterationIndex: activeIterationIndex, pageIndex: activePageIndex, setIteration: setActiveIterationIndex, setPage: setActivePageIndex } = useNavMemory(
+    activeProject?.project ?? '',
+    activeProject?.iterations ?? [],
+  )
+
   const activeIteration = activeProject?.iterations?.[activeIterationIndex]
-  const activePage = activeIteration?.pages[activePageIndex]
+  const activePage = activeIteration?.pages?.[activePageIndex]
   const layoutedFrames = activePage ? layoutFrames(activePage) : []
 
   const { frames, updateFrame, handleResize } = useFrames(layoutedFrames, activePage?.grid)
@@ -64,17 +67,10 @@ function App() {
       <TopBar
         projects={manifests}
         activeProjectIndex={activeProjectIndex}
-        onSelectProject={(i) => {
-          setActiveProjectIndex(i)
-          setActiveIterationIndex(0)
-          setActivePageIndex(0)
-        }}
+        onSelectProject={setActiveProjectIndex}
         iterations={activeProject?.iterations ?? []}
         activeIterationIndex={activeIterationIndex}
-        onSelectIteration={(i) => {
-          setActiveIterationIndex(i)
-          setActivePageIndex(0)
-        }}
+        onSelectIteration={setActiveIterationIndex}
         pendingCount={pendingCount}
         mode={mode}
         sidebarOpen={sidebarOpen}

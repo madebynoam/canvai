@@ -7,6 +7,7 @@ import * as m0010 from './0.0.10.js'
 import * as m0016 from './0.0.16.js'
 import * as m0017 from './0.0.17.js'
 import * as m0018 from './0.0.18.js'
+import * as m0019 from './0.0.19.js'
 
 /** Migrations sorted by version (ascending). */
-export const migrations = [m0010, m0016, m0017, m0018]
+export const migrations = [m0010, m0016, m0017, m0018, m0019]

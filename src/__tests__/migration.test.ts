@@ -325,10 +325,10 @@ describe('migration 0.0.16 integration', () => {
   })
 
   it('current template and current manifest format are compatible', () => {
-    // The template uses .iterations?.[i]?.pages[j]
-    // Manifests should have iterations: [{ pages: [...] }]
+    // The template uses useNavMemory for iteration/page state
+    expect(appTsx).toContain('useNavMemory')
     expect(appTsx).toContain('iterations?.[activeIterationIndex]')
-    expect(appTsx).toContain('.pages[activePageIndex]')
+    expect(appTsx).toContain('.pages?.[activePageIndex]')
     // TopBar receives iterations array directly
     expect(appTsx).toContain('iterations={activeProject?.iterations')
   })

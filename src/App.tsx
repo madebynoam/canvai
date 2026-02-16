@@ -7,17 +7,22 @@ import { layoutFrames } from './runtime/layout'
 import { TopBar } from './runtime/TopBar'
 import { IterationSidebar } from './runtime/IterationSidebar'
 import { AnnotationOverlay } from './runtime/AnnotationOverlay'
+import { useNavMemory } from './runtime/useNavMemory'
 import { N, E } from './runtime/tokens'
 import { manifests } from 'virtual:canvai-manifests'
 import type { ProjectManifest } from './runtime/types'
 
 function App() {
   const [activeProjectIndex, setActiveProjectIndex] = useState(0)
-  const [activeIterationIndex, setActiveIterationIndex] = useState(0)
-  const [activePageIndex, setActivePageIndex] = useState(0)
   const [mode, setMode] = useState<'manual' | 'watch'>('manual')
   const [pendingCount, setPendingCount] = useState(0)
   const [sidebarOpen, setSidebarOpen] = useState(true)
+
+  const activeProject: ProjectManifest | undefined = manifests[activeProjectIndex]
+  const { iterationIndex: activeIterationIndex, pageIndex: activePageIndex, setIteration: setActiveIterationIndex, setPage: setActivePageIndex } = useNavMemory(
+    activeProject?.project ?? '',
+    activeProject?.iterations ?? [],
+  )
 
   // Listen for agent mode changes via SSE
   useEffect(() => {
@@ -34,7 +39,6 @@ function App() {
     return () => es.close()
   }, [])
 
-  const activeProject: ProjectManifest | undefined = manifests[activeProjectIndex]
   const activeIteration = activeProject?.iterations?.[activeIterationIndex]
   const iterClass = activeIteration ? `iter-${activeIteration.name.toLowerCase()}` : ''
   const activePage = activeIteration?.pages?.[activePageIndex]
@@ -48,17 +52,10 @@ function App() {
       <TopBar
         projects={manifests}
         activeProjectIndex={activeProjectIndex}
-        onSelectProject={(i) => {
-          setActiveProjectIndex(i)
-          setActiveIterationIndex(0)
-          setActivePageIndex(0)
-        }}
+        onSelectProject={setActiveProjectIndex}
         iterations={activeProject?.iterations ?? []}
         activeIterationIndex={activeIterationIndex}
-        onSelectIteration={(i) => {
-          setActiveIterationIndex(i)
-          setActivePageIndex(0)
-        }}
+        onSelectIteration={setActiveIterationIndex}
         pendingCount={pendingCount}
         mode={mode}
         sidebarOpen={sidebarOpen}
