@@ -4,6 +4,7 @@ import { TopBar } from '../../../../runtime/TopBar'
 import { ProjectPicker } from '../../../../runtime/ProjectPicker'
 import { IterationPills } from '../../../../runtime/IterationPills'
 import { IterationSidebar } from '../../../../runtime/IterationSidebar'
+import { Check, Trash2 } from 'lucide-react'
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -16,6 +17,100 @@ function Section({ title, children }: { title: string; children: React.ReactNode
         {title}
       </div>
       {children}
+    </div>
+  )
+}
+
+function CommentCard({ header, comment, onApply, showDelete, showCheck }: {
+  header: string
+  comment: string
+  onApply: string
+  showDelete?: boolean
+  showCheck?: boolean
+}) {
+  const [value, setValue] = useState(comment)
+  const [cancelHover, setCancelHover] = useState(false)
+  const [applyHover, setApplyHover] = useState(false)
+  const [deleteHover, setDeleteHover] = useState(false)
+  const hasComment = value.trim().length > 0
+
+  return (
+    <div style={{
+      width: 320,
+      background: N.card,
+      borderRadius: R.card,
+      padding: S.lg,
+      boxShadow: `0 ${S.xs}px ${S.xxl}px rgba(0,0,0,0.08), 0 1px ${S.xs}px rgba(0,0,0,0.04)`,
+      border: `1px solid ${N.border}`,
+      fontFamily: FONT,
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: S.sm }}>
+        <div style={{ fontSize: T.caption, color: N.txtTer, letterSpacing: '0.02em' }}>
+          {header}
+        </div>
+        {showDelete && (
+          <button
+            onMouseEnter={() => setDeleteHover(true)}
+            onMouseLeave={() => setDeleteHover(false)}
+            title="Delete annotation"
+            style={{
+              width: S.xxl, height: S.xxl, border: 'none',
+              background: deleteHover ? 'rgba(0,0,0,0.06)' : 'transparent',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              borderRadius: R.control, color: N.txtTer, cursor: 'default',
+              transition: 'background-color 150ms ease',
+            }}
+          >
+            <Trash2 size={ICON.md} strokeWidth={1.5} />
+          </button>
+        )}
+      </div>
+      <textarea
+        value={value}
+        onChange={e => setValue(e.target.value)}
+        placeholder="Describe the change..."
+        style={{
+          width: '100%', minHeight: 72,
+          background: N.canvas, color: N.txtPri,
+          border: `1px solid ${N.border}`, borderRadius: R.card,
+          padding: S.md, fontSize: T.title, lineHeight: 1.5,
+          resize: 'vertical', outline: 'none', fontFamily: 'inherit',
+        }}
+      />
+      <div style={{ display: 'flex', gap: S.sm, marginTop: S.md, justifyContent: 'flex-end' }}>
+        <button
+          onMouseEnter={() => setCancelHover(true)}
+          onMouseLeave={() => setCancelHover(false)}
+          style={{
+            padding: `${S.sm}px ${S.md}px`,
+            background: cancelHover ? 'rgba(0,0,0,0.03)' : 'transparent',
+            color: N.txtSec,
+            border: `1px solid ${N.border}`, borderRadius: R.card,
+            fontSize: T.body, fontWeight: 500, fontFamily: FONT, cursor: 'default',
+            transition: 'background-color 150ms ease',
+          }}
+        >
+          Cancel
+        </button>
+        <button
+          onMouseEnter={() => setApplyHover(true)}
+          onMouseLeave={() => setApplyHover(false)}
+          style={{
+            padding: `${S.sm}px ${S.md}px`,
+            background: hasComment
+              ? (applyHover ? A.hover : A.accent)
+              : A.muted,
+            color: hasComment ? 'oklch(1 0 0)' : N.txtTer,
+            border: 'none', borderRadius: R.card,
+            fontSize: T.body, fontWeight: 500, fontFamily: FONT, cursor: 'default',
+            display: 'flex', alignItems: 'center', gap: S.xs,
+            transition: 'background-color 150ms ease',
+          }}
+        >
+          {onApply}
+          {showCheck && <Check size={ICON.md} strokeWidth={2} />}
+        </button>
+      </div>
     </div>
   )
 }
@@ -161,6 +256,22 @@ export function Components() {
             Canvas area
           </div>
         </div>
+      </Section>
+
+      <Section title="Annotation Card — Empty">
+        <CommentCard header="Button · button" comment="" onApply="Save" />
+      </Section>
+
+      <Section title="Annotation Card — With Comment">
+        <CommentCard header="TopBar · div" comment="Make the padding 12px and reduce font weight to 500" onApply="Save" />
+      </Section>
+
+      <Section title="Annotation Card — Editing (Delete)">
+        <CommentCard header="Sidebar · nav" comment="Tighten the row gap" onApply="Save" showDelete />
+      </Section>
+
+      <Section title="Annotation Card — Watch Mode">
+        <CommentCard header="Frame · section" comment="Increase border radius" onApply="Send" showCheck />
       </Section>
     </div>
   )

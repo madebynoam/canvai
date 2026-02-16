@@ -687,7 +687,7 @@ export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual', o
                   Send
                   <Check size={ICON.md} strokeWidth={2} />
                 </>
-              ) : 'Apply'}
+              ) : 'Save'}
             </HoverButton>
           </div>
         </div>

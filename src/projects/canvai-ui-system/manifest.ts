@@ -6,7 +6,6 @@ import { Shell as V1Shell } from './v1/pages/shell'
 import { Tokens as V2Tokens } from './v2/pages/tokens'
 import { Components as V2Components } from './v2/pages/components'
 import { Shell as V2Shell } from './v2/pages/shell'
-import { AccentExploration } from './v2/pages/accent-exploration'
 import type { ProjectManifest } from '../../runtime/types'
 
 const manifest: ProjectManifest = {
@@ -52,7 +51,7 @@ const manifest: ProjectManifest = {
         },
         {
           name: 'Components',
-          grid: { columns: 1, columnWidth: 640, rowHeight: 1400, gap: 40 },
+          grid: { columns: 1, columnWidth: 640, rowHeight: 1800, gap: 40 },
           frames: [
             { id: 'v2-components', title: 'Runtime Components — Live', component: V2Components },
           ],
@@ -62,13 +61,6 @@ const manifest: ProjectManifest = {
           grid: { columns: 1, columnWidth: 900, rowHeight: 900, gap: 40 },
           frames: [
             { id: 'v2-shell', title: 'Full Shell — Assembled', component: V2Shell },
-          ],
-        },
-        {
-          name: 'Accent Exploration',
-          grid: { columns: 1, columnWidth: 1120, rowHeight: 700, gap: 40 },
-          frames: [
-            { id: 'v2-accents', title: 'Accent Color Options', component: AccentExploration },
           ],
         },
       ],
