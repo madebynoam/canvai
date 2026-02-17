@@ -1,27 +1,23 @@
 import { useState, useRef, useEffect } from 'react'
-import { N, A, S, R, T, FONT } from './tokens'
+import { N, A, S, R, T, FONT } from '../tokens'
 import { ColorPicker } from './ColorPicker'
 import { oklchToDisplayHex } from './colorUtils'
-import { useTokenOverride } from './Canvas'
 
 const ENDPOINT = 'http://localhost:4748'
 
-export interface TokenSwatchProps {
-  /** CSS color string for display */
+interface SwatchProps {
   color: string
-  /** Token name shown next to the swatch */
   label: string
-  /** Optional secondary text (e.g. the OKLCH value) */
   sublabel?: string
   /** If provided, swatch is clickable and opens the color picker */
   oklch?: { l: number; c: number; h: number }
-  /** CSS custom property name for the annotation (e.g. "--chrome") */
+  /** Token path for annotation comment, e.g. "N.chrome" */
   tokenPath?: string
-  /** Frame ID from the manifest, used in the annotation payload */
+  /** Frame ID for annotation, e.g. "v4-tokens" */
   frameId?: string
 }
 
-export function TokenSwatch({ color, label, sublabel, oklch, tokenPath, frameId }: TokenSwatchProps) {
+export function Swatch({ color, label, sublabel, oklch, tokenPath, frameId }: SwatchProps) {
   const [open, setOpen] = useState(false)
   const [hovered, setHovered] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -30,10 +26,9 @@ export function TokenSwatch({ color, label, sublabel, oklch, tokenPath, frameId 
   // Live preview color while picker is open
   const [previewColor, setPreviewColor] = useState<string | null>(null)
 
-  // Pending state from Canvas (survives page navigation)
-  const { setOverride, clearOverride, setPending, clearPending, pending } = useTokenOverride()
-  const myPending = tokenPath ? pending[tokenPath] : undefined
-  const isPending = !!myPending
+  // Pending annotation state
+  const [pendingId, setPendingId] = useState<string | null>(null)
+  const [pendingColor, setPendingColor] = useState<string | null>(null)
 
   // Close on outside click
   useEffect(() => {
@@ -42,16 +37,31 @@ export function TokenSwatch({ color, label, sublabel, oklch, tokenPath, frameId 
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setOpen(false)
         setPreviewColor(null)
-        // Only clear override if not pending (pending keeps the override)
-        if (!isPending && tokenPath) clearOverride(tokenPath)
       }
     }
     document.addEventListener('pointerdown', handleClick)
     return () => document.removeEventListener('pointerdown', handleClick)
-  }, [open, isPending, tokenPath, clearOverride])
+  }, [open])
+
+  // SSE subscription for pending annotation resolution
+  useEffect(() => {
+    if (!pendingId) return
+    const source = new EventSource(`${ENDPOINT}/annotations/events`)
+    source.onmessage = (e) => {
+      try {
+        const data = JSON.parse(e.data)
+        if (data.type === 'resolved' && String(data.id) === String(pendingId)) {
+          setPendingId(null)
+          setPendingColor(null)
+        }
+      } catch { /* ignore parse errors */ }
+    }
+    return () => source.close()
+  }, [pendingId])
 
   // Determine display color: preview > pending > token
-  const displayColor = previewColor ?? myPending?.color ?? color
+  const displayColor = previewColor ?? pendingColor ?? color
+  const isPending = pendingId !== null
 
   return (
     <div ref={containerRef} style={{ position: 'relative' }}>
@@ -62,7 +72,6 @@ export function TokenSwatch({ color, label, sublabel, oklch, tokenPath, frameId 
           } else {
             setOpen(false)
             setPreviewColor(null)
-            if (!isPending && tokenPath) clearOverride(tokenPath)
           }
         } : undefined}
         onMouseEnter={() => setHovered(true)}
@@ -111,21 +120,19 @@ export function TokenSwatch({ color, label, sublabel, oklch, tokenPath, frameId 
           zIndex: 100,
         }}>
           <ColorPicker
-            l={myPending?.lch.l ?? oklch.l}
-            c={myPending?.lch.c ?? oklch.c}
-            h={myPending?.lch.h ?? oklch.h}
+            l={oklch.l}
+            c={oklch.c}
+            h={oklch.h}
             onChange={(l, c, h) => {
               setPreviewColor(oklchToDisplayHex(l, c, h))
-              // Propagate live edit to all var(--token) consumers
-              if (tokenPath) setOverride(tokenPath, `oklch(${l.toFixed(3)} ${c.toFixed(3)} ${Math.round(h)})`)
             }}
             onApply={async (l, c, h) => {
               setOpen(false)
               setPreviewColor(null)
 
-              // Keep the override active
+              // Show pending state with the applied color
               const hex = oklchToDisplayHex(l, c, h)
-              if (tokenPath) setOverride(tokenPath, `oklch(${l.toFixed(3)} ${c.toFixed(3)} ${Math.round(h)})`)
+              setPendingColor(hex)
 
               // Post annotation to MCP server
               if (tokenPath && frameId) {
@@ -143,31 +150,17 @@ export function TokenSwatch({ color, label, sublabel, oklch, tokenPath, frameId 
                     }),
                   })
                   const annotation = await res.json()
-                  setPending(tokenPath, { id: String(annotation.id), color: hex, lch: { l, c, h } })
+                  setPendingId(String(annotation.id))
                 } catch {
-                  // If POST fails, clear override
-                  if (tokenPath) clearOverride(tokenPath)
+                  // If POST fails, clear pending state
+                  setPendingColor(null)
                 }
               }
             }}
             onCancel={() => {
               setOpen(false)
               setPreviewColor(null)
-              // Only clear override if not pending
-              if (!isPending && tokenPath) clearOverride(tokenPath)
             }}
-            onDiscard={isPending ? () => {
-              setOpen(false)
-              setPreviewColor(null)
-              if (tokenPath) {
-                clearPending(tokenPath)
-                clearOverride(tokenPath)
-              }
-              // Resolve the annotation so the agent doesn't pick it up
-              if (myPending) {
-                fetch(`${ENDPOINT}/annotations/${myPending.id}/resolve`, { method: 'POST' }).catch(() => {})
-              }
-            } : undefined}
           />
         </div>
       )}

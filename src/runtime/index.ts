@@ -1,4 +1,5 @@
-export { Canvas, useCanvas } from './Canvas'
+export { Canvas, useCanvas, useTokenOverride } from './Canvas'
+export type { PendingAnnotation } from './Canvas'
 export { Frame } from './Frame'
 export { useFrames } from './useFrames'
 export { layoutFrames } from './layout'

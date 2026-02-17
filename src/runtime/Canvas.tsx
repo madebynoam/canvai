@@ -21,13 +21,31 @@ export function useCanvas() {
   return useContext(CanvasContext)
 }
 
+const ENDPOINT = 'http://localhost:4748'
+
+// Pending annotation data stored at Canvas level (survives page switches)
+export interface PendingAnnotation {
+  id: string
+  color: string
+  lch: { l: number; c: number; h: number }
+}
+
 // Token override context — lets TokenSwatch propagate live edits via CSS custom properties
 interface TokenOverrideAPI {
   setOverride: (token: string, value: string) => void
   clearOverride: (token: string) => void
+  setPending: (token: string, pending: PendingAnnotation) => void
+  clearPending: (token: string) => void
+  pending: Record<string, PendingAnnotation>
 }
 
-const noop: TokenOverrideAPI = { setOverride: () => {}, clearOverride: () => {} }
+const noop: TokenOverrideAPI = {
+  setOverride: () => {},
+  clearOverride: () => {},
+  setPending: () => {},
+  clearPending: () => {},
+  pending: {},
+}
 const TokenOverrideContext = createContext<TokenOverrideAPI>(noop)
 
 export function useTokenOverride() {
@@ -48,7 +66,12 @@ export function Canvas({ children, pageKey }: CanvasProps) {
   // Token override state — CSS custom property overrides for live preview
   const [tokenOverrides, setTokenOverrides] = useState<Record<string, string>>({})
 
-  const overrideAPI = useMemo<TokenOverrideAPI>(() => ({
+  // Pending annotations — keyed by token path, survives page switches
+  const [pendingAnnotations, setPendingAnnotations] = useState<Record<string, PendingAnnotation>>({})
+  const pendingRef = useRef(pendingAnnotations)
+  pendingRef.current = pendingAnnotations
+
+  const stableAPI = useMemo(() => ({
     setOverride: (token: string, value: string) => {
       setTokenOverrides(prev => ({ ...prev, [token]: value }))
     },
@@ -59,7 +82,45 @@ export function Canvas({ children, pageKey }: CanvasProps) {
         return next
       })
     },
+    setPending: (token: string, pending: PendingAnnotation) => {
+      setPendingAnnotations(prev => ({ ...prev, [token]: pending }))
+    },
+    clearPending: (token: string) => {
+      setPendingAnnotations(prev => {
+        const next = { ...prev }
+        delete next[token]
+        return next
+      })
+    },
   }), [])
+
+  const overrideAPI = useMemo<TokenOverrideAPI>(() => ({
+    ...stableAPI,
+    pending: pendingAnnotations,
+  }), [stableAPI, pendingAnnotations])
+
+  // Global SSE — one connection for all pending annotations
+  const hasPending = Object.keys(pendingAnnotations).length > 0
+  useEffect(() => {
+    if (!hasPending) return
+    const source = new EventSource(`${ENDPOINT}/annotations/events`)
+    source.onmessage = (e) => {
+      try {
+        const data = JSON.parse(e.data)
+        if (data.type === 'resolved') {
+          const resolvedId = String(data.id)
+          const token = Object.entries(pendingRef.current).find(
+            ([, p]) => String(p.id) === resolvedId
+          )?.[0]
+          if (token) {
+            stableAPI.clearPending(token)
+            stableAPI.clearOverride(token)
+          }
+        }
+      } catch { /* ignore parse errors */ }
+    }
+    return () => source.close()
+  }, [hasPending, stableAPI])
 
   // All gesture state lives in refs — no React renders during gestures
   const panRef = useRef(pan)

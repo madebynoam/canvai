@@ -43,3 +43,12 @@
 - **Pending marker**: Charcoal dot appears on swatch after Apply, disappears when agent resolves the annotation via SSE
 - **ColorPicker onChange**: New callback fires on every color change for live preview
 - Three swatch states: default (token color), previewing (picker open), pending (applied, awaiting agent)
+
+## V5 — Color Experiments
+
+- Created V5 from V4
+- V4 frozen
+- Tokens page now uses runtime `TokenSwatch` with CSS custom property tokenPaths (`--chrome`, `--accent`, etc.)
+- All V5 pages and preview components use `var(--token)` CSS custom properties instead of JS constants for colors
+- `tokens.css` populated with full OKLCH custom property set for live override support
+- Token overrides now propagate to Shell page and all other pages via CSS inheritance
