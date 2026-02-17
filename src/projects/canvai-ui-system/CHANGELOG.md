@@ -52,3 +52,4 @@
 - All V5 pages and preview components use `var(--token)` CSS custom properties instead of JS constants for colors
 - `tokens.css` populated with full OKLCH custom property set for live override support
 - Token overrides now propagate to Shell page and all other pages via CSS inheritance
+- **canvas token**: Changed from oklch(0.972 0.003 80) to oklch(0.972 0.001 197) — cool blue-tinted workspace background (annotation #12)
