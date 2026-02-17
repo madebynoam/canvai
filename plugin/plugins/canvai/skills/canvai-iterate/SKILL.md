@@ -30,9 +30,18 @@ Create a new iteration as a complete snapshot copy of the current active iterati
    - Update all import paths: `./v<N>/` → `./v<N+1>/`
    - Add the CSS import: `import './v<N+1>/tokens.css'`
 
-7. **Log to CHANGELOG.md:** "Created V<N+1> from V<N>"
+7. **Apply the requested changes** in the new iteration. Follow the guard protocol for every edit:
+   - Components go in `v<N+1>/components/`, pages in `v<N+1>/pages/`
+   - If a page needs an element, create it as a component first
 
-8. **Confirm:** "Created V<N+1>. The previous iteration (V<N>) is now frozen. You can see V<N+1> in the iteration pills."
+8. **Showcase guard — mandatory.** After all changes, check: did you create any new component files in `v<N+1>/components/`?
+   - For each new component: verify it's exported from `components/index.ts` AND has a showcase entry in `pages/components.tsx` showing its variations and states
+   - The barrel export and the showcase are **two separate registrations** — both are mandatory
+   - A component that exists in `components/` but isn't visible on the Components page is invisible to the designer — they can't annotate what they can't see
+
+9. **Log to CHANGELOG.md:** "Created V<N+1> from V<N>" plus any changes made
+
+10. **Confirm:** "Created V<N+1>. The previous iteration (V<N>) is now frozen. You can see V<N+1> in the iteration pills."
 
 ## Example
 
@@ -45,7 +54,8 @@ The agent:
 4. Renames `.iter-v2` → `.iter-v3` in `v3/tokens.css`
 5. Adds V3 iteration to manifest with updated imports
 6. Makes the requested changes (rounded corners, no shadow) in `v3/components/`
-7. The iteration pills now show V1, V2, V3 — with V3 active
+7. Showcase guard: if a new `Card.tsx` was created in `v3/components/`, verifies it's in `index.ts` AND has a section in `v3/pages/components.tsx`
+8. The iteration pills now show V1, V2, V3 — with V3 active
 
 ## Rules
 

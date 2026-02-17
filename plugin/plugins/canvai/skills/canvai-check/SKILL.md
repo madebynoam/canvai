@@ -22,6 +22,7 @@ Check for pending canvas annotations and process them.
    - Map the annotation to the relevant file in `v<N>/components/` or `v<N>/pages/`
    - If the change targets a page element, modify or create the component in `components/` first, then update the page
    - Apply the requested changes
+   - **Showcase guard:** If you created a new component file, verify it's exported from `components/index.ts` AND has a showcase entry in `pages/components.tsx` with its variations and states. Both registrations are mandatory — a component the designer can't see on the Components page can't be annotated.
    - Call `resolve_annotation` with the annotation ID
    - Log the change to `src/projects/<project-name>/CHANGELOG.md`
 

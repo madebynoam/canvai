@@ -18,3 +18,16 @@
 - 10 OKLCH accent color options: Signal Red, Coral, Amber, Olive, Emerald, Teal, Cyan, Blue, Indigo, Violet
 - Each shown with button, badge, letter icon, outline variant, and text link
 - V1 frozen
+
+## V3 — White Chrome + Charcoal Accent
+
+- Created V3 from V2
+- V2 frozen
+- **chrome swatch**: Changed from L=0.952 warm neutral to L=1.000 pure white (annotation #1)
+- **accent section**: Changed from signal red (h=28, c=0.20) to charcoal (h=80, c=0.005) (annotation #2)
+- Local experimental tokens: V3 uses its own `tokens.ts` instead of runtime tokens to preview changes in isolation
+- **shell sidebar**: White background — created PreviewSidebar component with V3 tokens (annotation #4)
+- **shell topbar**: White background — created PreviewTopBar component with V3 tokens (annotation #5)
+- **ProjectPicker avatar**: Charcoal letter avatars — created PreviewProjectPicker component with V3 tokens (annotation #6)
+- **pending badge**: Charcoal accent badge — PreviewTopBar uses V3 A.accent for pending count (annotation #7)
+- Created V3-local preview components (PreviewTopBar, PreviewSidebar, PreviewProjectPicker) to fully preview the white chrome + charcoal accent system without modifying runtime tokens
