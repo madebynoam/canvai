@@ -146,6 +146,9 @@ Before editing any file in `src/projects/<name>/v<N>/`:
    - No → create it in `components/` first, add to `index.ts`, then use it in the page.
 4. **When creating a new component** — add it to `components/index.ts` AND add a showcase entry to the Components page (`pages/components.tsx`) with its variations and states. The barrel and the showcase are two separate registrations — both are mandatory.
 5. **Log to `CHANGELOG.md`** — every design change gets recorded.
+6. **Commit after each change** — After completing the requested changes, stage and commit project files:
+   `git add src/projects/ && git commit -m 'style: <brief description of change>'`
+   Every change gets its own commit. This creates a clean history the designer can rewind with `/canvai-undo`.
 
 ## Manifest format
 
@@ -206,6 +209,32 @@ When the designer describes a component, think through its **variations** and **
 
 - Frame IDs: `<component>-<variation>-<state>`
 - Frame titles: `Component / Variation / State`
+
+### Standard frame widths
+
+Use these widths for responsive design frames. They match real device viewports.
+
+| Breakpoint | Width | Use for |
+|---|---|---|
+| Desktop | `1440` | Default for full-width layouts, dashboards, landing pages |
+| Tablet | `768` | iPad portrait, responsive midpoint |
+| Mobile | `390` | iPhone (modern), narrow layouts |
+
+Set `grid.columnWidth` in the manifest page config. For a responsive component matrix, use one column per breakpoint:
+
+```ts
+{
+  name: 'Shell',
+  grid: { columns: 3, columnWidth: 1440, gap: 40 },
+  frames: [
+    { id: 'shell-desktop', title: 'Shell / Desktop', component: ShellPage, width: 1440 },
+    { id: 'shell-tablet', title: 'Shell / Tablet', component: ShellPage, width: 768 },
+    { id: 'shell-mobile', title: 'Shell / Mobile', component: ShellPage, width: 390 },
+  ],
+}
+```
+
+For single-breakpoint pages (most common), set `columnWidth` to the target width. Components pages typically use smaller widths (320-640) to show isolated building blocks.
 
 ### Mandatory pages
 
@@ -481,4 +510,5 @@ Each entry includes the `selector`, a brief description of the change, and the a
 - **`/canvai-iterate`** — Create a new design iteration
 - **`/canvai-share`** — Build and deploy to GitHub Pages for sharing
 - **`/canvai-ship`** — Ship component to a production repo
+- **`/canvai-undo`** — Revert the last design change commit
 - **`/canvai-update`** — Update canvai to the latest version

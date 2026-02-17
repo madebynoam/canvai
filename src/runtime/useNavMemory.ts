@@ -33,15 +33,20 @@ export function useNavMemory(
   iterations: { name: string; pages: { name: string }[] }[],
 ) {
   const [state, setState] = useState<NavState>(() => {
+    const latestIdx = Math.max(0, iterations.length - 1)
     const saved = load(project)
     if (saved && saved.iteration < iterations.length) {
+      // If a newer iteration was added since last visit, jump to it
+      if (saved.iteration < latestIdx) {
+        const pages = iterations[latestIdx]?.pages ?? []
+        return { iteration: latestIdx, page: firstContentPage(pages) }
+      }
       const iter = iterations[saved.iteration]
       if (saved.page < (iter?.pages?.length ?? 0)) return saved
     }
     // Default: latest iteration, first content page
-    const iterIdx = Math.max(0, iterations.length - 1)
-    const pages = iterations[iterIdx]?.pages ?? []
-    return { iteration: iterIdx, page: firstContentPage(pages) }
+    const pages = iterations[latestIdx]?.pages ?? []
+    return { iteration: latestIdx, page: firstContentPage(pages) }
   })
 
   // Persist on change

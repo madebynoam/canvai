@@ -49,4 +49,6 @@ export interface IterationManifest {
 export interface ProjectManifest {
   project: string
   iterations: IterationManifest[]
+  /** URL where this project was last shared via /canvai-share */
+  shareUrl?: string
 }

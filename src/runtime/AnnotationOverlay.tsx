@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { Check, SquareMousePointer, Trash2 } from 'lucide-react'
 import { useReducedMotion } from './useReducedMotion'
-import { N, A, S, R, T, ICON, FONT } from './tokens'
+import { N, A, F, S, R, T, ICON, FONT } from './tokens'
 import type { CanvasFrame } from './types'
 
 type Mode = 'idle' | 'targeting' | 'commenting'
@@ -160,7 +160,7 @@ function MarkerDot({ id, comment, rect, onClick, reducedMotion }: {
         width: S.lg,
         height: S.lg,
         borderRadius: '50%',
-        background: A.accent,
+        background: F.marker,
         color: 'oklch(1 0 0)',
         display: 'flex',
         alignItems: 'center',
@@ -563,7 +563,7 @@ export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual', o
             top: highlight.top - 2,
             width: highlight.width + 4,
             height: highlight.height + 4,
-            border: `2px solid ${A.accent}`,
+            border: `2px solid ${F.marker}`,
             borderRadius: R.control,
             pointerEvents: 'none',
             zIndex: 99999,

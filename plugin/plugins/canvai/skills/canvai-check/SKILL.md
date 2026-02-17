@@ -25,6 +25,7 @@ Check for pending canvas annotations and process them.
    - **Showcase guard:** If you created a new component file, verify it's exported from `components/index.ts` AND has a showcase entry in `pages/components.tsx` with its variations and states. Both registrations are mandatory — a component the designer can't see on the Components page can't be annotated.
    - Call `resolve_annotation` with the annotation ID
    - Log the change to `src/projects/<project-name>/CHANGELOG.md`
+   - Commit the changes: `git add src/projects/ && git commit -m 'style: annotation #<N> — <brief description>'`
 
 4. **Report** what was changed.
 

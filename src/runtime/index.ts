@@ -1,5 +1,7 @@
-export { Canvas, useCanvas, useTokenOverride } from './Canvas'
+export { Canvas, useCanvas, useTokenOverride, saveCanvasBg, loadCanvasBg } from './Canvas'
 export type { PendingAnnotation } from './Canvas'
+export { ZoomControl } from './ZoomControl'
+export { CanvasColorPicker } from './CanvasColorPicker'
 export { Frame } from './Frame'
 export { useFrames } from './useFrames'
 export { layoutFrames } from './layout'

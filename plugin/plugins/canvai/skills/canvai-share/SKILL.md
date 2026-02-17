@@ -54,7 +54,18 @@ Build the current canvas project and deploy it to GitHub Pages so you can share 
    gh api repos/<owner>/<repo>/pages -X POST -f source.branch=gh-pages -f source.path=/ 2>/dev/null || true
    ```
 
-7. **Return the URL:**
+7. **Save the share URL to the manifest.**
+   Open `src/projects/<project-name>/manifest.ts` and set `shareUrl` on the manifest object:
+   ```ts
+   const manifest: ProjectManifest = {
+     project: '<project-name>',
+     shareUrl: 'https://<owner>.github.io/<repo>/',  // ← add or update this
+     iterations: [ ... ],
+   }
+   ```
+   If `shareUrl` already exists, update it. If it doesn't, add it after the `project` field.
+
+8. **Return the URL:**
    ```
    # Without --dest:
    Deployed! View at: https://<owner>.github.io/<repo>/

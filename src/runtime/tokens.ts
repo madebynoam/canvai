@@ -49,6 +49,7 @@ export const F = {
   resolved: oklch(0.700, 0.003, 80),
   success:  oklch(0.55, 0.14, 155),
   danger:   oklch(0.52, 0.20, 28),
+  marker:   oklch(0.55, 0.18, 250),
 }
 
 /* Watch mode — same green as accent (functional indicator) */

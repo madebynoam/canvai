@@ -15,7 +15,31 @@ function loadViewport(key: string): { x: number; y: number; zoom: number } | nul
   } catch { return null }
 }
 
-const CanvasContext = createContext({ zoom: 1, pan: { x: 0, y: 0 } })
+const BG_KEY = 'canvai:bg:'
+
+export function saveCanvasBg(project: string, color: string) {
+  try { localStorage.setItem(BG_KEY + project, color) } catch {}
+}
+
+export function loadCanvasBg(project: string): string | null {
+  try { return localStorage.getItem(BG_KEY + project) } catch { return null }
+}
+
+interface CanvasContextValue {
+  zoom: number
+  pan: { x: number; y: number }
+  zoomIn: () => void
+  zoomOut: () => void
+  fitToView: () => void
+}
+
+const CanvasContext = createContext<CanvasContextValue>({
+  zoom: 1,
+  pan: { x: 0, y: 0 },
+  zoomIn: () => {},
+  zoomOut: () => {},
+  fitToView: () => {},
+})
 
 export function useCanvas() {
   return useContext(CanvasContext)
@@ -262,6 +286,69 @@ export function Canvas({ children, pageKey }: CanvasProps) {
     return () => window.removeEventListener('beforeunload', onUnload)
   }, [pageKey])
 
+  // Shared zoom helpers exposed via context
+  function doZoomIn() {
+    const newZoom = Math.min(MAX_ZOOM, zoomRef.current * 1.2)
+    zoomRef.current = newZoom
+    applyTransform(panRef.current, newZoom)
+    commitState(panRef.current, newZoom)
+  }
+
+  function doZoomOut() {
+    const newZoom = Math.max(MIN_ZOOM, zoomRef.current * 0.8)
+    zoomRef.current = newZoom
+    applyTransform(panRef.current, newZoom)
+    commitState(panRef.current, newZoom)
+  }
+
+  function doFitToView() {
+    const container = containerRef.current
+    const content = contentRef.current
+    if (!container || !content || content.children.length === 0) {
+      zoomRef.current = 1
+      panRef.current = { x: 0, y: 0 }
+      applyTransform(panRef.current, 1)
+      commitState(panRef.current, 1)
+      return
+    }
+
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
+    for (let i = 0; i < content.children.length; i++) {
+      const child = content.children[i] as HTMLElement
+      const left = parseFloat(child.style.left) || 0
+      const top = parseFloat(child.style.top) || 0
+      const w = child.offsetWidth
+      const h = child.offsetHeight
+      minX = Math.min(minX, left)
+      minY = Math.min(minY, top)
+      maxX = Math.max(maxX, left + w)
+      maxY = Math.max(maxY, top + h)
+    }
+
+    if (!isFinite(minX)) return
+
+    const contentWidth = maxX - minX
+    const contentHeight = maxY - minY
+    const containerRect = container.getBoundingClientRect()
+    const padding = 60
+
+    const scaleX = (containerRect.width - padding * 2) / contentWidth
+    const scaleY = (containerRect.height - padding * 2) / contentHeight
+    const fitZoom = Math.min(Math.max(Math.min(scaleX, scaleY), MIN_ZOOM), MAX_ZOOM)
+
+    const centerX = (minX + maxX) / 2
+    const centerY = (minY + maxY) / 2
+    const newPan = {
+      x: containerRect.width / 2 - centerX * fitZoom,
+      y: containerRect.height / 2 - centerY * fitZoom,
+    }
+
+    zoomRef.current = fitZoom
+    panRef.current = newPan
+    applyTransform(newPan, fitZoom)
+    commitState(newPan, fitZoom)
+  }
+
   // Keyboard shortcuts
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -269,62 +356,13 @@ export function Canvas({ children, pageKey }: CanvasProps) {
 
       if (isMod && (e.key === '=' || e.key === '+')) {
         e.preventDefault()
-        const newZoom = Math.min(MAX_ZOOM, zoomRef.current * 1.2)
-        zoomRef.current = newZoom
-        applyTransform(panRef.current, newZoom)
-        commitState(panRef.current, newZoom)
+        doZoomIn()
       } else if (isMod && e.key === '-') {
         e.preventDefault()
-        const newZoom = Math.max(MIN_ZOOM, zoomRef.current * 0.8)
-        zoomRef.current = newZoom
-        applyTransform(panRef.current, newZoom)
-        commitState(panRef.current, newZoom)
+        doZoomOut()
       } else if (isMod && e.key === '0') {
         e.preventDefault()
-        const content = contentRef.current
-        if (!container || !content || content.children.length === 0) {
-          zoomRef.current = 1
-          panRef.current = { x: 0, y: 0 }
-          applyTransform(panRef.current, 1)
-          commitState(panRef.current, 1)
-          return
-        }
-
-        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
-        for (let i = 0; i < content.children.length; i++) {
-          const child = content.children[i] as HTMLElement
-          const left = parseFloat(child.style.left) || 0
-          const top = parseFloat(child.style.top) || 0
-          const w = child.offsetWidth
-          const h = child.offsetHeight
-          minX = Math.min(minX, left)
-          minY = Math.min(minY, top)
-          maxX = Math.max(maxX, left + w)
-          maxY = Math.max(maxY, top + h)
-        }
-
-        if (!isFinite(minX)) return
-
-        const contentWidth = maxX - minX
-        const contentHeight = maxY - minY
-        const containerRect = container.getBoundingClientRect()
-        const padding = 60
-
-        const scaleX = (containerRect.width - padding * 2) / contentWidth
-        const scaleY = (containerRect.height - padding * 2) / contentHeight
-        const fitZoom = Math.min(Math.max(Math.min(scaleX, scaleY), MIN_ZOOM), MAX_ZOOM)
-
-        const centerX = (minX + maxX) / 2
-        const centerY = (minY + maxY) / 2
-        const newPan = {
-          x: containerRect.width / 2 - centerX * fitZoom,
-          y: containerRect.height / 2 - centerY * fitZoom,
-        }
-
-        zoomRef.current = fitZoom
-        panRef.current = newPan
-        applyTransform(newPan, fitZoom)
-        commitState(newPan, fitZoom)
+        doFitToView()
       }
     }
 
@@ -343,7 +381,7 @@ export function Canvas({ children, pageKey }: CanvasProps) {
         cursor: 'default',
       }}
     >
-      <CanvasContext.Provider value={{ zoom, pan }}>
+      <CanvasContext.Provider value={{ zoom, pan, zoomIn: doZoomIn, zoomOut: doZoomOut, fitToView: doFitToView }}>
         <TokenOverrideContext.Provider value={overrideAPI}>
           <div
             ref={contentRef}

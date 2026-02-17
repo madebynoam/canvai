@@ -490,6 +490,368 @@ describe('migration 0.0.21', () => {
   })
 })
 
+// --- Migration 0.0.22: Frame width standards in CLAUDE.md ---
+
+const claudeMdWithTokenSwatch = `# Project Rules
+
+These rules are enforced by the agent. Do not remove this file.
+
+## Hard constraints
+
+- **All colors in OKLCH.** No hex values.
+- **All spacing multiples of 4.**
+- **Components use only \`var(--token)\`.**
+
+## Mandatory pages
+
+Every project must include:
+- **Tokens** — renders color swatches (using \`TokenSwatch\` from \`canvai/runtime\`)
+- **Components** — shows all building blocks
+
+## Token swatches (runtime)
+
+TokenSwatch docs here.
+
+## Interactive navigation
+
+Handle navigation with React state inside one component.
+
+## Before any edit
+
+1. Read manifest.ts
+`
+
+describe('migration 0.0.22', () => {
+  const migration = migrations.find(m => m.version === '0.0.22')!
+
+  it('exists in the registry', () => {
+    expect(migration).toBeDefined()
+    expect(migration.version).toBe('0.0.22')
+  })
+
+  it('applies to CLAUDE.md without frame widths', () => {
+    expect(migration.applies({ 'CLAUDE.md': claudeMdWithTokenSwatch })).toBe(true)
+  })
+
+  it('does not apply when CLAUDE.md already has Standard frame widths', () => {
+    const updated = claudeMdWithTokenSwatch + '\n## Standard frame widths\n'
+    expect(migration.applies({ 'CLAUDE.md': updated })).toBe(false)
+  })
+
+  it('does not apply when CLAUDE.md is missing', () => {
+    expect(migration.applies({})).toBe(false)
+  })
+
+  it('does not apply when CLAUDE.md has no Hard constraints', () => {
+    expect(migration.applies({ 'CLAUDE.md': '# Custom rules\nNo hard constraints here.' })).toBe(false)
+  })
+
+  it('adds frame widths table to CLAUDE.md', () => {
+    const result = migration.migrate({ 'CLAUDE.md': claudeMdWithTokenSwatch })
+    expect(result['CLAUDE.md']).toContain('Standard frame widths')
+    expect(result['CLAUDE.md']).toContain('1440')
+    expect(result['CLAUDE.md']).toContain('768')
+    expect(result['CLAUDE.md']).toContain('390')
+  })
+
+  it('inserts section before Interactive navigation', () => {
+    const result = migration.migrate({ 'CLAUDE.md': claudeMdWithTokenSwatch })
+    const widthIdx = result['CLAUDE.md'].indexOf('## Standard frame widths')
+    const navIdx = result['CLAUDE.md'].indexOf('## Interactive navigation')
+    expect(widthIdx).toBeGreaterThan(-1)
+    expect(navIdx).toBeGreaterThan(widthIdx)
+  })
+
+  it('is idempotent', () => {
+    const first = migration.migrate({ 'CLAUDE.md': claudeMdWithTokenSwatch })
+    expect(migration.applies({ 'CLAUDE.md': first['CLAUDE.md'] })).toBe(false)
+  })
+})
+
+// --- Migration 0.0.23: ZoomControl + CanvasColorPicker ---
+
+const pre023AppTsx = `import { useState } from 'react'
+import { Canvas, Frame, useFrames, useNavMemory, layoutFrames, TopBar, IterationPills, IterationSidebar, AnnotationOverlay, N, E } from 'canvai/runtime'
+import { manifests } from 'virtual:canvai-manifests'
+import type { ProjectManifest } from 'canvai/runtime'
+
+function App() {
+  const [activeProjectIndex, setActiveProjectIndex] = useState(0)
+  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [mode] = useState<'manual' | 'watch'>('manual')
+  const [pendingCount, setPendingCount] = useState(0)
+
+  const activeProject: ProjectManifest | undefined = manifests[activeProjectIndex]
+  const { iterationIndex: activeIterationIndex, pageIndex: activePageIndex, setIteration: setActiveIterationIndex, setPage: setActivePageIndex } = useNavMemory(
+    activeProject?.project ?? '',
+    activeProject?.iterations ?? [],
+  )
+
+  const activeIteration = activeProject?.iterations?.[activeIterationIndex]
+  const iterClass = activeIteration ? \`iter-\${activeIteration.name.toLowerCase()}\` : ''
+  const activePage = activeIteration?.pages?.[activePageIndex]
+  const layoutedFrames = activePage ? layoutFrames(activePage) : []
+
+  const { frames, updateFrame, handleResize } = useFrames(layoutedFrames, activePage?.grid)
+
+  return (
+    <div id="canvai-root" style={{ width: '100vw', height: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <TopBar
+        projects={manifests}
+        activeProjectIndex={activeProjectIndex}
+        onSelectProject={setActiveProjectIndex}
+        iterations={activeProject?.iterations ?? []}
+        activeIterationIndex={activeIterationIndex}
+        onSelectIteration={setActiveIterationIndex}
+        pendingCount={pendingCount}
+        mode={mode}
+        sidebarOpen={sidebarOpen}
+        onToggleSidebar={() => setSidebarOpen(o => !o)}
+      />
+
+      <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+        <IterationSidebar
+          iterationName={activeIteration?.name ?? ''}
+          pages={activeIteration?.pages ?? []}
+          activePageIndex={activePageIndex}
+          onSelectPage={setActivePageIndex}
+          collapsed={!sidebarOpen}
+        />
+
+        <div className={iterClass} style={{ flex: 1, backgroundColor: N.chrome, padding: \`\${E.insetTop}px \${E.inset}px \${E.inset}px\` }}>
+          <div style={{
+            width: '100%', height: '100%',
+            borderRadius: E.radius,
+            backgroundColor: N.canvas,
+            boxShadow: E.shadow,
+            overflow: 'hidden',
+          }}>
+            <Canvas pageKey={\`\${activeProject?.project ?? ''}-\${activeIteration?.name ?? ''}-\${activePage?.name ?? ''}\`}>
+              {frames.map(frame => (
+                <Frame
+                  key={frame.id}
+                  id={frame.id}
+                  title={frame.title}
+                  x={frame.x}
+                  y={frame.y}
+                  width={frame.width}
+                  height={frame.height}
+                  onMove={(id, newX, newY) => updateFrame(id, { x: newX, y: newY })}
+                  onResize={handleResize}
+                >
+                  <frame.component {...(frame.props ?? {})} />
+                </Frame>
+              ))}
+            </Canvas>
+          </div>
+        </div>
+      </div>
+
+      {import.meta.env.DEV && <AnnotationOverlay endpoint="http://localhost:4748" frames={frames} annotateMode={mode} onPendingChange={setPendingCount} />}
+    </div>
+  )
+}
+
+export default App
+`
+
+describe('migration 0.0.23', () => {
+  const migration = migrations.find(m => m.version === '0.0.23')!
+
+  it('exists in the registry', () => {
+    expect(migration).toBeDefined()
+    expect(migration.version).toBe('0.0.23')
+  })
+
+  it('applies to App.tsx without ZoomControl', () => {
+    expect(migration.applies({ 'src/App.tsx': pre023AppTsx })).toBe(true)
+  })
+
+  it('does not apply to current template', () => {
+    expect(migration.applies({ 'src/App.tsx': appTsx })).toBe(false)
+  })
+
+  it('does not apply when file is missing', () => {
+    expect(migration.applies({})).toBe(false)
+  })
+
+  it('adds ZoomControl to imports', () => {
+    const result = migration.migrate({ 'src/App.tsx': pre023AppTsx })
+    expect(result['src/App.tsx']).toContain('ZoomControl')
+  })
+
+  it('adds CanvasColorPicker to imports', () => {
+    const result = migration.migrate({ 'src/App.tsx': pre023AppTsx })
+    expect(result['src/App.tsx']).toContain('CanvasColorPicker')
+  })
+
+  it('adds loadCanvasBg and saveCanvasBg to imports', () => {
+    const result = migration.migrate({ 'src/App.tsx': pre023AppTsx })
+    expect(result['src/App.tsx']).toContain('loadCanvasBg')
+    expect(result['src/App.tsx']).toContain('saveCanvasBg')
+  })
+
+  it('adds useEffect import', () => {
+    const result = migration.migrate({ 'src/App.tsx': pre023AppTsx })
+    expect(result['src/App.tsx']).toContain('useEffect')
+  })
+
+  it('adds canvasBg state', () => {
+    const result = migration.migrate({ 'src/App.tsx': pre023AppTsx })
+    expect(result['src/App.tsx']).toContain('canvasBg')
+    expect(result['src/App.tsx']).toContain('setCanvasBg')
+  })
+
+  it('replaces N.canvas with canvasBg in card wrapper', () => {
+    const result = migration.migrate({ 'src/App.tsx': pre023AppTsx })
+    expect(result['src/App.tsx']).toContain('backgroundColor: canvasBg')
+    // N.canvas should still exist in fallback, but not as the card background
+    expect(result['src/App.tsx']).not.toMatch(/borderRadius:.*\n.*backgroundColor:\s*N\.canvas/)
+  })
+
+  it('adds position relative to card wrapper', () => {
+    const result = migration.migrate({ 'src/App.tsx': pre023AppTsx })
+    expect(result['src/App.tsx']).toContain("position: 'relative'")
+  })
+
+  it('inserts ZoomControl component', () => {
+    const result = migration.migrate({ 'src/App.tsx': pre023AppTsx })
+    expect(result['src/App.tsx']).toContain('<ZoomControl')
+  })
+
+  it('inserts CanvasColorPicker component', () => {
+    const result = migration.migrate({ 'src/App.tsx': pre023AppTsx })
+    expect(result['src/App.tsx']).toContain('<CanvasColorPicker')
+  })
+
+  it('is idempotent', () => {
+    const first = migration.migrate({ 'src/App.tsx': pre023AppTsx })
+    expect(migration.applies({ 'src/App.tsx': first['src/App.tsx'] })).toBe(false)
+    const second = migration.migrate({ 'src/App.tsx': first['src/App.tsx'] })
+    expect(second['src/App.tsx']).toBe(first['src/App.tsx'])
+  })
+})
+
+// --- Migration 0.0.24: Rules-guard hook + commit discipline ---
+
+const settingsWithoutRulesGuard = `{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node node_modules/canvai/src/cli/hooks/frozen-guard.js"
+          }
+        ]
+      }
+    ]
+  }
+}
+`
+
+const claudeMdWithoutCommit = `# Project Rules
+
+These rules are enforced by the agent. Do not remove this file.
+
+## Component hierarchy
+
+\`\`\`
+Tokens (v<N>/tokens.css)     → OKLCH custom properties, all visual values
+  ↓
+Components (v<N>/components/) → use ONLY var(--token), can compose each other
+  ↓
+Pages (v<N>/pages/)           → import ONLY from ../components/, no raw styled HTML
+\`\`\`
+
+## Before any edit
+
+1. Read \`manifest.ts\` — is the iteration frozen? If yes, stop.
+2. Check \`components/index.ts\` — does the component exist? If not, create it first.
+3. When creating a new component — add to \`index.ts\` AND add a showcase entry to the Components page.
+4. Hierarchy check — pages use components, components use tokens.
+5. Log to \`CHANGELOG.md\`.
+`
+
+describe('migration 0.0.24', () => {
+  const migration = migrations.find(m => m.version === '0.0.24')!
+
+  it('exists in the registry', () => {
+    expect(migration).toBeDefined()
+    expect(migration.version).toBe('0.0.24')
+  })
+
+  // --- settings.json tests ---
+
+  it('applies when settings.json has no rules-guard', () => {
+    expect(migration.applies({ '.claude/settings.json': settingsWithoutRulesGuard })).toBe(true)
+  })
+
+  it('does not apply when settings.json already has rules-guard', () => {
+    const updated = settingsWithoutRulesGuard.replace('frozen-guard', 'frozen-guard.js"},{"type":"command","command":"node node_modules/canvai/src/cli/hooks/rules-guard')
+    expect(migration.applies({ '.claude/settings.json': updated })).toBe(false)
+  })
+
+  it('does not apply when both files are missing', () => {
+    expect(migration.applies({})).toBe(false)
+  })
+
+  it('adds rules-guard hook to settings.json', () => {
+    const result = migration.migrate({ '.claude/settings.json': settingsWithoutRulesGuard })
+    expect(result['.claude/settings.json']).toContain('rules-guard')
+    expect(result['.claude/settings.json']).toContain('frozen-guard')
+  })
+
+  it('preserves existing frozen-guard hook', () => {
+    const result = migration.migrate({ '.claude/settings.json': settingsWithoutRulesGuard })
+    const parsed = JSON.parse(result['.claude/settings.json'])
+    const hooks = parsed.hooks.PreToolUse[0].hooks
+    expect(hooks).toHaveLength(2)
+    expect(hooks[0].command).toContain('frozen-guard')
+    expect(hooks[1].command).toContain('rules-guard')
+  })
+
+  it('is idempotent for settings.json', () => {
+    const first = migration.migrate({ '.claude/settings.json': settingsWithoutRulesGuard })
+    expect(migration.applies({ '.claude/settings.json': first['.claude/settings.json'] })).toBe(false)
+  })
+
+  // --- CLAUDE.md tests ---
+
+  it('applies when CLAUDE.md has no commit step', () => {
+    expect(migration.applies({ 'CLAUDE.md': claudeMdWithoutCommit })).toBe(true)
+  })
+
+  it('does not apply when CLAUDE.md already has commit step', () => {
+    const updated = claudeMdWithoutCommit + '\n6. **Commit after each change**\n'
+    expect(migration.applies({ 'CLAUDE.md': updated })).toBe(false)
+  })
+
+  it('adds commit discipline to CLAUDE.md', () => {
+    const result = migration.migrate({ 'CLAUDE.md': claudeMdWithoutCommit })
+    expect(result['CLAUDE.md']).toContain('Commit after each change')
+    expect(result['CLAUDE.md']).toContain('git add src/projects/')
+    expect(result['CLAUDE.md']).toContain('/canvai-undo')
+  })
+
+  it('is idempotent for CLAUDE.md', () => {
+    const first = migration.migrate({ 'CLAUDE.md': claudeMdWithoutCommit })
+    expect(migration.applies({ 'CLAUDE.md': first['CLAUDE.md'] })).toBe(false)
+  })
+
+  // --- Both files together ---
+
+  it('migrates both files in one pass', () => {
+    const result = migration.migrate({
+      '.claude/settings.json': settingsWithoutRulesGuard,
+      'CLAUDE.md': claudeMdWithoutCommit,
+    })
+    expect(result['.claude/settings.json']).toContain('rules-guard')
+    expect(result['CLAUDE.md']).toContain('Commit after each change')
+  })
+})
+
 describe('compareSemver', () => {
   it('handles equal versions', () => {
     expect(compareSemver('0.0.10', '0.0.10')).toBe(0)

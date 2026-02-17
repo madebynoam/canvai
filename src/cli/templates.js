@@ -39,10 +39,12 @@ createRoot(document.getElementById('root')!).render(
 )
 `
 
-export const appTsx = `import { useState } from 'react'
-import { Canvas, Frame, useFrames, useNavMemory, layoutFrames, TopBar, IterationPills, IterationSidebar, AnnotationOverlay, N, E } from 'canvai/runtime'
+export const appTsx = `import { useState, useEffect } from 'react'
+import { Canvas, Frame, useFrames, useNavMemory, layoutFrames, TopBar, IterationPills, IterationSidebar, AnnotationOverlay, ZoomControl, CanvasColorPicker, loadCanvasBg, saveCanvasBg, N, E } from 'canvai/runtime'
 import { manifests } from 'virtual:canvai-manifests'
 import type { ProjectManifest } from 'canvai/runtime'
+
+const DEFAULT_CANVAS_BG = N.canvas
 
 function App() {
   const [activeProjectIndex, setActiveProjectIndex] = useState(0)
@@ -62,6 +64,11 @@ function App() {
   const layoutedFrames = activePage ? layoutFrames(activePage) : []
 
   const { frames, updateFrame, handleResize } = useFrames(layoutedFrames, activePage?.grid)
+
+  const projectKey = activeProject?.project ?? ''
+  const [canvasBg, setCanvasBg] = useState(() => loadCanvasBg(projectKey) ?? DEFAULT_CANVAS_BG)
+  useEffect(() => { setCanvasBg(loadCanvasBg(projectKey) ?? DEFAULT_CANVAS_BG) }, [projectKey])
+  useEffect(() => { saveCanvasBg(projectKey, canvasBg) }, [projectKey, canvasBg])
 
   return (
     <div id="canvai-root" style={{ width: '100vw', height: '100vh', display: 'flex', flexDirection: 'column' }}>
@@ -91,9 +98,10 @@ function App() {
           <div style={{
             width: '100%', height: '100%',
             borderRadius: E.radius,
-            backgroundColor: N.canvas,
+            backgroundColor: canvasBg,
             boxShadow: E.shadow,
             overflow: 'hidden',
+            position: 'relative',
           }}>
             <Canvas pageKey={\`\${activeProject?.project ?? ''}-\${activeIteration?.name ?? ''}-\${activePage?.name ?? ''}\`}>
               {frames.map(frame => (
@@ -112,6 +120,12 @@ function App() {
                 </Frame>
               ))}
             </Canvas>
+            <div style={{ position: 'absolute', top: 12, right: 12, zIndex: 5 }}>
+              <CanvasColorPicker activeColor={canvasBg} onSelect={setCanvasBg} />
+            </div>
+            <div style={{ position: 'absolute', bottom: 12, left: '50%', transform: 'translateX(-50%)', zIndex: 5 }}>
+              <ZoomControl />
+            </div>
           </div>
         </div>
       </div>
@@ -157,6 +171,10 @@ export const claudeSettingsJson = `{
           {
             "type": "command",
             "command": "node node_modules/canvai/src/cli/hooks/frozen-guard.js"
+          },
+          {
+            "type": "command",
+            "command": "node node_modules/canvai/src/cli/hooks/rules-guard.js"
           }
         ]
       }
@@ -253,6 +271,16 @@ Props:
 
 When the designer clicks Apply, \\\`TokenSwatch\\\` posts an annotation. The agent updates \\\`tokens.css\\\`. Use \\\`TokenSwatch\\\` for every color token on the Tokens page.
 
+## Standard frame widths
+
+| Breakpoint | Width |
+|---|---|
+| Desktop | \\\`1440\\\` |
+| Tablet | \\\`768\\\` |
+| Mobile | \\\`390\\\` |
+
+Set per-frame \\\`width\\\` in the manifest or \\\`grid.columnWidth\\\` on the page. Components pages typically use smaller widths (320–640).
+
 ## Interactive navigation
 
 If a component has internal navigation (tabs, sidebar nav, segmented sections), handle it with React state inside one component. Do not split navigable sections into separate frames — the point is that it works, not that it looks right in a screenshot.
@@ -264,6 +292,9 @@ If a component has internal navigation (tabs, sidebar nav, segmented sections), 
 3. When creating a new component — add to \\\`index.ts\\\` AND add a showcase entry to the Components page.
 4. Hierarchy check — pages use components, components use tokens.
 5. Log to \\\`CHANGELOG.md\\\`.
+6. **Commit after each change** — After completing the requested changes, stage and commit project files:
+   \\\`git add src/projects/ && git commit -m 'style: <brief description of change>'\\\`
+   Every change gets its own commit so the designer can rewind with \\\`/canvai-undo\\\`.
 `
 
 export const tsconfigNodeJson = `{

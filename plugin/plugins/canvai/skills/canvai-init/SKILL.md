@@ -41,7 +41,12 @@ Create a new design project inside Canvai and launch the dev environment.
    ```
    This starts both Vite and the annotation MCP in one command.
 
-6. **Confirm:** "Project `<project-name>` is ready. Describe a component — I'll generate its variations and states as a matrix on the canvas."
+6. **Initial commit:** Create a git commit with the scaffolded project:
+   ```bash
+   git add . && git commit -m 'feat: init <project-name> project'
+   ```
+
+7. **Confirm:** "Project `<project-name>` is ready. Describe a component — I'll generate its variations and states as a matrix on the canvas."
 
 ## What happens next
 

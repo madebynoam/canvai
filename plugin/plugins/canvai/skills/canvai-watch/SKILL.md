@@ -29,6 +29,7 @@ The dev server must be running (`/canvai-dev` or `npx canvai dev`).
    - Edit the component/page file to apply the requested change
    - Call `resolve_annotation` with the annotation `id`
    - Log the change to `CHANGELOG.md`
+   - Commit the changes: `git add src/projects/ && git commit -m 'style: annotation #<N> — <brief description>'`
    - Call `watch_annotations` again — back to waiting
 
 5. **Exit:** The designer sends any message to break out of watch mode and return to normal chat.
