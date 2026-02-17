@@ -1,5 +1,9 @@
 # canvai-ui-system
 
+## V6
+
+- **Frame content wrapper**: Removed border-radius and box-shadow from frame content — cleaner, no visual border around frames (annotation #3)
+
 ## V1 — Initial
 
 - Dogfooding project: renders actual runtime tokens and components
