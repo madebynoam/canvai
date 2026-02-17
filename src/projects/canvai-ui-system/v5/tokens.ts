@@ -14,7 +14,7 @@ function oklch(l: number, c: number, h: number): string {
 export const N = {
   chrome:     oklch(1.000, 0, 0),
   chromeSub:  oklch(0.955, 0.003, 80),
-  canvas:     oklch(0.972, 0.003, 80),
+  canvas:     oklch(0.972, 0.001, 197),
   card:       oklch(0.993, 0.003, 80),
   border:     oklch(0.895, 0.005, 80),
   borderSoft: oklch(0.925, 0.003, 80),

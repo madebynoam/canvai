@@ -103,7 +103,12 @@ export function Frame({ id, title, x, y, width, height, children, onMove, onResi
       >
         {title}
       </div>
-      <div ref={contentRef} data-frame-content="" style={{ width }}>
+      <div ref={contentRef} data-frame-content="" style={{
+        width,
+        borderRadius: 4,
+        boxShadow: '0 0 0 1px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.03)',
+        overflow: 'hidden',
+      }}>
         {children}
       </div>
     </div>

@@ -1,12 +1,9 @@
 /* ══════════════════════════════════════════════════════
-   OKLCH Token System — V2 Rams Palette
+   OKLCH Token System — V5 White Chrome + Charcoal
 
    Every color is derived from two sources:
-   1. Warm neutrals (h=80, c=0.003) — the shell material
-   2. Signal red accent (h=28) — functional indicator only
-
-   Inspired by Braun TG 60 record button, RT 20 dial — color
-   communicates function and nothing else.
+   1. White chrome (L=1.000) — the shell surface
+   2. Charcoal accent (h=80, low chroma) — functional indicator
 
    No hex. No rgb. No random values.
    ══════════════════════════════════════════════════════ */
@@ -15,11 +12,11 @@ function oklch(l: number, c: number, h: number): string {
   return `oklch(${l} ${c} ${h})`
 }
 
-/* Warm neutrals — h=80 (warm stone), c=0.003 */
+/* Neutrals — white chrome, cool canvas */
 export const N = {
-  chrome:     oklch(0.952, 0.003, 80),
-  chromeSub:  oklch(0.935, 0.003, 80),
-  canvas:     oklch(0.972, 0.003, 80),
+  chrome:     oklch(1.000, 0, 0),
+  chromeSub:  oklch(0.955, 0.003, 80),
+  canvas:     oklch(0.972, 0.001, 197),
   card:       oklch(0.993, 0.003, 80),
   border:     oklch(0.895, 0.005, 80),
   borderSoft: oklch(0.925, 0.003, 80),
@@ -29,13 +26,13 @@ export const N = {
   txtFaint:   oklch(0.660, 0.003, 80),
 }
 
-/* Signal red accent — h=28 (TG 60 record button) */
+/* Charcoal accent — h=80, low chroma */
 export const A = {
-  accent:  oklch(0.52, 0.20, 28),
-  hover:   oklch(0.62, 0.18, 28),
-  muted:   oklch(0.92, 0.05, 28),
-  strong:  oklch(0.46, 0.18, 28),
-  border:  oklch(0.85, 0.08, 28),
+  accent:  oklch(0.300, 0.005, 80),
+  hover:   oklch(0.400, 0.005, 80),
+  muted:   oklch(0.920, 0.003, 80),
+  strong:  oklch(0.220, 0.005, 80),
+  border:  oklch(0.700, 0.005, 80),
 }
 
 /* Canvas elevation — inset from chrome, rounded, subtle shadow */
