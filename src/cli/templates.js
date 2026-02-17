@@ -103,7 +103,17 @@ function App() {
             overflow: 'hidden',
             position: 'relative',
           }}>
-            <Canvas pageKey={\`\${activeProject?.project ?? ''}-\${activeIteration?.name ?? ''}-\${activePage?.name ?? ''}\`}>
+            <Canvas
+              pageKey={\`\${activeProject?.project ?? ''}-\${activeIteration?.name ?? ''}-\${activePage?.name ?? ''}\`}
+              hud={<>
+                <div style={{ position: 'absolute', top: 12, right: 12, zIndex: 5 }}>
+                  <CanvasColorPicker activeColor={canvasBg} onSelect={setCanvasBg} />
+                </div>
+                <div style={{ position: 'absolute', bottom: 12, left: '50%', transform: 'translateX(-50%)', zIndex: 5 }}>
+                  <ZoomControl />
+                </div>
+              </>}
+            >
               {frames.map(frame => (
                 <Frame
                   key={frame.id}
@@ -120,12 +130,6 @@ function App() {
                 </Frame>
               ))}
             </Canvas>
-            <div style={{ position: 'absolute', top: 12, right: 12, zIndex: 5 }}>
-              <CanvasColorPicker activeColor={canvasBg} onSelect={setCanvasBg} />
-            </div>
-            <div style={{ position: 'absolute', bottom: 12, left: '50%', transform: 'translateX(-50%)', zIndex: 5 }}>
-              <ZoomControl />
-            </div>
           </div>
         </div>
       </div>

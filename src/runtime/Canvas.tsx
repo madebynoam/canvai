@@ -79,9 +79,10 @@ export function useTokenOverride() {
 interface CanvasProps {
   children?: React.ReactNode
   pageKey?: string
+  hud?: React.ReactNode
 }
 
-export function Canvas({ children, pageKey }: CanvasProps) {
+export function Canvas({ children, pageKey, hud }: CanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
   const [pan, setPan] = useState({ x: 0, y: 0 })
@@ -398,6 +399,7 @@ export function Canvas({ children, pageKey }: CanvasProps) {
             {children}
           </div>
         </TokenOverrideContext.Provider>
+        {hud}
       </CanvasContext.Provider>
     </div>
   )

@@ -8,6 +8,9 @@ import { TopBar } from './runtime/TopBar'
 import { IterationSidebar } from './runtime/IterationSidebar'
 import { AnnotationOverlay } from './runtime/AnnotationOverlay'
 import { useNavMemory } from './runtime/useNavMemory'
+import { ZoomControl } from './runtime/ZoomControl'
+import { CanvasColorPicker } from './runtime/CanvasColorPicker'
+import { loadCanvasBg, saveCanvasBg } from './runtime/Canvas'
 import { N, E } from './runtime/tokens'
 import { manifests } from 'virtual:canvai-manifests'
 import type { ProjectManifest } from './runtime/types'
@@ -46,6 +49,11 @@ function App() {
 
   const { frames, updateFrame, handleResize } = useFrames(layoutedFrames, activePage?.grid)
 
+  const projectKey = activeProject?.project ?? ''
+  const [canvasBg, setCanvasBg] = useState(() => loadCanvasBg(projectKey) ?? N.canvas)
+  useEffect(() => { setCanvasBg(loadCanvasBg(projectKey) ?? N.canvas) }, [projectKey])
+  useEffect(() => { saveCanvasBg(projectKey, canvasBg) }, [projectKey, canvasBg])
+
   return (
     <div id="canvai-root" style={{ width: '100vw', height: '100vh', display: 'flex', flexDirection: 'column' }}>
       {/* Top bar — full width */}
@@ -79,11 +87,22 @@ function App() {
             width: '100%',
             height: '100%',
             borderRadius: E.radius,
-            backgroundColor: N.canvas,
+            backgroundColor: canvasBg,
             boxShadow: E.shadow,
             overflow: 'hidden',
+            position: 'relative',
           }}>
-            <Canvas pageKey={`${activeProject?.project ?? ''}-${activeIteration?.name ?? ''}-${activePage?.name ?? ''}`}>
+            <Canvas
+              pageKey={`${activeProject?.project ?? ''}-${activeIteration?.name ?? ''}-${activePage?.name ?? ''}`}
+              hud={<>
+                <div style={{ position: 'absolute', top: 12, right: 12, zIndex: 5 }}>
+                  <CanvasColorPicker activeColor={canvasBg} onSelect={setCanvasBg} />
+                </div>
+                <div style={{ position: 'absolute', bottom: 12, left: '50%', transform: 'translateX(-50%)', zIndex: 5 }}>
+                  <ZoomControl />
+                </div>
+              </>}
+            >
               {frames.map(frame => (
                 <Frame
                   key={frame.id}
