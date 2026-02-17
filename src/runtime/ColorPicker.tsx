@@ -100,7 +100,13 @@ function NumericInput({ label, value, onChange, step = 1, min = 0, max = 360 }: 
   step?: number; min?: number; max?: number
 }) {
   const [focused, setFocused] = useState(false)
-  const display = step < 1 ? value.toFixed(3) : Math.round(value).toString()
+  const formatted = step < 1 ? value.toFixed(3) : Math.round(value).toString()
+  const [local, setLocal] = useState(formatted)
+
+  // Sync external value when not focused (e.g. dragging the canvas)
+  useEffect(() => {
+    if (!focused) setLocal(formatted)
+  }, [formatted, focused])
 
   return (
     <label style={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1 }}>
@@ -110,13 +116,18 @@ function NumericInput({ label, value, onChange, step = 1, min = 0, max = 360 }: 
       }}>{label}</span>
       <input
         type="text"
-        value={display}
+        value={focused ? local : formatted}
         onChange={e => {
+          setLocal(e.target.value)
           const v = parseFloat(e.target.value)
           if (!isNaN(v)) onChange(Math.max(min, Math.min(max, v)))
         }}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
+        onFocus={() => { setLocal(formatted); setFocused(true) }}
+        onBlur={() => {
+          setFocused(false)
+          const v = parseFloat(local)
+          if (!isNaN(v)) onChange(Math.max(min, Math.min(max, v)))
+        }}
         style={{
           width: '100%',
           padding: `${S.xs}px ${S.sm}px`,
