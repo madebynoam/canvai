@@ -18,6 +18,8 @@ export function applies(fileContents) {
   if (!app) return false
   // Needs migration if it has Canvas but no ZoomControl
   if (app.includes('Canvas') && !app.includes('ZoomControl')) return true
+  // Needs migration if ZoomControl exists but not via hud prop (broken placement)
+  if (app.includes('ZoomControl') && !app.includes('hud=')) return true
   return false
 }
 
@@ -26,8 +28,8 @@ export function migrate(fileContents) {
   let app = fileContents['src/App.tsx']
   if (!app) return result
 
-  // Already has ZoomControl — idempotent
-  if (app.includes('ZoomControl')) {
+  // Already has ZoomControl via hud prop — fully migrated
+  if (app.includes('ZoomControl') && app.includes('hud=')) {
     result['src/App.tsx'] = app
     return result
   }
@@ -115,21 +117,38 @@ export function migrate(fileContents) {
     )
   }
 
-  // 6. Insert ZoomControl and CanvasColorPicker inside the card wrapper, after </Canvas>
-  if (!app.includes('<ZoomControl')) {
-    const canvasCloseTag = '</Canvas>'
-    const canvasCloseIdx = app.indexOf(canvasCloseTag)
-    if (canvasCloseIdx !== -1) {
-      const insertPoint = canvasCloseIdx + canvasCloseTag.length
-      const controlsHtml = `
-            <div style={{ position: 'absolute', top: 12, right: 12, zIndex: 5 }}>
-              <CanvasColorPicker activeColor={canvasBg} onSelect={setCanvasBg} />
-            </div>
-            <div style={{ position: 'absolute', bottom: 12, left: '50%', transform: 'translateX(-50%)', zIndex: 5 }}>
-              <ZoomControl />
-            </div>`
-      app = app.slice(0, insertPoint) + controlsHtml + app.slice(insertPoint)
-    }
+  // 6. Add ZoomControl and CanvasColorPicker via Canvas hud prop
+  // Controls must be INSIDE Canvas (not siblings) so useCanvas() has access to the zoom context
+  if (!app.includes('hud=')) {
+    // Remove controls placed as siblings after </Canvas> (from broken 0.0.23 migration)
+    app = app.replace(
+      /(<\/Canvas>)\s*<div[^>]*>\s*<CanvasColorPicker[^/]*\/>\s*<\/div>\s*<div[^>]*>\s*<ZoomControl\s*\/>\s*<\/div>/,
+      '$1'
+    )
+
+    // Add hud prop to <Canvas opening tag (insert before closing >)
+    // Handles both single-line (<Canvas pageKey={`...`}>) and multi-line formats
+    app = app.replace(
+      /(pageKey=\{`[^`]*`\})(\s*)(>)/,
+      function(match, prop, ws, bracket, offset) {
+        // Detect <Canvas indentation for proper formatting
+        const canvasIdx = app.lastIndexOf('<Canvas', offset)
+        const lineStart = app.lastIndexOf('\n', canvasIdx) + 1
+        const base = ' '.repeat(canvasIdx - lineStart)
+        const pi = base + '  '
+
+        return prop + '\n' +
+          pi + 'hud={<>\n' +
+          pi + '  <div style={{ position: \'absolute\', top: 12, right: 12, zIndex: 5 }}>\n' +
+          pi + '    <CanvasColorPicker activeColor={canvasBg} onSelect={setCanvasBg} />\n' +
+          pi + '  </div>\n' +
+          pi + '  <div style={{ position: \'absolute\', bottom: 12, left: \'50%\', transform: \'translateX(-50%)\', zIndex: 5 }}>\n' +
+          pi + '    <ZoomControl />\n' +
+          pi + '  </div>\n' +
+          pi + '</>}\n' +
+          base + bracket
+      }
+    )
   }
 
   result['src/App.tsx'] = app

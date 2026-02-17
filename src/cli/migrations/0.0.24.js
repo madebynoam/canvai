@@ -62,11 +62,13 @@ export function migrate(fileContents) {
   // --- Patch CLAUDE.md ---
   let claudeMd = fileContents['CLAUDE.md']
   if (claudeMd && claudeMd.includes('Before any edit') && !claudeMd.includes('Commit after each change')) {
-    // Add step 6 after step 5 (Log to CHANGELOG.md)
-    // Match "5. Log to `CHANGELOG.md`." or "5. **Log to `CHANGELOG.md`**." (with or without bold)
+    // Add commit step after the CHANGELOG step (whatever its number is)
     claudeMd = claudeMd.replace(
-      /(5\..*(?:Log to|CHANGELOG\.md).*)/,
-      `$1\n6. **Commit after each change** — After completing the requested changes, stage and commit project files:\n   \`git add src/projects/ && git commit -m 'style: <brief description of change>'\`\n   Every change gets its own commit so the designer can rewind with \`/canvai-undo\`.`
+      /(\d+)(\.\s*(?:\*\*)?(?:Log to|.*CHANGELOG\.md).*)/,
+      (_, num, rest) => {
+        const nextNum = parseInt(num, 10) + 1
+        return `${num}${rest}\n${nextNum}. **Commit after each change** — After completing the requested changes, stage and commit project files:\n   \`git add src/projects/ && git commit -m 'style: <brief description of change>'\`\n   Every change gets its own commit so the designer can rewind with \`/canvai-undo\`.`
+      }
     )
     result['CLAUDE.md'] = claudeMd
   } else if (claudeMd) {

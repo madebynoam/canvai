@@ -730,6 +730,30 @@ describe('migration 0.0.23', () => {
     const second = migration.migrate({ 'src/App.tsx': first['src/App.tsx'] })
     expect(second['src/App.tsx']).toBe(first['src/App.tsx'])
   })
+
+  it('uses hud prop (not siblings) so useCanvas() has zoom context', () => {
+    const result = migration.migrate({ 'src/App.tsx': pre023AppTsx })
+    const output = result['src/App.tsx']
+    // ZoomControl must be inside Canvas via hud prop, not after </Canvas>
+    expect(output).toContain('hud={<>')
+    // Controls should NOT appear after </Canvas> as siblings
+    expect(output).not.toMatch(/<\/Canvas>\s*<div[^>]*>\s*<CanvasColorPicker/)
+  })
+
+  it('fixes broken placement (controls outside Canvas) on re-run', () => {
+    // Simulate broken 0.0.23 output: ZoomControl as sibling after </Canvas>
+    const broken = pre023AppTsx
+      .replace(
+        /from 'canvai\/runtime'/,
+        (m) => m.replace("'canvai/runtime'", "'canvai/runtime'").replace(
+          /AnnotationOverlay/,
+          'AnnotationOverlay, ZoomControl, CanvasColorPicker, loadCanvasBg, saveCanvasBg'
+        )
+      )
+      .replace('</Canvas>', '</Canvas>\n            <div style={{ position: \'absolute\', top: 12, right: 12, zIndex: 5 }}>\n              <CanvasColorPicker activeColor={N.canvas} onSelect={() => {}} />\n            </div>\n            <div style={{ position: \'absolute\', bottom: 12, left: \'50%\', transform: \'translateX(-50%)\', zIndex: 5 }}>\n              <ZoomControl />\n            </div>')
+    // applies() should detect the broken state (ZoomControl exists but no hud=)
+    expect(migration.applies({ 'src/App.tsx': broken })).toBe(true)
+  })
 })
 
 // --- Migration 0.0.24: Rules-guard hook + commit discipline ---
