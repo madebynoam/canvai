@@ -125,6 +125,16 @@ export function IterationPills({ items, activeIndex, onSelect }: IterationPillsP
 
   const getHighlightX = (i: number) => i * STEP
 
+  // Seed spring values to match initial position (avoids animate-from-zero on first click)
+  const seededRef = useRef(false)
+  if (!seededRef.current) {
+    hlSpring.state.value = getHighlightX(activeIndex)
+    hlSpring.state.target = hlSpring.state.value
+    spring.state.value = getStripX(activeIndex)
+    spring.state.target = spring.state.value
+    seededRef.current = true
+  }
+
   const springTo = useCallback((i: number) => {
     const clamped = Math.max(0, Math.min(items.length - 1, i))
     setActive(clamped)
