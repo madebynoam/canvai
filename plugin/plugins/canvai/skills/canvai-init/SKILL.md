@@ -52,7 +52,7 @@ After init, the designer describes a component (or attaches a sketch). The agent
 3. **Identify states** — interaction phases, conditions (these become columns in the matrix)
 4. **Create components** — build each component in `v1/components/`. Components use ONLY `var(--token)` for visual values — no hardcoded colors, sizes, or spacing. Export every component from `v1/components/index.ts`.
 5. **Create pages** — pages in `v1/pages/` that compose components. Pages import ONLY from `../components/` — never inline styled HTML. Two pages are **mandatory**:
-   - **Tokens page** — renders color swatches, typography scale, and spacing grid from `tokens.css`. This makes the token system visible on the canvas.
+   - **Tokens page** — renders color swatches using `TokenSwatch` from `canvai/runtime` (click to open OKLCH picker, live preview, annotations on apply), typography scale, and spacing grid from `tokens.css`. This makes the token system visible and editable on the canvas.
    - **Components page** — shows all building blocks individually with their variations and states.
 6. **Generate the manifest** — `manifest.ts` with iteration `name: 'V1'` containing all pages. Import `./v1/tokens.css` at the top. Iterations are always named V1, V2, V3 — sequential, never descriptive names.
 7. **Log to CHANGELOG.md** — record the initial design decisions and component inventory

@@ -254,6 +254,10 @@ export function Components() {
         <ColorPicker l={0.30} c={0.005} h={80} onApply={() => {}} onCancel={() => {}} />
       </Section>
 
+      <Section title="Color Picker — Edit Mode (Pending)">
+        <ColorPicker l={0.92} c={0.04} h={155} onApply={() => {}} onCancel={() => {}} onDiscard={() => {}} />
+      </Section>
+
       <Section title="Annotation Card — Empty">
         <CommentCard header="Button · button" comment="" onApply="Save" />
       </Section>

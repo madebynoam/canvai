@@ -413,6 +413,83 @@ export default App
   })
 })
 
+// --- Migration 0.0.21: TokenSwatch docs in CLAUDE.md ---
+
+const oldClaudeMd = `# Project Rules
+
+These rules are enforced by the agent. Do not remove this file.
+
+## Component hierarchy
+
+Tokens → Components → Pages
+
+## Mandatory pages
+
+Every project must include:
+- **Tokens** — renders color swatches, typography scale, spacing grid from \`tokens.css\`
+- **Components** — shows all building blocks individually with variations and states
+
+## Interactive navigation
+
+Handle navigation with React state inside one component.
+
+## Before any edit
+
+1. Read manifest.ts
+`
+
+describe('migration 0.0.21', () => {
+  const migration = migrations.find(m => m.version === '0.0.21')!
+
+  it('exists in the registry', () => {
+    expect(migration).toBeDefined()
+    expect(migration.version).toBe('0.0.21')
+  })
+
+  it('applies to CLAUDE.md without TokenSwatch', () => {
+    expect(migration.applies({ 'CLAUDE.md': oldClaudeMd })).toBe(true)
+  })
+
+  it('does not apply when CLAUDE.md already has TokenSwatch', () => {
+    const updated = oldClaudeMd + '\nTokenSwatch\n'
+    expect(migration.applies({ 'CLAUDE.md': updated })).toBe(false)
+  })
+
+  it('does not apply when CLAUDE.md is missing', () => {
+    expect(migration.applies({})).toBe(false)
+  })
+
+  it('does not apply when CLAUDE.md has no Mandatory pages section', () => {
+    expect(migration.applies({ 'CLAUDE.md': '# Custom rules\nNo mandatory pages here.' })).toBe(false)
+  })
+
+  it('adds TokenSwatch section to CLAUDE.md', () => {
+    const result = migration.migrate({ 'CLAUDE.md': oldClaudeMd })
+    expect(result['CLAUDE.md']).toContain('TokenSwatch')
+    expect(result['CLAUDE.md']).toContain('ColorPicker')
+    expect(result['CLAUDE.md']).toContain('tokenPath')
+    expect(result['CLAUDE.md']).toContain('frameId')
+  })
+
+  it('updates Tokens bullet to mention TokenSwatch', () => {
+    const result = migration.migrate({ 'CLAUDE.md': oldClaudeMd })
+    expect(result['CLAUDE.md']).toContain('using `TokenSwatch` from `canvai/runtime`')
+  })
+
+  it('inserts section before Interactive navigation', () => {
+    const result = migration.migrate({ 'CLAUDE.md': oldClaudeMd })
+    const swatchIdx = result['CLAUDE.md'].indexOf('## Token swatches')
+    const navIdx = result['CLAUDE.md'].indexOf('## Interactive navigation')
+    expect(swatchIdx).toBeGreaterThan(-1)
+    expect(navIdx).toBeGreaterThan(swatchIdx)
+  })
+
+  it('is idempotent', () => {
+    const first = migration.migrate({ 'CLAUDE.md': oldClaudeMd })
+    expect(migration.applies({ 'CLAUDE.md': first['CLAUDE.md'] })).toBe(false)
+  })
+})
+
 describe('compareSemver', () => {
   it('handles equal versions', () => {
     expect(compareSemver('0.0.10', '0.0.10')).toBe(0)

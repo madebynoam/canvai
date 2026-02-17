@@ -31,3 +31,15 @@
 - **ProjectPicker avatar**: Charcoal letter avatars — created PreviewProjectPicker component with V3 tokens (annotation #6)
 - **pending badge**: Charcoal accent badge — PreviewTopBar uses V3 A.accent for pending count (annotation #7)
 - Created V3-local preview components (PreviewTopBar, PreviewSidebar, PreviewProjectPicker) to fully preview the white chrome + charcoal accent system without modifying runtime tokens
+- **ColorPicker**: Interactive OKLCH color picker with hex/HSL/OKLCH input modes. Canvas-based L×C gradient area + hue strip. Click any token swatch to open. Gamut indicator for out-of-sRGB colors.
+- **Swatch**: Now clickable — opens ColorPicker popover when `oklch` prop is provided
+
+## V4 — Live Preview + Annotation-on-Apply
+
+- Created V4 from V3
+- V3 frozen
+- **Swatch live preview**: Color updates in real-time as you drag or type in the picker (React state only, no file writes)
+- **Annotation-on-apply**: Clicking Apply posts an annotation to the MCP server with the token change (e.g. "Change N.chrome to oklch(0.950 0.003 80)")
+- **Pending marker**: Charcoal dot appears on swatch after Apply, disappears when agent resolves the annotation via SSE
+- **ColorPicker onChange**: New callback fires on every color change for live preview
+- Three swatch states: default (token color), previewing (picker open), pending (applied, awaiting agent)

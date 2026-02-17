@@ -9,6 +9,9 @@ import { Shell as V2Shell } from './v2/pages/shell'
 import { Tokens as V3Tokens } from './v3/pages/tokens'
 import { Components as V3Components } from './v3/pages/components'
 import { Shell as V3Shell } from './v3/pages/shell'
+import { Tokens as V4Tokens } from './v4/pages/tokens'
+import { Components as V4Components } from './v4/pages/components'
+import { Shell as V4Shell } from './v4/pages/shell'
 import type { ProjectManifest } from '../../runtime/types'
 
 const manifest: ProjectManifest = {
@@ -70,7 +73,7 @@ const manifest: ProjectManifest = {
     },
     {
       name: 'V3',
-      frozen: false,
+      frozen: true,
       pages: [
         {
           name: 'Tokens',
@@ -91,6 +94,33 @@ const manifest: ProjectManifest = {
           grid: { columns: 1, columnWidth: 900, rowHeight: 900, gap: 40 },
           frames: [
             { id: 'v3-shell', title: 'Full Shell — Assembled', component: V3Shell },
+          ],
+        },
+      ],
+    },
+    {
+      name: 'V4',
+      frozen: false,
+      pages: [
+        {
+          name: 'Tokens',
+          grid: { columns: 1, columnWidth: 560, rowHeight: 1600, gap: 40 },
+          frames: [
+            { id: 'v4-tokens', title: 'OKLCH Token System', component: V4Tokens },
+          ],
+        },
+        {
+          name: 'Components',
+          grid: { columns: 1, columnWidth: 640, rowHeight: 1800, gap: 40 },
+          frames: [
+            { id: 'v4-components', title: 'Runtime Components — Live', component: V4Components },
+          ],
+        },
+        {
+          name: 'Shell',
+          grid: { columns: 1, columnWidth: 900, rowHeight: 900, gap: 40 },
+          frames: [
+            { id: 'v4-shell', title: 'Full Shell — Assembled', component: V4Shell },
           ],
         },
       ],

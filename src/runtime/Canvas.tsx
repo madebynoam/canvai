@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, createContext, useContext } from 'react'
+import { useRef, useState, useEffect, useCallback, createContext, useContext, useMemo } from 'react'
 
 const MIN_ZOOM = 0.1
 const MAX_ZOOM = 5
@@ -21,6 +21,19 @@ export function useCanvas() {
   return useContext(CanvasContext)
 }
 
+// Token override context — lets TokenSwatch propagate live edits via CSS custom properties
+interface TokenOverrideAPI {
+  setOverride: (token: string, value: string) => void
+  clearOverride: (token: string) => void
+}
+
+const noop: TokenOverrideAPI = { setOverride: () => {}, clearOverride: () => {} }
+const TokenOverrideContext = createContext<TokenOverrideAPI>(noop)
+
+export function useTokenOverride() {
+  return useContext(TokenOverrideContext)
+}
+
 interface CanvasProps {
   children?: React.ReactNode
   pageKey?: string
@@ -31,6 +44,22 @@ export function Canvas({ children, pageKey }: CanvasProps) {
   const contentRef = useRef<HTMLDivElement>(null)
   const [pan, setPan] = useState({ x: 0, y: 0 })
   const [zoom, setZoom] = useState(1)
+
+  // Token override state — CSS custom property overrides for live preview
+  const [tokenOverrides, setTokenOverrides] = useState<Record<string, string>>({})
+
+  const overrideAPI = useMemo<TokenOverrideAPI>(() => ({
+    setOverride: (token: string, value: string) => {
+      setTokenOverrides(prev => ({ ...prev, [token]: value }))
+    },
+    clearOverride: (token: string) => {
+      setTokenOverrides(prev => {
+        const next = { ...prev }
+        delete next[token]
+        return next
+      })
+    },
+  }), [])
 
   // All gesture state lives in refs — no React renders during gestures
   const panRef = useRef(pan)
@@ -254,19 +283,22 @@ export function Canvas({ children, pageKey }: CanvasProps) {
       }}
     >
       <CanvasContext.Provider value={{ zoom, pan }}>
-        <div
-          ref={contentRef}
-          style={{
-            transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})`,
-            transformOrigin: '0 0',
-            willChange: 'transform',
-            position: 'absolute',
-            top: 0,
-            left: 0,
-          }}
-        >
-          {children}
-        </div>
+        <TokenOverrideContext.Provider value={overrideAPI}>
+          <div
+            ref={contentRef}
+            style={{
+              transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})`,
+              transformOrigin: '0 0',
+              willChange: 'transform',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              ...Object.fromEntries(Object.entries(tokenOverrides).map(([k, v]) => [k, v])),
+            } as React.CSSProperties}
+          >
+            {children}
+          </div>
+        </TokenOverrideContext.Provider>
       </CanvasContext.Provider>
     </div>
   )

@@ -210,8 +210,35 @@ When the designer describes a component, think through its **variations** and **
 ### Mandatory pages
 
 Every project must include:
-- **Tokens** — renders color swatches, typography scale, and spacing grid from `tokens.css`. Makes the token system visible on the canvas.
+- **Tokens** — renders color swatches (using `TokenSwatch` from `canvai/runtime`), typography scale, and spacing grid from `tokens.css`. Makes the token system visible on the canvas. The designer can click any color swatch to open the OKLCH color picker and visually edit tokens.
 - **Components** — shows all building blocks individually with their variations and states.
+
+### Token swatches (runtime)
+
+Canvai provides `TokenSwatch` and `ColorPicker` from `canvai/runtime` for the Tokens page. The designer clicks a swatch to open an OKLCH color picker, sees a live preview across the entire canvas, and posts an annotation to change the token value.
+
+```tsx
+import { TokenSwatch } from 'canvai/runtime'
+
+<TokenSwatch
+  color="var(--chrome)"
+  label="chrome"
+  sublabel="oklch(0.952 0.003 80)"
+  oklch={{ l: 0.952, c: 0.003, h: 80 }}
+  tokenPath="--chrome"
+  frameId="v1-tok-colors"
+/>
+```
+
+Props:
+- `color` — CSS color string for display
+- `label` — Token name shown next to the swatch
+- `sublabel` — Optional secondary text (e.g. the OKLCH value)
+- `oklch` — If provided, swatch is clickable and opens the color picker (`{ l, c, h }`)
+- `tokenPath` — CSS custom property name for the annotation (e.g. `"--chrome"`)
+- `frameId` — Frame ID from the manifest, used in the annotation payload
+
+When the designer clicks Apply, `TokenSwatch` posts an annotation. The agent updates `tokens.css`. Use `TokenSwatch` for every color token on the Tokens page.
 
 ### Interactive navigation
 

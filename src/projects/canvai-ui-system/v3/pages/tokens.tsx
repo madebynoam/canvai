@@ -25,43 +25,43 @@ export function Tokens() {
 
       <Section title="Neutrals — white chrome experiment">
         <div style={{ display: 'flex', flexDirection: 'column', gap: S.sm }}>
-          <Swatch color={N.chrome} label="chrome" sublabel="L=1.000 — white sidebar, topbar" />
-          <Swatch color={N.chromeSub} label="chromeSub" sublabel="L=0.955 — active bg" />
-          <Swatch color={N.canvas} label="canvas" sublabel="L=0.972 — workspace" />
-          <Swatch color={N.card} label="card" sublabel="L=0.993 — cards, dropdowns" />
-          <Swatch color={N.border} label="border" sublabel="L=0.895 — chrome borders" />
-          <Swatch color={N.borderSoft} label="borderSoft" sublabel="L=0.925 — soft borders" />
-          <Swatch color={N.txtPri} label="txtPri" sublabel="L=0.180 — primary text" />
-          <Swatch color={N.txtSec} label="txtSec" sublabel="L=0.380 — secondary text" />
-          <Swatch color={N.txtTer} label="txtTer" sublabel="L=0.540 — tertiary text" />
-          <Swatch color={N.txtFaint} label="txtFaint" sublabel="L=0.660 — ghost/placeholder" />
+          <Swatch color={N.chrome} label="chrome" sublabel="L=1.000 — white sidebar, topbar" oklch={{ l: 1.000, c: 0, h: 0 }} />
+          <Swatch color={N.chromeSub} label="chromeSub" sublabel="L=0.955 — active bg" oklch={{ l: 0.955, c: 0.003, h: 80 }} />
+          <Swatch color={N.canvas} label="canvas" sublabel="L=0.972 — workspace" oklch={{ l: 0.972, c: 0.003, h: 80 }} />
+          <Swatch color={N.card} label="card" sublabel="L=0.993 — cards, dropdowns" oklch={{ l: 0.993, c: 0.003, h: 80 }} />
+          <Swatch color={N.border} label="border" sublabel="L=0.895 — chrome borders" oklch={{ l: 0.895, c: 0.005, h: 80 }} />
+          <Swatch color={N.borderSoft} label="borderSoft" sublabel="L=0.925 — soft borders" oklch={{ l: 0.925, c: 0.003, h: 80 }} />
+          <Swatch color={N.txtPri} label="txtPri" sublabel="L=0.180 — primary text" oklch={{ l: 0.180, c: 0.005, h: 80 }} />
+          <Swatch color={N.txtSec} label="txtSec" sublabel="L=0.380 — secondary text" oklch={{ l: 0.380, c: 0.005, h: 80 }} />
+          <Swatch color={N.txtTer} label="txtTer" sublabel="L=0.540 — tertiary text" oklch={{ l: 0.540, c: 0.005, h: 80 }} />
+          <Swatch color={N.txtFaint} label="txtFaint" sublabel="L=0.660 — ghost/placeholder" oklch={{ l: 0.660, c: 0.003, h: 80 }} />
         </div>
       </Section>
 
       <Section title="Accent — charcoal (h=80, c=0.005)">
         <div style={{ display: 'flex', flexDirection: 'column', gap: S.sm }}>
-          <Swatch color={A.accent} label="accent" sublabel="L=0.30 — primary action" />
-          <Swatch color={A.hover} label="hover" sublabel="L=0.40 — hover state" />
-          <Swatch color={A.muted} label="muted" sublabel="L=0.92 — subtle bg" />
-          <Swatch color={A.strong} label="strong" sublabel="L=0.22 — pressed state" />
-          <Swatch color={A.border} label="border" sublabel="L=0.70 — accent borders" />
+          <Swatch color={A.accent} label="accent" sublabel="L=0.30 — primary action" oklch={{ l: 0.300, c: 0.005, h: 80 }} />
+          <Swatch color={A.hover} label="hover" sublabel="L=0.40 — hover state" oklch={{ l: 0.400, c: 0.005, h: 80 }} />
+          <Swatch color={A.muted} label="muted" sublabel="L=0.92 — subtle bg" oklch={{ l: 0.920, c: 0.003, h: 80 }} />
+          <Swatch color={A.strong} label="strong" sublabel="L=0.22 — pressed state" oklch={{ l: 0.220, c: 0.005, h: 80 }} />
+          <Swatch color={A.border} label="border" sublabel="L=0.70 — accent borders" oklch={{ l: 0.700, c: 0.005, h: 80 }} />
         </div>
       </Section>
 
       <Section title="Watch — h=155 (indicator green)">
         <div style={{ display: 'flex', flexDirection: 'column', gap: S.sm }}>
-          <Swatch color={W.bg} label="bg" sublabel="L=0.92" />
-          <Swatch color={W.dot} label="dot" sublabel="L=0.52" />
-          <Swatch color={W.text} label="text" sublabel="L=0.40" />
+          <Swatch color={W.bg} label="bg" sublabel="L=0.92" oklch={{ l: 0.92, c: 0.04, h: 155 }} />
+          <Swatch color={W.dot} label="dot" sublabel="L=0.52" oklch={{ l: 0.52, c: 0.14, h: 155 }} />
+          <Swatch color={W.text} label="text" sublabel="L=0.40" oklch={{ l: 0.40, c: 0.12, h: 155 }} />
         </div>
       </Section>
 
       <Section title="Functional">
         <div style={{ display: 'flex', flexDirection: 'column', gap: S.sm }}>
-          <Swatch color={F.comment} label="comment" sublabel="L=0.260" />
-          <Swatch color={F.resolved} label="resolved" sublabel="L=0.700" />
-          <Swatch color={F.success} label="success" sublabel="h=155" />
-          <Swatch color={F.danger} label="danger" sublabel="h=28" />
+          <Swatch color={F.comment} label="comment" sublabel="L=0.260" oklch={{ l: 0.260, c: 0.005, h: 80 }} />
+          <Swatch color={F.resolved} label="resolved" sublabel="L=0.700" oklch={{ l: 0.700, c: 0.003, h: 80 }} />
+          <Swatch color={F.success} label="success" sublabel="h=155" oklch={{ l: 0.55, c: 0.14, h: 155 }} />
+          <Swatch color={F.danger} label="danger" sublabel="h=28" oklch={{ l: 0.52, c: 0.20, h: 28 }} />
         </div>
       </Section>
 
