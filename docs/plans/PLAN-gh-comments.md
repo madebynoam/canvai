@@ -382,7 +382,7 @@ Comments use GitHub Issues as the data source — same repo regardless of mode. 
 
 - **GitHub Pages (MVP):** Team members open the shared link, sign in with GitHub OAuth, and leave comments. The browser talks directly to the GitHub API — no server needed. Token stored in localStorage after OAuth.
 - **Local dev:** Designer sees all comments from the shared build plus can reply. Annotations are also available (separate system, same canvas). API calls go through the canvai server proxy.
-- Both FABs (purple comment + orange annotation) appear in local dev. Only the comment FAB appears on GitHub Pages (no annotation server).
+- Both FABs (comment + annotation, both `A.accent`) appear in local dev. Only the comment FAB appears on GitHub Pages (no annotation server).
 
 ---
 
@@ -410,7 +410,7 @@ Files to modify:
 - [x] View thread with messages
 - [x] Reply to thread
 - [x] Comment pins on canvas (avatar-based)
-- [x] Purple comment FAB
+- [x] Comment FAB (`A.accent`)
 - [x] Targeting flow (reuse pattern from AnnotationOverlay)
 - [x] Resolve thread (close issue)
 - [x] GitHub Pages support (browser talks directly to GitHub API, token in localStorage)
@@ -468,7 +468,7 @@ One-time setup (us):
 5. Get Client ID → hardcode in canvai source (public, safe to commit)
 
 Consumer experience:
-1. Click purple FAB → "Sign in with GitHub"
+1. Click comment FAB → "Sign in with GitHub"
 2. Get a device code (e.g. `ABCD-1234`)
 3. Open `github.com/login/device`, paste code, authorize
 4. Done — never think about OAuth again
