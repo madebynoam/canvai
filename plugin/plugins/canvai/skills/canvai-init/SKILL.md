@@ -31,14 +31,15 @@ Create a new design project inside Canvai and launch the dev environment.
    - If `package.json` exists but no canvai dependency: run `npm install github:madebynoam/canvai`
    - If already installed: continue
 
+   If `npm install` fails, stop immediately and tell the user what went wrong. Do not proceed to step 5.
+
 5. **Scaffold the project.** Run:
    ```bash
    npx canvai init
    ```
-   This creates `index.html`, `vite.config.ts`, `src/App.tsx`, `src/main.tsx`, `CLAUDE.md` (project rules), `.claude/settings.json` (frozen guard hook), `.mcp.json` (annotation MCP config), `.gitignore`, tsconfigs, and installs peer dependencies. Files that already exist are skipped.
+   This creates `index.html`, `vite.config.ts`, `src/App.tsx`, `src/main.tsx`, `CLAUDE.md` (project rules), `.claude/settings.json` (frozen guard hook), `.mcp.json` (annotation MCP config), tsconfigs, and installs peer dependencies. Files that already exist are skipped.
 
-6. **Activate the annotation MCP.** The `.mcp.json` was just created. Tell the user:
-   > "The annotation MCP has been configured. You'll need to **restart Claude Code** once before annotations work. We'll build the project first, then you restart."
+6. **Activate the annotation MCP.** The annotation MCP is now configured via `.mcp.json`.
 
 7. **Create the project folder structure:**
    ```
@@ -46,7 +47,7 @@ Create a new design project inside Canvai and launch the dev environment.
      v1/
        tokens.css             ← OKLCH custom properties (.iter-v1 + :root scope)
        components/
-         index.ts             ← barrel export (empty initially)
+         index.ts             ← barrel export — add every new component here when you create it
        pages/                 ← empty initially
      manifest.ts
      CHANGELOG.md
@@ -56,6 +57,7 @@ Create a new design project inside Canvai and launch the dev environment.
    ```bash
    git add . && git commit -m 'feat: init <project-name> project'
    ```
+   This captures the scaffold. A second commit will follow after the design is generated in the 'What happens next' sequence.
 
 9. **Launch the dev server:**
    ```bash
@@ -65,6 +67,8 @@ Create a new design project inside Canvai and launch the dev environment.
 
 10. **Confirm and remind:**
     > "Project `<project-name>` is live at http://localhost:5173. **Restart Claude Code now** to activate the annotation MCP — then describe a component and I'll generate it on the canvas."
+
+    Continue immediately with the **What happens next** sequence below to generate the initial design.
 
 ## What happens next
 
