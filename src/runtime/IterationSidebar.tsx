@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Palette, Layers } from 'lucide-react'
 import { N, S, R, T, ICON, FONT } from './tokens'
+import { InfoButton } from './InfoButton'
 
 interface IterationSidebarProps {
   iterationName: string
@@ -132,6 +133,14 @@ export function IterationSidebar({ iterationName, pages, activePageIndex, onSele
           ))}
         </div>
       )}
+
+      {/* Spacer */}
+      <div style={{ flex: 1 }} />
+
+      {/* Info button */}
+      <div style={{ padding: `0 ${S.lg}px`, paddingBottom: S.xs }}>
+        <InfoButton />
+      </div>
     </div>
   )
 }

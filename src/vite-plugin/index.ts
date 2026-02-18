@@ -1,6 +1,10 @@
 import { type Plugin } from 'vite'
 import fs from 'fs'
 import path from 'path'
+import { fileURLToPath } from 'url'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const pkg = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../../package.json'), 'utf-8'))
 
 const VIRTUAL_MODULE_ID = 'virtual:canvai-manifests'
 const RESOLVED_VIRTUAL_MODULE_ID = '\0' + VIRTUAL_MODULE_ID
@@ -44,6 +48,14 @@ export function canvaiPlugin(): Plugin {
 
   return {
     name: 'canvai-manifests',
+
+    config() {
+      return {
+        define: {
+          '__CANVAI_VERSION__': JSON.stringify(pkg.version),
+        },
+      }
+    },
 
     configResolved(config) {
       projectsDir = path.resolve(config.root, 'src/projects')

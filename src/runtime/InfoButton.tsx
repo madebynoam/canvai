@@ -1,9 +1,8 @@
 import { useRef, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Info, ExternalLink } from 'lucide-react'
-import { N, S, R, T, ICON, FONT } from '../tokens'
+import { N, S, R, T, ICON, FONT } from './tokens'
 
-const VERSION = '0.0.26'
 const GITHUB_URL = 'https://github.com/madebynoam/canvai'
 
 function MenuRow({ children, href }: {
@@ -136,8 +135,9 @@ export function InfoButton() {
         boxShadow: '0 4px 12px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.04)',
         zIndex: 1000,
         transformOrigin: 'bottom left',
+        transform: `scale(0.92) translateY(${S.xs}px)`,
         opacity: 0,
-        pointerEvents: open ? 'auto' : 'none',
+        pointerEvents: open ? 'auto' as const : 'none' as const,
       }}
     >
       {/* Version — static, not interactive */}
@@ -147,7 +147,7 @@ export function InfoButton() {
         fontFamily: FONT,
         userSelect: 'none',
       }}>
-        v{VERSION}
+        v{typeof __CANVAI_VERSION__ !== 'undefined' ? __CANVAI_VERSION__ : '0.0.0'}
       </div>
       <MenuRow href={GITHUB_URL}>
         <span style={{ flex: 1 }}>GitHub</span>
