@@ -11,18 +11,36 @@ Create a new design project inside Canvai and launch the dev environment.
 
 1. **Parse the project name** from the user's command (e.g. `/canvai-init button`). If no name is provided, ask for one.
 
-2. **Check if canvai is installed.** Look for `package.json` in the current directory.
+2. **Initialize git** — check for a `.git` directory in the current folder.
+   - If missing: run `git init`
+   - If already a repo: continue
+
+3. **Create `.gitignore`** — check if `.gitignore` exists.
+   - If missing: create it with this content:
+     ```
+     node_modules
+     dist
+     .DS_Store
+     *.local
+     .canvai
+     ```
+   - If exists: leave it alone
+
+4. **Check if canvai is installed.** Look for `package.json` in the current directory.
    - If no `package.json`: run `npm init -y && npm install github:madebynoam/canvai`
    - If `package.json` exists but no canvai dependency: run `npm install github:madebynoam/canvai`
    - If already installed: continue
 
-3. **Scaffold the project.** Run:
+5. **Scaffold the project.** Run:
    ```bash
    npx canvai init
    ```
-   This creates `index.html`, `vite.config.ts`, `src/App.tsx`, `src/main.tsx`, `CLAUDE.md` (project rules), `.claude/settings.json` (frozen guard hook), tsconfigs, and installs peer dependencies. It skips files that already exist.
+   This creates `index.html`, `vite.config.ts`, `src/App.tsx`, `src/main.tsx`, `CLAUDE.md` (project rules), `.claude/settings.json` (frozen guard hook), `.mcp.json` (annotation MCP config), `.gitignore`, tsconfigs, and installs peer dependencies. Files that already exist are skipped.
 
-4. **Create the project folder structure:**
+6. **Activate the annotation MCP.** The `.mcp.json` was just created. Tell the user:
+   > "The annotation MCP has been configured. You'll need to **restart Claude Code** once before annotations work. We'll build the project first, then you restart."
+
+7. **Create the project folder structure:**
    ```
    src/projects/<project-name>/
      v1/
@@ -30,23 +48,23 @@ Create a new design project inside Canvai and launch the dev environment.
        components/
          index.ts             ← barrel export (empty initially)
        pages/                 ← empty initially
-       spring.ts              ← if motion is needed (copy from canvai template)
      manifest.ts
      CHANGELOG.md
    ```
 
-5. **Launch the dev server** in the background:
-   ```bash
-   npx canvai dev
-   ```
-   This starts both Vite and the annotation MCP in one command.
-
-6. **Initial commit:** Create a git commit with the scaffolded project:
+8. **Initial commit:** Create a git commit with the scaffolded project:
    ```bash
    git add . && git commit -m 'feat: init <project-name> project'
    ```
 
-7. **Confirm:** "Project `<project-name>` is ready. Describe a component — I'll generate its variations and states as a matrix on the canvas."
+9. **Launch the dev server:**
+   ```bash
+   npx canvai dev
+   ```
+   This starts both Vite and the annotation HTTP server in one command.
+
+10. **Confirm and remind:**
+    > "Project `<project-name>` is live at http://localhost:5173. **Restart Claude Code now** to activate the annotation MCP — then describe a component and I'll generate it on the canvas."
 
 ## What happens next
 
