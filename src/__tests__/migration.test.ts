@@ -972,6 +972,131 @@ describe('old migrations skip CanvaiShell output', () => {
   })
 })
 
+// --- Migration 0.0.26: Remove frameId from TokenSwatch ---
+
+const tokenPageWithFrameId = `import { S, R, T, FONT } from '../tokens'
+import { TokenSwatch } from 'canvai/runtime'
+
+const FRAME_ID = 'v2-tokens'
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return <div>{children}</div>
+}
+
+export function Tokens() {
+  return (
+    <div>
+      <TokenSwatch color="var(--chrome)" label="chrome" oklch={{ l: 1, c: 0, h: 0 }} tokenPath="--chrome" frameId={FRAME_ID} />
+      <TokenSwatch color="var(--canvas)" label="canvas" oklch={{ l: 0.97, c: 0, h: 0 }} tokenPath="--canvas" frameId={FRAME_ID} />
+    </div>
+  )
+}
+`
+
+const tokenPageWithStringFrameId = `import { TokenSwatch } from 'canvai/runtime'
+
+export function Tokens() {
+  return (
+    <div>
+      <TokenSwatch color="var(--chrome)" label="chrome" oklch={{ l: 1, c: 0, h: 0 }} tokenPath="--chrome" frameId="v1-tokens" />
+    </div>
+  )
+}
+`
+
+const claudeMdWithFrameId = `# Project Rules
+
+## Token swatches (runtime)
+
+\`\`\`tsx
+<TokenSwatch
+  color="var(--chrome)"
+  label="chrome"
+  oklch={{ l: 0.952, c: 0.003, h: 80 }}
+  tokenPath="--chrome"
+  frameId="v1-tok-colors"
+/>
+\`\`\`
+
+Props:
+- \`color\` — CSS color string for display
+- \`label\` — Token name
+- \`tokenPath\` — CSS custom property name
+- \`frameId\` — Frame ID from the manifest, used in the annotation payload
+
+When the designer clicks Apply, \`TokenSwatch\` posts an annotation.
+`
+
+describe('migration 0.0.26', () => {
+  const migration = migrations.find(m => m.version === '0.0.26')!
+
+  it('exists in the registry', () => {
+    expect(migration).toBeDefined()
+    expect(migration.version).toBe('0.0.26')
+  })
+
+  it('applies when token page has frameId={FRAME_ID}', () => {
+    expect(migration.applies({ 'src/projects/my-app/v2/pages/tokens.tsx': tokenPageWithFrameId })).toBe(true)
+  })
+
+  it('applies when token page has string frameId', () => {
+    expect(migration.applies({ 'src/projects/my-app/v1/pages/tokens.tsx': tokenPageWithStringFrameId })).toBe(true)
+  })
+
+  it('applies when CLAUDE.md has frameId', () => {
+    expect(migration.applies({ 'CLAUDE.md': claudeMdWithFrameId })).toBe(true)
+  })
+
+  it('does not apply when no files have frameId', () => {
+    const cleanTokenPage = tokenPageWithFrameId.replace(/const FRAME_ID[^\n]*\n\n?/g, '').replace(/ frameId=\{FRAME_ID\}/g, '')
+    expect(migration.applies({ 'src/projects/my-app/v2/pages/tokens.tsx': cleanTokenPage })).toBe(false)
+  })
+
+  it('removes FRAME_ID constant from token pages', () => {
+    const result = migration.migrate({ 'src/projects/my-app/v2/pages/tokens.tsx': tokenPageWithFrameId })
+    expect(result['src/projects/my-app/v2/pages/tokens.tsx']).not.toContain('FRAME_ID')
+  })
+
+  it('removes frameId={FRAME_ID} from TokenSwatch usages', () => {
+    const result = migration.migrate({ 'src/projects/my-app/v2/pages/tokens.tsx': tokenPageWithFrameId })
+    expect(result['src/projects/my-app/v2/pages/tokens.tsx']).not.toContain('frameId')
+  })
+
+  it('removes string frameId from TokenSwatch usages', () => {
+    const result = migration.migrate({ 'src/projects/my-app/v1/pages/tokens.tsx': tokenPageWithStringFrameId })
+    expect(result['src/projects/my-app/v1/pages/tokens.tsx']).not.toContain('frameId')
+  })
+
+  it('removes frameId from CLAUDE.md example and props', () => {
+    const result = migration.migrate({ 'CLAUDE.md': claudeMdWithFrameId })
+    expect(result['CLAUDE.md']).not.toContain('frameId')
+    expect(result['CLAUDE.md']).toContain('TokenSwatch')
+  })
+
+  it('preserves other TokenSwatch props', () => {
+    const result = migration.migrate({ 'src/projects/my-app/v2/pages/tokens.tsx': tokenPageWithFrameId })
+    const output = result['src/projects/my-app/v2/pages/tokens.tsx']
+    expect(output).toContain('tokenPath="--chrome"')
+    expect(output).toContain('tokenPath="--canvas"')
+    expect(output).toContain('label="chrome"')
+  })
+
+  it('is idempotent', () => {
+    const first = migration.migrate({ 'src/projects/my-app/v2/pages/tokens.tsx': tokenPageWithFrameId })
+    expect(migration.applies({ 'src/projects/my-app/v2/pages/tokens.tsx': first['src/projects/my-app/v2/pages/tokens.tsx'] })).toBe(false)
+  })
+
+  it('handles multiple iterations in one pass', () => {
+    const files = {
+      'src/projects/my-app/v1/pages/tokens.tsx': tokenPageWithStringFrameId,
+      'src/projects/my-app/v2/pages/tokens.tsx': tokenPageWithFrameId,
+    }
+    const result = migration.migrate(files)
+    expect(result['src/projects/my-app/v1/pages/tokens.tsx']).not.toContain('frameId')
+    expect(result['src/projects/my-app/v2/pages/tokens.tsx']).not.toContain('frameId')
+  })
+})
+
 describe('compareSemver', () => {
   it('handles equal versions', () => {
     expect(compareSemver('0.0.10', '0.0.10')).toBe(0)

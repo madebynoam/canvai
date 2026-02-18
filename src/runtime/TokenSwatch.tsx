@@ -17,11 +17,9 @@ export interface TokenSwatchProps {
   oklch?: { l: number; c: number; h: number }
   /** CSS custom property name for the annotation (e.g. "--chrome") */
   tokenPath?: string
-  /** Frame ID from the manifest, used in the annotation payload */
-  frameId?: string
 }
 
-export function TokenSwatch({ color, label, sublabel, oklch, tokenPath, frameId }: TokenSwatchProps) {
+export function TokenSwatch({ color, label, sublabel, oklch, tokenPath }: TokenSwatchProps) {
   const [open, setOpen] = useState(false)
   const [hovered, setHovered] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -126,6 +124,10 @@ export function TokenSwatch({ color, label, sublabel, oklch, tokenPath, frameId 
               // Keep the override active
               const hex = oklchToDisplayHex(l, c, h)
               if (tokenPath) setOverride(tokenPath, `oklch(${l.toFixed(3)} ${c.toFixed(3)} ${Math.round(h)})`)
+
+              // Derive frameId from DOM — the swatch lives inside a Frame with data-frame-id
+              const frameEl = containerRef.current?.closest('[data-frame-id]')
+              const frameId = frameEl?.getAttribute('data-frame-id') ?? ''
 
               // Post annotation to MCP server
               if (tokenPath && frameId) {

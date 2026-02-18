@@ -72,6 +72,17 @@ function readMigrationFiles(cwd, migration) {
       if (existsSync(abs) && !fileContents[rel]) {
         fileContents[rel] = readFileSync(abs, 'utf-8')
       }
+
+      // Discover token pages in each iteration (v1/, v2/, etc.)
+      const projDir = join(projectsDir, d.name)
+      for (const v of readdirSync(projDir, { withFileTypes: true })) {
+        if (!v.isDirectory() || !/^v\d+$/.test(v.name)) continue
+        const tokRel = `src/projects/${d.name}/${v.name}/pages/tokens.tsx`
+        const tokAbs = join(cwd, tokRel)
+        if (existsSync(tokAbs) && !fileContents[tokRel]) {
+          fileContents[tokRel] = readFileSync(tokAbs, 'utf-8')
+        }
+      }
     }
   }
 

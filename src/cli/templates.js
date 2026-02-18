@@ -166,7 +166,6 @@ import { TokenSwatch } from 'canvai/runtime'
   sublabel="oklch(0.952 0.003 80)"
   oklch={{ l: 0.952, c: 0.003, h: 80 }}
   tokenPath="--chrome"
-  frameId="v1-tok-colors"
 />
 \\\`\\\`\\\`
 
@@ -176,9 +175,8 @@ Props:
 - \\\`sublabel\\\` — Optional secondary text (e.g. the OKLCH value)
 - \\\`oklch\\\` — If provided, swatch is clickable and opens the color picker (\\\`{ l, c, h }\\\`)
 - \\\`tokenPath\\\` — CSS custom property name for the annotation (e.g. \\\`"--chrome"\\\`)
-- \\\`frameId\\\` — Frame ID from the manifest, used in the annotation payload
 
-When the designer clicks Apply, \\\`TokenSwatch\\\` posts an annotation. The agent updates \\\`tokens.css\\\`. Use \\\`TokenSwatch\\\` for every color token on the Tokens page.
+When the designer clicks Apply, \\\`TokenSwatch\\\` posts an annotation (frame ID is derived automatically from the DOM). The agent updates \\\`tokens.css\\\`. Use \\\`TokenSwatch\\\` for every color token on the Tokens page.
 
 ## Standard frame widths
 

@@ -13,11 +13,9 @@ interface SwatchProps {
   oklch?: { l: number; c: number; h: number }
   /** Token path for annotation comment, e.g. "N.chrome" */
   tokenPath?: string
-  /** Frame ID for annotation, e.g. "v4-tokens" */
-  frameId?: string
 }
 
-export function Swatch({ color, label, sublabel, oklch, tokenPath, frameId }: SwatchProps) {
+export function Swatch({ color, label, sublabel, oklch, tokenPath }: SwatchProps) {
   const [open, setOpen] = useState(false)
   const [hovered, setHovered] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -133,6 +131,10 @@ export function Swatch({ color, label, sublabel, oklch, tokenPath, frameId }: Sw
               // Show pending state with the applied color
               const hex = oklchToDisplayHex(l, c, h)
               setPendingColor(hex)
+
+              // Derive frameId from DOM
+              const frameEl = containerRef.current?.closest('[data-frame-id]')
+              const frameId = frameEl?.getAttribute('data-frame-id') ?? ''
 
               // Post annotation to MCP server
               if (tokenPath && frameId) {
