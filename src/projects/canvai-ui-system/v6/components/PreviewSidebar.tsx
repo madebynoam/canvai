@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Palette, Layers } from 'lucide-react'
 import { S, R, T, ICON, FONT } from '../tokens'
+import { InfoButton } from './InfoButton'
 
 interface PreviewSidebarProps {
   pages: { name: string }[]
@@ -121,6 +122,14 @@ export function PreviewSidebar({ pages, activePageIndex, onSelectPage, collapsed
           ))}
         </div>
       )}
+
+      {/* Spacer */}
+      <div style={{ flex: 1 }} />
+
+      {/* Info button — bottom of sidebar */}
+      <div style={{ padding: `0 ${S.lg}px`, paddingBottom: S.xs }}>
+        <InfoButton />
+      </div>
     </div>
   )
 }
