@@ -1,21 +1,22 @@
 # Canvai — Agent Instructions
 
-Canvai is a design studio. A Figma-like infinite canvas where every design is live React code. The designer describes what they want, the agent builds it on the canvas, the designer annotates elements on the canvas to iterate, and the final code gets PR'd to a production repo.
+Canvai is a design thinking space. An infinite canvas where the designer directs and the agent generates — many variations, many directions, fast. The underlying format is live React code (not a proprietary tree), so ideas move freely from exploration to production. The designer describes, reacts, annotates, and refines. The agent does the hand-work.
 
 ## Tenets
 
 Tenets are decision-making tools — each names the alternative and rejects it.
 
-1. **The code is the design.** Not a mockup. Not a specification. The thing on the canvas runs. What the designer sees is what ships. There is no handoff because there is nothing to hand off.
+1. **The code is the design.** Not a mockup. Not a proprietary format. The thing on the canvas runs — what the designer sees is live, not a simulation. Because the format is code, shipping to production is a command, not a project. The canvas is exploration space first, production pipeline second.
 2. **One component, infinite states.** Not an app. Not a page. Canvai renders every variation and state of a single component on one canvas — the matrix is the design artifact. Completeness is visible at a glance.
 3. **Point, don't describe.** Not a ticket. Not a meeting. The designer clicks the element, types the change, and the agent applies it. The annotation carries the selector, the computed styles, and the intent. No ambiguity survives the click.
 4. **The agent never waits.** Not a sprint. Not a queue. Every annotation resolves in the same session. The feedback loop is measured in seconds, not days. Speed is not a feature — it is the product.
 5. **The canvas is the only meeting room.** Not Slack. Not Figma comments. Every decision is made on the canvas, visible in the changelog, and shipped from the same place it was designed. Context never leaves the surface it was created on.
+6. **Proliferate before converging.** Not one option. Not a single interpretation. When a designer describes anything for the first time, generate multiple distinct design directions — different bets, not just different states of the same idea. The canvas has infinite room; use it. The designer's job is to react and select, not to specify every detail upfront. Three directions minimum on first pass.
 
 ## User workflow
 
 1. **`/canvai-init <project-name>`** — Creates a new design project, installs canvai if needed, starts the dev server + annotation MCP.
-2. **Describe** — The designer describes the component (or attaches a sketch). The agent generates the component with variations and states as a manifest.
+2. **Describe** — The designer describes the component (or attaches a sketch). The agent generates **multiple distinct design directions** — not just one version with states, but several different design bets shown simultaneously on the canvas. The designer reacts visually and picks a direction (or mixes elements). Then refine from there.
 3. **Annotate** — The designer clicks "Annotate" on the canvas, selects an element, types a comment, and clicks "Apply". The annotation is pushed to the agent automatically via the MCP watch loop.
 4. **`/canvai-iterate`** — Creates a new iteration (complete snapshot copy). Old iterations are frozen.
 5. **`/canvai-ship`** — PR the finished components to a production codebase.
@@ -198,7 +199,21 @@ export default manifest
 
 ## Component matrix
 
-When the designer describes a component, think through its **variations** and **states**, then generate all meaningful combinations as frames in the manifest.
+### Design directions (proliferate first)
+
+When a designer first describes a component or feature, do NOT generate one design and ask for feedback. Generate **multiple distinct design directions** as separate pages — different visual bets, not just different states of the same idea:
+
+- **Direction A** — e.g. minimal / type-driven / restrained
+- **Direction B** — e.g. structured / geometric / grid-anchored
+- **Direction C** — e.g. expressive / token-forward / higher contrast
+
+Each direction should make a genuinely different design bet. Show all of them on the canvas simultaneously. Let the designer react — "I like A's density with C's color" — then converge. Three directions minimum. Use the canvas's infinite room.
+
+The designer is not a spec-writer. They are a reactor and curator. Your job is to give them things to react to.
+
+### States and variations (within a direction)
+
+Once a direction is chosen, think through its **variations** and **states**, then generate all meaningful combinations as frames in the manifest.
 
 - **Columns** = states or interaction phases (e.g. Default, Hover, Active, Disabled)
 - **Rows** = variations or content scenarios (e.g. Short text, Long text, With icon, Error)
