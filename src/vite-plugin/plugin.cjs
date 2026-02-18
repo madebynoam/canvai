@@ -1,6 +1,8 @@
 const fs = require('fs')
 const path = require('path')
 
+const pkg = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../../package.json'), 'utf-8'))
+
 const VIRTUAL_MODULE_ID = 'virtual:canvai-manifests'
 const RESOLVED_VIRTUAL_MODULE_ID = '\0' + VIRTUAL_MODULE_ID
 
@@ -32,6 +34,14 @@ function canvaiPlugin() {
 
   return {
     name: 'canvai-manifests',
+
+    config() {
+      return {
+        define: {
+          '__CANVAI_VERSION__': JSON.stringify(pkg.version),
+        },
+      }
+    },
 
     configResolved(config) {
       projectsDir = path.resolve(config.root, 'src/projects')
