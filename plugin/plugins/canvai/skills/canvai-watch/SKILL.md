@@ -26,7 +26,12 @@ The dev server must be running (`/canvai-dev` or `npx canvai dev`).
      2. Check component hierarchy — if target is in `pages/`, route changes through `components/`
      3. Check `components/index.ts` for existing components before creating new ones
    - Map the annotation to the relevant file in `v<N>/components/` or `v<N>/pages/`
-   - Edit the component/page file to apply the requested change
+   - **Token routing:** If the annotation changes a visual value (color, background, border, shadow, size, spacing):
+     1. Open `v<N>/tokens.css` and look for a matching semantic token
+     2. Found → update the token value; the component already uses `var(--token)`, no component edit needed
+     3. Not found → add a new semantic token to `tokens.css`, then update the component to use `var(--new-token)`
+     4. Never hardcode a visual value — not in components, not in pages, ever
+   - Edit the component/page file to apply structural changes (layout, composition, new elements)
    - Call `resolve_annotation` with the annotation `id`
    - Log the change to `CHANGELOG.md`
    - Commit the changes: `git add src/projects/ && git commit -m 'style: annotation #<N> — <brief description>'`

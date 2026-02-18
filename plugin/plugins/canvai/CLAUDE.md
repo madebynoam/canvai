@@ -140,7 +140,7 @@ Before editing any file in `src/projects/<name>/v<N>/`:
 1. **Read `manifest.ts`** — check if `v<N>` is `frozen: true`. If frozen, stop.
 2. **Component hierarchy check:**
    - Editing a file in `pages/`? → It MUST import only from `../components/`. No raw styled HTML.
-   - Editing a file in `components/`? → It MUST use only `var(--token)` for visual values. No hardcoded colors.
+   - Editing a file in `components/`? → It MUST use only `var(--token)` for visual values. No hardcoded colors. If you need a value that doesn't have a token yet, create the token first in `v<N>/tokens.css`.
 3. **Check `components/index.ts`** — does a component already exist for what you need?
    - Yes → import and use it.
    - No → create it in `components/` first, add to `index.ts`, then use it in the page.
@@ -475,7 +475,13 @@ When an annotation arrives (via either mode):
 2. **Follow the guard protocol** — check frozen status, component hierarchy
 3. Map the `componentName` and `selector` to the relevant file in `v<N>/components/` or `v<N>/pages/`
 4. If the change targets a page, ensure changes go through components (create/modify a component, then use it)
-5. Apply the requested changes
+5. **Route visual changes through tokens:**
+   - If the annotation changes a visual value (color, background, border, shadow, spacing, typography):
+     a. Open `v<N>/tokens.css` — find the matching semantic token
+     b. If a matching token exists: update its value (the component already uses `var(--token)`)
+     c. If no matching token exists: create a new semantic token (e.g. `--button-secondary-bg`), add it to `tokens.css`, then reference it as `var(--token-name)` in the component
+     d. Never apply a hardcoded value — not in components, not in pages
+   - If the annotation changes structure (layout, composition, new element): follow the component hierarchy — pages import from components, never inline styled HTML
 6. Call `resolve_annotation` with the annotation ID
 7. **Log the change** to `src/projects/<project-name>/CHANGELOG.md`
 

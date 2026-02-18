@@ -21,6 +21,11 @@ Check for pending canvas annotations and process them.
      3. Check `components/index.ts` — does a component already exist for this?
    - Map the annotation to the relevant file in `v<N>/components/` or `v<N>/pages/`
    - If the change targets a page element, modify or create the component in `components/` first, then update the page
+   - **Token routing:** If the annotation changes a visual value (color, background, border, shadow, size, spacing):
+     1. Open `v<N>/tokens.css` and look for a matching semantic token
+     2. Found → update the token value; the component already uses `var(--token)`, no component edit needed
+     3. Not found → add a new semantic token to `tokens.css`, then update the component to use `var(--new-token)`
+     4. Never hardcode a visual value — not in components, not in pages, ever
    - Apply the requested changes
    - **Showcase guard:** If you created a new component file, verify it's exported from `components/index.ts` AND has a showcase entry in `pages/components.tsx` with its variations and states. Both registrations are mandatory — a component the designer can't see on the Components page can't be annotated.
    - Call `resolve_annotation` with the annotation ID
