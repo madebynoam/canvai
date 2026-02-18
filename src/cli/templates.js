@@ -224,3 +224,20 @@ export const tsconfigNodeJson = `{
   "include": ["vite.config.ts"]
 }
 `
+
+export const gitignore = `node_modules
+dist
+.DS_Store
+*.local
+.canvai
+`
+
+export const mcpJson = `{
+  "mcpServers": {
+    "canvai-annotations": {
+      "command": "node",
+      "args": ["node_modules/canvai/src/mcp/mcp-server.js"]
+    }
+  }
+}
+`

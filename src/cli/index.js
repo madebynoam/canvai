@@ -18,6 +18,8 @@ import {
   tsconfigNodeJson,
   claudeSettingsJson,
   claudeMd,
+  gitignore,
+  mcpJson,
 } from './templates.js'
 import { runMigrations, writeMarker, getCanvaiVersion } from './migrate.js'
 
@@ -38,6 +40,8 @@ function scaffold() {
     ['src/vite-env.d.ts', viteEnvDts],
     ['.claude/settings.json', claudeSettingsJson],
     ['CLAUDE.md', claudeMd],
+    ['.gitignore', gitignore],
+    ['.mcp.json', mcpJson],
   ]
 
   let wrote = 0
