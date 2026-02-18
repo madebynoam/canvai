@@ -20,6 +20,11 @@ import './v6/tokens.css'
 import { Tokens as V6Tokens } from './v6/pages/tokens'
 import { Components as V6Components } from './v6/pages/components'
 import { Shell as V6Shell } from './v6/pages/shell'
+import './v7/tokens.css'
+import { Tokens as V7Tokens } from './v7/pages/tokens'
+import { Components as V7Components } from './v7/pages/components'
+import { Shell as V7Shell } from './v7/pages/shell'
+import { FlowStep1_SignIn, FlowStep2_Compose, FlowStep3_Thread, FlowStep4_Pins, FlowStep5_Promote, FlowStep6_DeepLink, FlowStep7_Resolve } from './v7/pages/comments'
 import type { ProjectManifest } from '../../runtime/types'
 
 const manifest: ProjectManifest = {
@@ -162,7 +167,7 @@ const manifest: ProjectManifest = {
     },
     {
       name: 'V6',
-      frozen: false,
+      frozen: true,
       pages: [
         {
           name: 'Tokens',
@@ -183,6 +188,46 @@ const manifest: ProjectManifest = {
           grid: { columns: 1, columnWidth: 900, rowHeight: 1200, gap: 40 },
           frames: [
             { id: 'v6-shell', title: 'Shell — Layout Options', component: V6Shell },
+          ],
+        },
+      ],
+    },
+    {
+      name: 'V7',
+      frozen: false,
+      pages: [
+        {
+          name: 'Tokens',
+          grid: { columns: 1, columnWidth: 560, rowHeight: 1600, gap: 40 },
+          frames: [
+            { id: 'v7-tokens', title: 'OKLCH Token System', component: V7Tokens },
+          ],
+        },
+        {
+          name: 'Components',
+          grid: { columns: 1, columnWidth: 640, rowHeight: 2400, gap: 40 },
+          frames: [
+            { id: 'v7-components', title: 'Runtime Components — Live', component: V7Components },
+          ],
+        },
+        {
+          name: 'Shell',
+          grid: { columns: 1, columnWidth: 900, rowHeight: 1200, gap: 40 },
+          frames: [
+            { id: 'v7-shell', title: 'Shell — Layout Options', component: V7Shell },
+          ],
+        },
+        {
+          name: 'GitHub Comments Flow',
+          grid: { columns: 2, columnWidth: 560, rowHeight: 440, gap: 40 },
+          frames: [
+            { id: 'v7-step1-signin', title: 'Step 1 — Sign In', component: FlowStep1_SignIn },
+            { id: 'v7-step2-compose', title: 'Step 2 — Target & Compose', component: FlowStep2_Compose },
+            { id: 'v7-step3-thread', title: 'Step 3 — Thread', component: FlowStep3_Thread },
+            { id: 'v7-step4-pins', title: 'Step 4 — Pins', component: FlowStep4_Pins },
+            { id: 'v7-step5-promote', title: 'Step 5 — Promote to Annotation', component: FlowStep5_Promote },
+            { id: 'v7-step6-deeplink', title: 'Step 6 — Copy Link → Deep Link', component: FlowStep6_DeepLink },
+            { id: 'v7-step7-resolve', title: 'Step 7 — Resolve', component: FlowStep7_Resolve },
           ],
         },
       ],

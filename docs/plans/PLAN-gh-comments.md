@@ -5,10 +5,10 @@
 Threaded comments on the canvas, backed by GitHub Issues. Designers and collaborators can pin conversations to specific elements, reply in threads, react, and promote comments to annotations (agent instructions). Comments are for human-to-human discussion on shared builds; annotations are for human-to-agent instructions during dev.
 
 **Key distinction:**
-- **Comment** (purple `#6366F1`) — conversation between people, persisted as GitHub Issues
-- **Annotation** (orange `#E8590C`) — direct instruction to the agent, lives in-memory on the MCP server
+- **Comment** (accent `A.accent` — charcoal) — conversation between people, persisted as GitHub Issues
+- **Annotation** (accent `A.accent` — same system accent) — direct instruction to the agent, lives in-memory on the MCP server
 
-The UI prototypes already exist in the V5 canvai-ui showcase (`src/projects/canvai-ui/CommentThread.tsx` and `CommentThreadV2.tsx`). This plan turns those mockups into a working feature.
+The UI prototypes live in the V7 canvai-ui-system showcase (`src/projects/canvai-ui-system/v7/CommentFlowV7.tsx`) — 7 interactive steps covering the full flow: sign-in, targeting, thread view, pins, annotation promotion, deep links, and resolve. This plan implements the backend and overlay to make those prototypes functional.
 
 ---
 
@@ -280,12 +280,12 @@ Separate from `AnnotationOverlay.tsx`. Both render as siblings in `App.tsx`. The
 ```
 idle
   └─ comment pins visible on canvas
-  └─ purple comment FAB (bottom-right, stacked above annotation FAB)
+  └─ comment FAB (bottom-right, stacked above annotation FAB)
   └─ click pin → open thread card
 
 targeting
   └─ transparent overlay captures pointer events
-  └─ highlight box follows cursor (purple border, not orange)
+  └─ highlight box follows cursor (accent border + A.muted fill)
   └─ click element → open compose card
 
 composing
@@ -326,10 +326,10 @@ Two round FABs (40px, `borderRadius: 50%`) stack vertically in the bottom-right 
 
 ```
                       ╭───╮
-  Comment (purple)    │ 💬│  ← top
+  Comment (accent)    │ 💬│  ← top
                       ╰───╯
                       ╭───╮
-  Annotate (orange)   │ ✏️ │  ← bottom (existing)
+  Annotate (accent)   │ ✏️ │  ← bottom (existing)
                       ╰───╯
 ```
 
