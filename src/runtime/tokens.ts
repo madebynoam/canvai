@@ -14,7 +14,7 @@ function oklch(l: number, c: number, h: number): string {
 
 /* Neutrals — white chrome, cool canvas */
 export const N = {
-  chrome:     oklch(1.000, 0, 0),
+  chrome:     oklch(0.985, 0.000, 90),
   chromeSub:  oklch(0.955, 0.003, 80),
   canvas:     oklch(0.972, 0.001, 197),
   card:       oklch(0.993, 0.003, 80),
