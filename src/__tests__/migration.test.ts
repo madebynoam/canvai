@@ -1162,6 +1162,77 @@ describe('migration 0.0.27', () => {
   })
 })
 
+// --- Migration 0.0.28: Design directions section in CLAUDE.md ---
+
+const claudeMdWithoutDesignDirections = `# Project Rules
+
+These rules are enforced by the agent. Do not remove this file.
+
+## Component hierarchy
+
+\`\`\`
+Tokens (v<N>/tokens.css)     → OKLCH custom properties, all visual values
+  ↓
+Components (v<N>/components/) → use ONLY var(--token), can compose each other
+  ↓
+Pages (v<N>/pages/)           → import ONLY from ../components/, no raw styled HTML
+\`\`\`
+
+## Hard constraints
+
+- **All colors in OKLCH.**
+- **All spacing multiples of 4.**
+
+## Before any edit
+
+1. Read manifest.ts
+`
+
+describe('migration 0.0.28', () => {
+  const migration = migrations.find(m => m.version === '0.0.28')!
+
+  it('exists in the registry', () => {
+    expect(migration).toBeDefined()
+    expect(migration.version).toBe('0.0.28')
+  })
+
+  it('applies when CLAUDE.md has Component hierarchy but no Design directions', () => {
+    expect(migration.applies({ 'CLAUDE.md': claudeMdWithoutDesignDirections })).toBe(true)
+  })
+
+  it('does not apply when CLAUDE.md already has Design directions', () => {
+    const updated = claudeMdWithoutDesignDirections.replace('## Component hierarchy', '## Design directions (proliferate first)\n\nContent.\n\n## Component hierarchy')
+    expect(migration.applies({ 'CLAUDE.md': updated })).toBe(false)
+  })
+
+  it('does not apply when CLAUDE.md is missing', () => {
+    expect(migration.applies({})).toBe(false)
+  })
+
+  it('does not apply when CLAUDE.md has no Component hierarchy section', () => {
+    expect(migration.applies({ 'CLAUDE.md': '# Custom rules\nNo component hierarchy here.' })).toBe(false)
+  })
+
+  it('inserts Design directions section before Component hierarchy', () => {
+    const result = migration.migrate({ 'CLAUDE.md': claudeMdWithoutDesignDirections })
+    const output = result['CLAUDE.md']
+    expect(output).toContain('## Design directions (proliferate first)')
+    expect(output).toContain('Direction A')
+    expect(output).toContain('Direction B')
+    expect(output).toContain('Direction C')
+    expect(output).toContain('Three directions minimum')
+    const directionsIdx = output.indexOf('## Design directions')
+    const hierarchyIdx = output.indexOf('## Component hierarchy')
+    expect(directionsIdx).toBeGreaterThan(-1)
+    expect(hierarchyIdx).toBeGreaterThan(directionsIdx)
+  })
+
+  it('is idempotent', () => {
+    const first = migration.migrate({ 'CLAUDE.md': claudeMdWithoutDesignDirections })
+    expect(migration.applies({ 'CLAUDE.md': first['CLAUDE.md'] })).toBe(false)
+  })
+})
+
 describe('compareSemver', () => {
   it('handles equal versions', () => {
     expect(compareSemver('0.0.10', '0.0.10')).toBe(0)
