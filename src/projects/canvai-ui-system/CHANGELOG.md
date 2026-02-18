@@ -1,5 +1,9 @@
 # canvai-ui-system
 
+## V7
+
+- **CommentFlowV7 avatars**: All avatars now use `F.marker` (annotation blue) instead of per-user differentiation colors (annotation #1)
+
 ## V6
 
 - **Frame content wrapper**: Removed border-radius and box-shadow from frame content — cleaner, no visual border around frames (annotation #3)

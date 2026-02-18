@@ -23,12 +23,11 @@ const THREAD_MENU_ITEMS = [
 /* ── Primitives ────────────────────────────── */
 
 function Avatar({ name, size = 28, color }: { name: string; size?: number; color?: string }) {
-  const colors: Record<string, string> = { G: A.accent, N: A.hover, S: '#0EA5E9', M: '#8B5CF6', A: '#10B981' }
   const letter = name.charAt(0).toUpperCase()
   return (
     <div style={{
       width: size, height: size, borderRadius: '50%', flexShrink: 0,
-      backgroundColor: color || colors[letter] || N.txtSec, color: 'oklch(1 0 0)',
+      backgroundColor: color || F.marker, color: 'oklch(1 0 0)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       fontSize: size * 0.4, fontWeight: 600, fontFamily: FONT,
     }}>
@@ -727,7 +726,7 @@ export function FlowStep4_Pins() {
 
         {/* Pin 2 — active, no replies */}
         <div style={{ position: 'absolute', top: 48, left: 200 }}>
-          <Avatar name="Sarah" size={28} color="#0EA5E9" />
+          <Avatar name="Sarah" size={28} />
         </div>
 
         {/* Pin 3 — with annotation dot */}
