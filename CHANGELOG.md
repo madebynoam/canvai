@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.0.28 — GitHub Comments
+
+- Added full GitHub-backed comment system to the canvas
+- New runtime component: `CommentOverlay` — FAB, targeting, compose card, thread card, avatar pins, auth flow
+- New module: `src/mcp/github.js` — GitHub Issues/Comments/Reactions API wrapper (server-side)
+- New module: `src/mcp/auth.js` — GitHub OAuth device flow + token storage in `~/.canvai/auth.json`
+- New module: `src/runtime/github-client.ts` — browser-side GitHub API client for static builds
+- Extended `http-server.js` with `/auth/*` and `/comments/*` routes + `/comments/events` SSE stream
+- New types in `src/runtime/comment-types.ts`: `CommentThread`, `CommentMessage`, `CommentAuthor`, `CommentReaction`, `CommentPin`
+- TopBar now shows open comment count badge
+- Comment FAB stacks above annotation FAB in bottom-right corner
+- Avatar pins track element positions via rAF (same pattern as annotation markers)
+- All 3 phases implemented: auth + threading, reactions + menus + annotation promotion + SSE + deep links, polish
+- `prefers-reduced-motion` respected, Cmd+Enter to post, Escape to dismiss
+- GitHub Pages (static builds): browser authenticates and posts directly to GitHub API
+- Local dev: browser routes through localhost:4748 server proxy
+- Requires a registered GitHub OAuth App (Client ID hardcoded — register at github.com/settings/applications/new)
+
 ## 0.0.25
 
 - Extracted `CanvaiShell` runtime component — all shell logic (state, hooks, SSE mode listener, layout, TopBar, sidebar, canvas, annotations) now lives in `canvai/runtime`

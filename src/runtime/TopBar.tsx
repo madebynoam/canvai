@@ -11,6 +11,7 @@ interface TopBarProps {
   activeIterationIndex: number
   onSelectIteration: (index: number) => void
   pendingCount: number
+  commentCount?: number
   mode: 'manual' | 'watch'
   sidebarOpen: boolean
   onToggleSidebar: () => void
@@ -28,6 +29,7 @@ export function TopBar({
   activeIterationIndex,
   onSelectIteration,
   pendingCount,
+  commentCount = 0,
   mode,
   sidebarOpen,
   onToggleSidebar,
@@ -113,6 +115,31 @@ export function TopBar({
               {pendingCount}
             </div>
             <span style={{ fontSize: T.caption, color: A.accent, fontWeight: 500 }}>pending</span>
+          </div>
+        )}
+
+        {/* Comment count badge */}
+        {commentCount > 0 && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: S.xs }}>
+            <div
+              style={{
+                minWidth: S.lg,
+                height: S.lg,
+                borderRadius: R.card,
+                backgroundColor: N.chromeSub,
+                border: `1px solid ${N.border}`,
+                color: N.txtTer,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: T.label,
+                fontWeight: 600,
+                padding: `0 ${S.xs}px`,
+              }}
+            >
+              {commentCount}
+            </div>
+            <span style={{ fontSize: T.caption, color: N.txtTer }}>comments</span>
           </div>
         )}
 

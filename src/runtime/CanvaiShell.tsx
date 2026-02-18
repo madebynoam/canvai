@@ -6,6 +6,7 @@ import { layoutFrames } from './layout'
 import { TopBar } from './TopBar'
 import { IterationSidebar } from './IterationSidebar'
 import { AnnotationOverlay } from './AnnotationOverlay'
+import { CommentOverlay } from './CommentOverlay'
 import { useNavMemory } from './useNavMemory'
 import { ZoomControl } from './ZoomControl'
 import { CanvasColorPicker } from './CanvasColorPicker'
@@ -22,6 +23,7 @@ export function CanvaiShell({ manifests, annotationEndpoint = 'http://localhost:
   const [activeProjectIndex, setActiveProjectIndex] = useState(0)
   const [mode, setMode] = useState<'manual' | 'watch'>('manual')
   const [pendingCount, setPendingCount] = useState(0)
+  const [commentCount, setCommentCount] = useState(0)
   const [sidebarOpen, setSidebarOpen] = useState(true)
 
   const activeProject: ProjectManifest | undefined = manifests[activeProjectIndex]
@@ -67,6 +69,7 @@ export function CanvaiShell({ manifests, annotationEndpoint = 'http://localhost:
         activeIterationIndex={activeIterationIndex}
         onSelectIteration={setActiveIterationIndex}
         pendingCount={pendingCount}
+        commentCount={commentCount}
         mode={mode}
         sidebarOpen={sidebarOpen}
         onToggleSidebar={() => setSidebarOpen(o => !o)}
@@ -123,6 +126,7 @@ export function CanvaiShell({ manifests, annotationEndpoint = 'http://localhost:
       </div>
 
       {import.meta.env.DEV && <AnnotationOverlay endpoint={annotationEndpoint} frames={frames} annotateMode={mode} onPendingChange={setPendingCount} />}
+      <CommentOverlay endpoint={annotationEndpoint} frames={frames} onCommentCountChange={setCommentCount} />
     </div>
   )
 }
