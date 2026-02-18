@@ -1097,6 +1097,71 @@ describe('migration 0.0.26', () => {
   })
 })
 
+// --- Migration 0.0.27: Add .mcp.json for annotation MCP ---
+
+const mcpJsonWithoutAnnotations = `{
+  "mcpServers": {
+    "some-other-server": {
+      "command": "node",
+      "args": ["node_modules/some-pkg/server.js"]
+    }
+  }
+}
+`
+
+describe('migration 0.0.27', () => {
+  const migration = migrations.find(m => m.version === '0.0.27')!
+
+  it('exists in the registry', () => {
+    expect(migration).toBeDefined()
+    expect(migration.version).toBe('0.0.27')
+  })
+
+  it('applies when .mcp.json is missing from fileContents', () => {
+    expect(migration.applies({})).toBe(true)
+  })
+
+  it('applies when .mcp.json exists but lacks the canvai-annotations key', () => {
+    expect(migration.applies({ '.mcp.json': mcpJsonWithoutAnnotations })).toBe(true)
+  })
+
+  it('does not apply when canvai-annotations is already present (idempotency)', () => {
+    const alreadyMigrated = JSON.stringify(
+      { mcpServers: { 'canvai-annotations': { command: 'node', args: ['node_modules/canvai/src/mcp/mcp-server.js'] } } },
+      null,
+      2,
+    ) + '\n'
+    expect(migration.applies({ '.mcp.json': alreadyMigrated })).toBe(false)
+  })
+
+  it('does not apply when .mcp.json contains malformed JSON', () => {
+    expect(migration.applies({ '.mcp.json': '{ not valid json' })).toBe(false)
+  })
+
+  it('creates correct .mcp.json from scratch', () => {
+    const result = migration.migrate({})
+    const output = result['.mcp.json']
+    expect(output).toBeDefined()
+    const parsed = JSON.parse(output)
+    expect(parsed.mcpServers['canvai-annotations']).toBeDefined()
+    expect(parsed.mcpServers['canvai-annotations'].command).toBe('node')
+    expect(parsed.mcpServers['canvai-annotations'].args).toEqual(['node_modules/canvai/src/mcp/mcp-server.js'])
+  })
+
+  it('merges canvai-annotations into existing .mcp.json without losing other entries', () => {
+    const result = migration.migrate({ '.mcp.json': mcpJsonWithoutAnnotations })
+    const output = result['.mcp.json']
+    expect(output).toBeDefined()
+    const parsed = JSON.parse(output)
+    expect(parsed.mcpServers['canvai-annotations']).toBeDefined()
+    expect(parsed.mcpServers['canvai-annotations'].command).toBe('node')
+    expect(parsed.mcpServers['canvai-annotations'].args).toEqual(['node_modules/canvai/src/mcp/mcp-server.js'])
+    // Existing entry must be preserved
+    expect(parsed.mcpServers['some-other-server']).toBeDefined()
+    expect(parsed.mcpServers['some-other-server'].command).toBe('node')
+  })
+})
+
 describe('compareSemver', () => {
   it('handles equal versions', () => {
     expect(compareSemver('0.0.10', '0.0.10')).toBe(0)
