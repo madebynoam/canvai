@@ -314,9 +314,10 @@ Pins are rendered as fixed-position elements (like annotation markers) but use t
 />
 ```
 
-- **Active pin:** Avatar circle (28px) + reply count badge (top-right, 14px)
-- **Annotated pin:** Avatar + orange dot (bottom-right, 10px)
-- **Resolved pin:** Faded checkmark circle (opacity 0.5)
+- **Active pin:** Avatar circle (28px) + reply count badge (top-right, 16px / `S.lg`)
+- **Annotated pin:** Avatar + `A.accent` dot (bottom-right, 10px)
+- **Resolved pin:** Faded `F.resolved` checkmark circle (opacity 0.5)
+- **Avatar color:** All avatars use `F.marker` (annotation blue) — no per-user differentiation
 
 Pins track element positions via rAF (same pattern as annotation markers).
 
@@ -340,8 +341,8 @@ Both FABs appear in all served modes (`canvai dev` and `canvai share --serve`). 
 When a user clicks "Add as annotation" on a message (only available in `canvai dev`):
 
 1. `POST /comments/:id/annotate` sends the comment text + targeting info to the existing `addAnnotation()` flow
-2. The annotation is a **copy** — same as if the designer typed it via the orange FAB
-3. The thread card shows an "Annotation #N — Queued" banner (orange accent)
+2. The annotation is a **copy** — same as if the designer typed it via the accent FAB
+3. The thread card shows an "Annotation #N — Queued" banner (`A.muted` bg, `A.accent` text)
 4. The agent picks it up via `get_pending_annotations` like any other annotation
 5. When the agent resolves it, the banner disappears
 6. The comment thread stays open for further discussion
