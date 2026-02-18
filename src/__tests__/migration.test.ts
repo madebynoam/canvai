@@ -324,16 +324,14 @@ describe('migration 0.0.16 integration', () => {
     expect(pagesIdx).toBeGreaterThan(iterationsIdx)
   })
 
-  it('current template and current manifest format are compatible', () => {
-    // The template uses useNavMemory for iteration/page state
-    expect(appTsx).toContain('useNavMemory')
-    expect(appTsx).toContain('iterations?.[activeIterationIndex]')
-    expect(appTsx).toContain('.pages?.[activePageIndex]')
-    // TopBar receives iterations array directly
-    expect(appTsx).toContain('iterations={activeProject?.iterations')
-    // Iteration CSS scoping
-    expect(appTsx).toContain('iterClass')
-    expect(appTsx).toContain('className={iterClass}')
+  it('current template uses CanvaiShell (all shell logic is in runtime)', () => {
+    expect(appTsx).toContain('CanvaiShell')
+    expect(appTsx).toContain("from 'canvai/runtime'")
+    expect(appTsx).toContain('manifests')
+    // No shell boilerplate in template
+    expect(appTsx).not.toContain('TopBar')
+    expect(appTsx).not.toContain('IterationSidebar')
+    expect(appTsx).not.toContain('useNavMemory')
   })
 })
 
@@ -873,6 +871,104 @@ describe('migration 0.0.24', () => {
     })
     expect(result['.claude/settings.json']).toContain('rules-guard')
     expect(result['CLAUDE.md']).toContain('Commit after each change')
+  })
+})
+
+// --- Migration 0.0.25: CanvaiShell extraction ---
+
+// The 0.0.24 template (pre-0.0.25) — has TopBar + IterationSidebar + Canvas boilerplate
+const pre025AppTsx = `import { useState, useEffect } from 'react'
+import { Canvas, Frame, useFrames, useNavMemory, layoutFrames, TopBar, IterationPills, IterationSidebar, AnnotationOverlay, ZoomControl, CanvasColorPicker, loadCanvasBg, saveCanvasBg, N, E } from 'canvai/runtime'
+import { manifests } from 'virtual:canvai-manifests'
+import type { ProjectManifest } from 'canvai/runtime'
+
+function App() {
+  const [activeProjectIndex, setActiveProjectIndex] = useState(0)
+  const [sidebarOpen, setSidebarOpen] = useState(true)
+
+  const activeProject: ProjectManifest | undefined = manifests[activeProjectIndex]
+
+  return (
+    <div id="canvai-root">
+      <TopBar projects={manifests} />
+      <IterationSidebar />
+      <Canvas pageKey="test">
+        <Frame key="f1" id="f1" title="F1" x={0} y={0} width={100} height={100} onMove={() => {}} onResize={() => {}}>
+          <div />
+        </Frame>
+      </Canvas>
+    </div>
+  )
+}
+
+export default App
+`
+
+const migratedAppTsx = `import { CanvaiShell } from 'canvai/runtime'
+import { manifests } from 'virtual:canvai-manifests'
+
+export default function App() {
+  return <CanvaiShell manifests={manifests} />
+}
+`
+
+describe('migration 0.0.25', () => {
+  const migration = migrations.find(m => m.version === '0.0.25')!
+
+  it('exists in the registry', () => {
+    expect(migration).toBeDefined()
+    expect(migration.version).toBe('0.0.25')
+  })
+
+  it('applies to 0.0.24 template with TopBar + IterationSidebar + Canvas', () => {
+    expect(migration.applies({ 'src/App.tsx': pre025AppTsx })).toBe(true)
+  })
+
+  it('applies to pre-0.0.10 template with PageTabs/ProjectSidebar', () => {
+    expect(migration.applies({ 'src/App.tsx': oldAppTsx })).toBe(true)
+  })
+
+  it('does not apply when CanvaiShell already present', () => {
+    expect(migration.applies({ 'src/App.tsx': migratedAppTsx })).toBe(false)
+  })
+
+  it('does not apply when file is missing', () => {
+    expect(migration.applies({})).toBe(false)
+  })
+
+  it('produces correct CanvaiShell output', () => {
+    const result = migration.migrate({ 'src/App.tsx': pre025AppTsx })
+    expect(result['src/App.tsx']).toBe(migratedAppTsx)
+  })
+
+  it('is idempotent — applies() returns false after migrate()', () => {
+    const result = migration.migrate({ 'src/App.tsx': pre025AppTsx })
+    expect(migration.applies({ 'src/App.tsx': result['src/App.tsx'] })).toBe(false)
+  })
+
+  it('migrates pre-0.0.10 template to CanvaiShell', () => {
+    const result = migration.migrate({ 'src/App.tsx': oldAppTsx })
+    expect(result['src/App.tsx']).toBe(migratedAppTsx)
+  })
+})
+
+// --- Old migrations safely skip the CanvaiShell output ---
+
+describe('old migrations skip CanvaiShell output', () => {
+  const m0010 = migrations.find(m => m.version === '0.0.10')!
+  const m0016 = migrations.find(m => m.version === '0.0.16')!
+  const m0023 = migrations.find(m => m.version === '0.0.23')!
+
+  it('0.0.10 skips — no PageTabs or ProjectSidebar', () => {
+    expect(m0010.applies({ 'src/App.tsx': migratedAppTsx })).toBe(false)
+  })
+
+  it('0.0.16 skips — no flat pages pattern', () => {
+    expect(m0016.applies({ 'src/App.tsx': migratedAppTsx })).toBe(false)
+  })
+
+  it('0.0.23 skips — no Canvas substring (CanvaiShell differs at pos 5)', () => {
+    expect(m0023.applies({ 'src/App.tsx': migratedAppTsx })).toBe(false)
   })
 })
 

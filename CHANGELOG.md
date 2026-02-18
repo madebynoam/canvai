@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.0.25
+
+- Extracted `CanvaiShell` runtime component — all shell logic (state, hooks, SSE mode listener, layout, TopBar, sidebar, canvas, annotations) now lives in `canvai/runtime`
+- Consumer `App.tsx` reduced from ~100 lines of boilerplate to a 6-line wrapper: `<CanvaiShell manifests={manifests} />`
+- Shell changes now ship via `npm update` — no more fragile regex migrations to patch App.tsx
+- SSE mode listener (watch/manual) now available to all consumers (previously repo-only)
+- Migration 0.0.25: replaces existing consumer App.tsx boilerplate with the CanvaiShell import
+
 ## 0.0.24
 
 - Added `rules-guard` PreToolUse hook — blocks writes violating the token → component → page hierarchy (hardcoded colors in components, direct token imports in pages, non-OKLCH values in tokens.css)

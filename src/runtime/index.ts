@@ -16,3 +16,4 @@ export type { CanvasFrame, ManifestFrame, PageManifest, IterationManifest, Proje
 export type { CanvaiAnnotation } from './annotation-types'
 export { ColorPicker } from './ColorPicker'
 export { TokenSwatch } from './TokenSwatch'
+export { CanvaiShell } from './CanvaiShell'
