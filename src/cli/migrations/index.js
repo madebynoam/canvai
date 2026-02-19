@@ -17,6 +17,8 @@ import * as m0025 from './0.0.25.js'
 import * as m0026 from './0.0.26.js'
 import * as m0027 from './0.0.27.js'
 import * as m0028 from './0.0.28.js'
+import * as m0029 from './0.0.29.js'
+import * as m0030 from './0.0.30.js'
 
 /** Migrations sorted by version (ascending). */
-export const migrations = [m0010, m0016, m0017, m0018, m0019, m0020, m0021, m0022, m0023, m0024, m0025, m0026, m0027, m0028]
+export const migrations = [m0010, m0016, m0017, m0018, m0019, m0020, m0021, m0022, m0023, m0024, m0025, m0026, m0027, m0028, m0029, m0030]

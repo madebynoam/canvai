@@ -1233,6 +1233,248 @@ describe('migration 0.0.28', () => {
   })
 })
 
+// --- Migration 0.0.29: Swatch → TokenSwatch ---
+
+const oldTokensPageWithSwatch = `import { S, FONT } from '../tokens'
+import { Swatch, ScaleRow } from '../components'
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return <div>{children}</div>
+}
+
+export function Tokens() {
+  return (
+    <div style={{ padding: 24, fontFamily: FONT }}>
+      <Section title="Neutrals">
+        <Swatch color="var(--chrome)" label="chrome" sublabel="sidebar" />
+        <Swatch color="var(--canvas)" label="canvas" sublabel="workspace" />
+        <Swatch color="var(--txt-pri)" label="txtPri" sublabel="primary text" />
+      </Section>
+      <Section title="Accent">
+        <Swatch color="var(--accent)" label="accent" sublabel="primary action" />
+      </Section>
+      <ScaleRow label="S.sm" value={8} preview="box" />
+    </div>
+  )
+}
+`
+
+const tokensCss = `.iter-v1 {
+  --chrome: oklch(0.952 0.003 80);
+  --canvas: oklch(0.972 0.003 80);
+  --txt-pri: oklch(0.180 0.005 80);
+  --accent: oklch(0.520 0.200 28);
+}
+`
+
+const unfrozenManifest = `import { Tokens as V1Tokens } from './v1/pages/tokens'
+import type { ProjectManifest } from 'canvai/runtime'
+
+const manifest: ProjectManifest = {
+  project: 'my-app',
+  iterations: [
+    {
+      name: 'V1',
+      frozen: false,
+      pages: [
+        { name: 'Tokens', frames: [{ id: 'v1-tok', title: 'Tokens', component: V1Tokens }] },
+      ],
+    },
+  ],
+}
+
+export default manifest
+`
+
+const frozenManifest = unfrozenManifest.replace('frozen: false', 'frozen: true')
+
+describe('migration 0.0.29', () => {
+  const migration = migrations.find(m => m.version === '0.0.29')!
+
+  it('exists in the registry', () => {
+    expect(migration).toBeDefined()
+    expect(migration.version).toBe('0.0.29')
+  })
+
+  it('applies to unfrozen tokens.tsx with Swatch and matching tokens.css', () => {
+    expect(migration.applies({
+      'src/projects/my-app/v1/pages/tokens.tsx': oldTokensPageWithSwatch,
+      'src/projects/my-app/v1/tokens.css': tokensCss,
+      'src/projects/my-app/manifest.ts': unfrozenManifest,
+    })).toBe(true)
+  })
+
+  it('does not apply to frozen iteration', () => {
+    expect(migration.applies({
+      'src/projects/my-app/v1/pages/tokens.tsx': oldTokensPageWithSwatch,
+      'src/projects/my-app/v1/tokens.css': tokensCss,
+      'src/projects/my-app/manifest.ts': frozenManifest,
+    })).toBe(false)
+  })
+
+  it('does not apply when tokens.tsx already uses TokenSwatch', () => {
+    const alreadyMigrated = oldTokensPageWithSwatch
+      .replace('<Swatch', '<TokenSwatch')
+      .replace('</Swatch>', '</TokenSwatch>')
+    expect(migration.applies({
+      'src/projects/my-app/v1/pages/tokens.tsx': alreadyMigrated,
+      'src/projects/my-app/v1/tokens.css': tokensCss,
+      'src/projects/my-app/manifest.ts': unfrozenManifest,
+    })).toBe(false)
+  })
+
+  it('does not apply when tokens.css is missing', () => {
+    expect(migration.applies({
+      'src/projects/my-app/v1/pages/tokens.tsx': oldTokensPageWithSwatch,
+      'src/projects/my-app/manifest.ts': unfrozenManifest,
+    })).toBe(false)
+  })
+
+  it('does not apply when no Swatch label maps to a token in tokens.css', () => {
+    const unknownCss = `.iter-v1 { --unknown: oklch(0.5 0.1 80); }`
+    expect(migration.applies({
+      'src/projects/my-app/v1/pages/tokens.tsx': oldTokensPageWithSwatch,
+      'src/projects/my-app/v1/tokens.css': unknownCss,
+      'src/projects/my-app/manifest.ts': unfrozenManifest,
+    })).toBe(false)
+  })
+
+  it('does not apply when file is missing', () => {
+    expect(migration.applies({})).toBe(false)
+  })
+
+  it('replaces Swatch with TokenSwatch', () => {
+    const result = migration.migrate({
+      'src/projects/my-app/v1/pages/tokens.tsx': oldTokensPageWithSwatch,
+      'src/projects/my-app/v1/tokens.css': tokensCss,
+      'src/projects/my-app/manifest.ts': unfrozenManifest,
+    })
+    const output = result['src/projects/my-app/v1/pages/tokens.tsx']
+    expect(output).toContain('<TokenSwatch')
+    expect(output).not.toContain('<Swatch ')
+  })
+
+  it('adds correct oklch and tokenPath props', () => {
+    const result = migration.migrate({
+      'src/projects/my-app/v1/pages/tokens.tsx': oldTokensPageWithSwatch,
+      'src/projects/my-app/v1/tokens.css': tokensCss,
+      'src/projects/my-app/manifest.ts': unfrozenManifest,
+    })
+    const output = result['src/projects/my-app/v1/pages/tokens.tsx']
+    expect(output).toContain('oklch={{ l: 0.952, c: 0.003, h: 80 }}')
+    expect(output).toContain('tokenPath="--chrome"')
+    expect(output).toContain('oklch={{ l: 0.972, c: 0.003, h: 80 }}')
+    expect(output).toContain('tokenPath="--canvas"')
+  })
+
+  it('converts camelCase label to kebab-case tokenPath', () => {
+    const result = migration.migrate({
+      'src/projects/my-app/v1/pages/tokens.tsx': oldTokensPageWithSwatch,
+      'src/projects/my-app/v1/tokens.css': tokensCss,
+      'src/projects/my-app/manifest.ts': unfrozenManifest,
+    })
+    const output = result['src/projects/my-app/v1/pages/tokens.tsx']
+    expect(output).toContain('tokenPath="--txt-pri"')
+    expect(output).toContain('oklch={{ l: 0.18, c: 0.005, h: 80 }}')
+  })
+
+  it('preserves sublabel prop', () => {
+    const result = migration.migrate({
+      'src/projects/my-app/v1/pages/tokens.tsx': oldTokensPageWithSwatch,
+      'src/projects/my-app/v1/tokens.css': tokensCss,
+      'src/projects/my-app/manifest.ts': unfrozenManifest,
+    })
+    const output = result['src/projects/my-app/v1/pages/tokens.tsx']
+    expect(output).toContain('sublabel="sidebar"')
+    expect(output).toContain('sublabel="workspace"')
+  })
+
+  it('removes Swatch from component import, keeps other imports', () => {
+    const result = migration.migrate({
+      'src/projects/my-app/v1/pages/tokens.tsx': oldTokensPageWithSwatch,
+      'src/projects/my-app/v1/tokens.css': tokensCss,
+      'src/projects/my-app/manifest.ts': unfrozenManifest,
+    })
+    const output = result['src/projects/my-app/v1/pages/tokens.tsx']
+    expect(output).not.toContain('Swatch } from \'../components\'')
+    expect(output).toContain('ScaleRow')
+  })
+
+  it('adds TokenSwatch import from canvai/runtime', () => {
+    const result = migration.migrate({
+      'src/projects/my-app/v1/pages/tokens.tsx': oldTokensPageWithSwatch,
+      'src/projects/my-app/v1/tokens.css': tokensCss,
+      'src/projects/my-app/manifest.ts': unfrozenManifest,
+    })
+    const output = result['src/projects/my-app/v1/pages/tokens.tsx']
+    expect(output).toContain("from 'canvai/runtime'")
+    expect(output).toContain('TokenSwatch')
+  })
+
+  it('appends to existing canvai/runtime import if present', () => {
+    const withRuntimeImport = oldTokensPageWithSwatch.replace(
+      "import { Swatch, ScaleRow } from '../components'",
+      "import { Swatch, ScaleRow } from '../components'\nimport { SomeHelper } from 'canvai/runtime'",
+    )
+    const result = migration.migrate({
+      'src/projects/my-app/v1/pages/tokens.tsx': withRuntimeImport,
+      'src/projects/my-app/v1/tokens.css': tokensCss,
+      'src/projects/my-app/manifest.ts': unfrozenManifest,
+    })
+    const output = result['src/projects/my-app/v1/pages/tokens.tsx']
+    // Should be one import with both SomeHelper and TokenSwatch
+    expect(output).toContain('SomeHelper')
+    expect(output).toContain('TokenSwatch')
+    expect(output.match(/from 'canvai\/runtime'/g)?.length).toBe(1)
+  })
+
+  it('skips frozen iteration and transforms unfrozen one', () => {
+    const manifestWithBoth = `const manifest = {
+  project: 'my-app',
+  iterations: [
+    { name: 'V1', frozen: true, pages: [] },
+    { name: 'V2', frozen: false, pages: [] },
+  ],
+}`
+    const result = migration.migrate({
+      'src/projects/my-app/v1/pages/tokens.tsx': oldTokensPageWithSwatch,
+      'src/projects/my-app/v1/tokens.css': tokensCss,
+      'src/projects/my-app/v2/pages/tokens.tsx': oldTokensPageWithSwatch,
+      'src/projects/my-app/v2/tokens.css': tokensCss,
+      'src/projects/my-app/manifest.ts': manifestWithBoth,
+    })
+    expect(result['src/projects/my-app/v1/pages/tokens.tsx']).toBeUndefined()
+    expect(result['src/projects/my-app/v2/pages/tokens.tsx']).toContain('<TokenSwatch')
+  })
+
+  it('leaves Swatch intact when its label has no matching token in tokens.css', () => {
+    const pageWithUnknown = oldTokensPageWithSwatch + `\n<Swatch color="var(--unknown)" label="unknown" />`
+    const result = migration.migrate({
+      'src/projects/my-app/v1/pages/tokens.tsx': pageWithUnknown,
+      'src/projects/my-app/v1/tokens.css': tokensCss,
+      'src/projects/my-app/manifest.ts': unfrozenManifest,
+    })
+    const output = result['src/projects/my-app/v1/pages/tokens.tsx']
+    // Known swatches should be converted
+    expect(output).toContain('<TokenSwatch')
+    // Unknown swatch should stay as-is
+    expect(output).toContain('<Swatch color="var(--unknown)" label="unknown"')
+  })
+
+  it('is idempotent — applies() returns false after migrate()', () => {
+    const files = {
+      'src/projects/my-app/v1/pages/tokens.tsx': oldTokensPageWithSwatch,
+      'src/projects/my-app/v1/tokens.css': tokensCss,
+      'src/projects/my-app/manifest.ts': unfrozenManifest,
+    }
+    const result = migration.migrate(files)
+    expect(migration.applies({
+      ...files,
+      'src/projects/my-app/v1/pages/tokens.tsx': result['src/projects/my-app/v1/pages/tokens.tsx'],
+    })).toBe(false)
+  })
+})
+
 describe('compareSemver', () => {
   it('handles equal versions', () => {
     expect(compareSemver('0.0.10', '0.0.10')).toBe(0)

@@ -82,6 +82,12 @@ function readMigrationFiles(cwd, migration) {
         if (existsSync(tokAbs) && !fileContents[tokRel]) {
           fileContents[tokRel] = readFileSync(tokAbs, 'utf-8')
         }
+
+        const cssRel = `src/projects/${d.name}/${v.name}/tokens.css`
+        const cssAbs = join(cwd, cssRel)
+        if (existsSync(cssAbs) && !fileContents[cssRel]) {
+          fileContents[cssRel] = readFileSync(cssAbs, 'utf-8')
+        }
       }
     }
   }
