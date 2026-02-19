@@ -201,15 +201,36 @@ export default manifest
 
 ### Design directions (proliferate first)
 
-When a designer first describes a component or feature, do NOT generate one design and ask for feedback. Generate **multiple distinct design directions** as separate pages — different visual bets, not just different states of the same idea:
-
-- **Direction A** — e.g. minimal / type-driven / restrained
-- **Direction B** — e.g. structured / geometric / grid-anchored
-- **Direction C** — e.g. expressive / token-forward / higher contrast
-
-Each direction should make a genuinely different design bet. Show all of them on the canvas simultaneously. Let the designer react — "I like A's density with C's color" — then converge. Three directions minimum. Use the canvas's infinite room.
+When a designer first describes a component or feature, do NOT generate one design and ask for feedback. Generate **multiple distinct design directions** — different visual bets, not just different states of the same idea. Three directions minimum. Use the canvas's infinite room.
 
 The designer is not a spec-writer. They are a reactor and curator. Your job is to give them things to react to.
+
+#### Layout: one page, one wall
+
+All directions live on a **single manifest page** called "All Directions". Think of it like pinning designs on a wall — everything visible at once, scannable top to bottom.
+
+Use a `DirectionLabel` component as the first frame in each row to explain the concept. The grid uses **N+1 columns** (1 label + N state/variation frames per direction):
+
+```ts
+{
+  name: 'All Directions',
+  grid: { columns: 6, columnWidth: 960, rowHeight: 800, gap: 40 },
+  frames: [
+    // Row 1: Direction A
+    { id: 'label-a', title: 'Direction A', component: DirectionLabel, props: { letter: 'A', title: 'Minimal', description: '...' } },
+    { id: 'dir-a-default', title: 'Dir A / Default', component: DirA, props: { state: 'default' } },
+    { id: 'dir-a-hover', title: 'Dir A / Hover', component: DirA, props: { state: 'hover' } },
+    // ... more states fill the row
+    // Row 2: Direction B
+    { id: 'label-b', title: 'Direction B', component: DirectionLabel, props: { letter: 'B', title: 'Structured', description: '...' } },
+    // ... B frames
+  ],
+}
+```
+
+The `DirectionLabel` component renders a styled text card with the direction letter (badge), title, and description. Create it in `components/` — it follows the same token rules as any component.
+
+Each direction should make a genuinely different design bet. Let the designer react — "I like A's density with C's color" — then converge.
 
 ### States and variations (within a direction)
 
