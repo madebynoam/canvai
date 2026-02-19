@@ -150,12 +150,15 @@ Components (v<N>/components/) → use ONLY var(--token), can compose each other
 Pages (v<N>/pages/)           → import ONLY from ../components/, no raw styled HTML
 \`\`\`
 
+**A page file defines exactly one function: the exported page component.** Nothing else. No local sub-components, no local helper components, no inline section functions. If you need \\\`TierLockedGate\\\`, \\\`DashboardSection\\\`, \\\`GroupContact\\\` — they are components. Create them in \\\`components/\\\`, export from \\\`components/index.ts\\\`, import in the page. A page that defines more than one function is wrong.
+
 ## Hard constraints
 
 - **All colors in OKLCH.** No hex values. No rgb. No hsl.
 - **All spacing multiples of 4.** 0, 4, 8, 12, 16, 20, 24… Font sizes exempt.
 - **Components use only \\\`var(--token)\\\`.** No hardcoded colors, backgrounds, borders.
-- **Pages import only from \\\`../components/\\\`.** Never inline styled HTML in pages.
+- **Pages define exactly one exported function.** Any named function returning JSX belongs in \\\`components/\\\`, not in the page file. This is not optional — a 1,000-line page file is a bug.
+- **Pages import only from \\\`../components/\\\`.** No inline styled HTML, no local sub-components.
 - **Components must be interactive.** Inputs typeable, buttons clickable, menus openable. No static mockups — the whole point is that everything works.
 - **Iterations named V1, V2, V3.** Sequential, never descriptive.
 
