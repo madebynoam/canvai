@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useReducedMotion } from './useReducedMotion'
 import { N, A, F, S, R, T, ICON, FONT } from './tokens'
-import { Wand2, Crosshair } from 'lucide-react'
+import { Wand2, Crosshair, Loader2 } from 'lucide-react'
 
 /* ─── Types ───────────────────────────────────────────── */
 
@@ -245,6 +245,58 @@ function AnnotationRow({
   )
 }
 
+/* ─── PendingRow ─────────────────────────────────────── */
+
+function PendingRow({ annotation }: { annotation: Annotation }) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'flex-start',
+        gap: S.sm,
+        padding: `${S.sm}px ${S.sm}px`,
+        borderRadius: R.control,
+        opacity: 0.6,
+        cursor: 'default',
+      }}
+    >
+      {/* Spinner replacing the marker dot */}
+      <div
+        style={{
+          width: S.lg,
+          height: S.lg,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexShrink: 0,
+          marginTop: 2,
+          color: F.marker,
+          animation: 'canvai-spin 1s linear infinite',
+        }}
+      >
+        <Loader2 size={ICON.sm} strokeWidth={2} />
+      </div>
+
+      {/* Content */}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{
+          fontSize: T.body,
+          color: N.txtSec,
+          fontWeight: 500,
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+        }}>
+          {annotation.comment}
+        </div>
+        <div style={{ fontSize: T.label, color: N.txtTer, marginTop: 2 }}>
+          Applying&hellip;
+        </div>
+      </div>
+    </div>
+  )
+}
+
 /* ─── useAnnotationPanel hook ─────────────────────────── */
 
 function useAnnotationPanel(endpoint: string) {
@@ -253,6 +305,7 @@ function useAnnotationPanel(endpoint: string) {
   const containerRef = useRef<HTMLDivElement>(null)
 
   const drafts = annotations.filter(a => a.status === 'draft')
+  const pending = annotations.filter(a => a.status === 'pending')
 
   // Fetch annotations on mount + poll every 3s
   useEffect(() => {
@@ -335,21 +388,22 @@ function useAnnotationPanel(endpoint: string) {
     }
   }, [open])
 
-  return { open, setOpen, annotations, drafts, containerRef, handleApplyAll, handleApplyOne, handleNavigate }
+  return { open, setOpen, annotations, drafts, pending, containerRef, handleApplyAll, handleApplyOne, handleNavigate }
 }
 
 /* ─── AnnotationPanelWidget ───────────────────────────── */
 
 export function AnnotationPanelWidget({ endpoint }: { endpoint: string }) {
   const reducedMotion = useReducedMotion()
-  const { open, setOpen, annotations, drafts, containerRef, handleApplyAll, handleApplyOne, handleNavigate } = useAnnotationPanel(endpoint)
+  const { open, setOpen, annotations, drafts, pending, containerRef, handleApplyAll, handleApplyOne, handleNavigate } = useAnnotationPanel(endpoint)
   const dropdownRef = useDropdownSpring(open, reducedMotion)
 
   const resolved = annotations.filter(a => a.status === 'resolved')
 
   return (
     <div ref={containerRef} style={{ position: 'relative', fontFamily: FONT }}>
-      <AnnotationBadge count={drafts.length} onClick={() => setOpen(o => !o)} />
+      <style>{`@keyframes canvai-spin { to { transform: rotate(360deg) } }`}</style>
+      <AnnotationBadge count={drafts.length + pending.length} onClick={() => setOpen(o => !o)} />
 
       {/* Dropdown — always rendered, spring drives visibility */}
       <div
@@ -388,7 +442,7 @@ export function AnnotationPanelWidget({ endpoint }: { endpoint: string }) {
 
         {/* List */}
         <div style={{ padding: S.xs, maxHeight: 240, overflowY: 'auto' }}>
-          {drafts.length === 0 && resolved.length === 0 && (
+          {drafts.length === 0 && pending.length === 0 && resolved.length === 0 && (
             <div style={{
               padding: `${S.xl}px ${S.md}px`,
               textAlign: 'center',
@@ -408,6 +462,10 @@ export function AnnotationPanelWidget({ endpoint }: { endpoint: string }) {
               onNavigate={handleNavigate}
               showApply={true}
             />
+          ))}
+
+          {pending.map(a => (
+            <PendingRow key={a.id} annotation={a} />
           ))}
 
           {resolved.length > 0 && (
