@@ -25,6 +25,12 @@ import { Tokens as V7Tokens } from './v7/pages/tokens'
 import { Components as V7Components } from './v7/pages/components'
 import { Shell as V7Shell } from './v7/pages/shell'
 import { FlowStep1_SignIn, FlowStep2_Compose, FlowStep3_Thread, FlowStep4_Pins, FlowStep5_Promote, FlowStep6_DeepLink, FlowStep7_Resolve } from './v7/pages/comments'
+import './v8/tokens.css'
+import { Tokens as V8Tokens } from './v8/pages/tokens'
+import { Components as V8Components } from './v8/pages/components'
+import { Shell as V8Shell } from './v8/pages/shell'
+import { FlowStep1_SignIn as V8FlowStep1, FlowStep2_Compose as V8FlowStep2, FlowStep3_Thread as V8FlowStep3, FlowStep4_Pins as V8FlowStep4, FlowStep5_Promote as V8FlowStep5, FlowStep6_DeepLink as V8FlowStep6, FlowStep7_Resolve as V8FlowStep7 } from './v8/pages/comments'
+import { AnnotationPanelInteractive, AnnotationPanelEmpty, AnnotationPanelResolved } from './v8/pages/annotation-panel'
 import type { ProjectManifest } from '../../runtime/types'
 
 const manifest: ProjectManifest = {
@@ -194,7 +200,7 @@ const manifest: ProjectManifest = {
     },
     {
       name: 'V7',
-      frozen: false,
+      frozen: true,
       pages: [
         {
           name: 'Tokens',
@@ -228,6 +234,55 @@ const manifest: ProjectManifest = {
             { id: 'v7-step5-promote', title: 'Step 5 — Promote to Annotation', component: FlowStep5_Promote },
             { id: 'v7-step6-deeplink', title: 'Step 6 — Copy Link → Deep Link', component: FlowStep6_DeepLink },
             { id: 'v7-step7-resolve', title: 'Step 7 — Resolve', component: FlowStep7_Resolve },
+          ],
+        },
+      ],
+    },
+    {
+      name: 'V8',
+      frozen: false,
+      pages: [
+        {
+          name: 'Tokens',
+          grid: { columns: 1, columnWidth: 560, rowHeight: 1600, gap: 40 },
+          frames: [
+            { id: 'v8-tokens', title: 'OKLCH Token System', component: V8Tokens },
+          ],
+        },
+        {
+          name: 'Components',
+          grid: { columns: 1, columnWidth: 640, rowHeight: 2400, gap: 40 },
+          frames: [
+            { id: 'v8-components', title: 'Runtime Components — Live', component: V8Components },
+          ],
+        },
+        {
+          name: 'Shell',
+          grid: { columns: 1, columnWidth: 900, rowHeight: 1200, gap: 40 },
+          frames: [
+            { id: 'v8-shell', title: 'Shell — Layout Options', component: V8Shell },
+          ],
+        },
+        {
+          name: 'GitHub Comments Flow',
+          grid: { columns: 2, columnWidth: 560, rowHeight: 440, gap: 40 },
+          frames: [
+            { id: 'v8-step1-signin', title: 'Step 1 — Sign In', component: V8FlowStep1 },
+            { id: 'v8-step2-compose', title: 'Step 2 — Target & Compose', component: V8FlowStep2 },
+            { id: 'v8-step3-thread', title: 'Step 3 — Thread', component: V8FlowStep3 },
+            { id: 'v8-step4-pins', title: 'Step 4 — Pins', component: V8FlowStep4 },
+            { id: 'v8-step5-promote', title: 'Step 5 — Promote to Annotation', component: V8FlowStep5 },
+            { id: 'v8-step6-deeplink', title: 'Step 6 — Copy Link → Deep Link', component: V8FlowStep6 },
+            { id: 'v8-step7-resolve', title: 'Step 7 — Resolve', component: V8FlowStep7 },
+          ],
+        },
+        {
+          name: 'Annotation Panel',
+          grid: { columns: 1, columnWidth: 480, rowHeight: 600, gap: 40 },
+          frames: [
+            { id: 'v8-annot-interactive', title: 'Annotation Panel — Interactive', component: AnnotationPanelInteractive },
+            { id: 'v8-annot-empty', title: 'Annotation Panel — Empty State', component: AnnotationPanelEmpty },
+            { id: 'v8-annot-resolved', title: 'Annotation Panel — All Resolved', component: AnnotationPanelResolved },
           ],
         },
       ],
