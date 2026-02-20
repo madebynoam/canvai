@@ -23,8 +23,6 @@ export function PreviewTopBar({
   sidebarOpen,
   onToggleSidebar,
 }: PreviewTopBarProps) {
-  const isWatch = mode === 'watch'
-
   return (
     <div style={{
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -100,20 +98,6 @@ export function PreviewTopBar({
           </div>
         )}
 
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: S.xs,
-          padding: `${S.xs}px ${S.md}px`, borderRadius: R.card,
-          backgroundColor: isWatch ? 'var(--watch-bg)' : 'var(--chrome-sub)',
-          border: `1px solid ${isWatch ? 'oklch(0.82 0.06 155)' : 'var(--border)'}`,
-          fontSize: T.pill, fontWeight: 500,
-          color: isWatch ? 'var(--watch-text)' : 'var(--txt-ter)',
-        }}>
-          <div style={{
-            width: S.sm, height: S.sm, borderRadius: '50%',
-            backgroundColor: isWatch ? 'var(--watch-dot)' : 'var(--txt-faint)',
-          }} />
-          Watch
-        </div>
       </div>
     </div>
   )

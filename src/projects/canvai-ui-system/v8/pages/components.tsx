@@ -1,6 +1,7 @@
-import { useState } from 'react'
-import { S, R, T, ICON, FONT } from '../tokens'
-import { PreviewTopBar, PreviewSidebar, PreviewProjectPicker, ColorPicker, ZoomControl, CanvasColorPicker } from '../components'
+import { useState, useRef } from 'react'
+import { N, S, R, T, ICON, FONT } from '../tokens'
+import { PreviewTopBar, PreviewSidebar, PreviewProjectPicker, ColorPicker, ZoomControl, CanvasColorPicker, AnnotationBadge, AnnotationDropdown } from '../components'
+import type { Annotation } from '../components'
 import { IterationPills } from '../../../../runtime/IterationPills'
 import { Check, Trash2 } from 'lucide-react'
 
@@ -113,6 +114,35 @@ function CommentCard({ header, comment, onApply, showDelete, showCheck }: {
   )
 }
 
+const SHOWCASE_ANNOTATIONS: Annotation[] = [
+  { id: '1', comment: 'Make the font size larger', componentName: 'Button', elementTag: 'button', status: 'draft' },
+  { id: '2', comment: 'Add more padding around the icon', componentName: 'Card', elementTag: 'div', status: 'draft' },
+  { id: '3', comment: 'Reduce the gap between label and value', componentName: 'TokenSwatch', elementTag: 'span', status: 'resolved' },
+]
+
+function AnnotationDropdownStatic({ annotations }: { annotations: Annotation[] }) {
+  const drafts = annotations.filter(a => a.status === 'draft')
+  const resolved = annotations.filter(a => a.status === 'resolved')
+  const ref = useRef<HTMLDivElement>(null)
+
+  return (
+    <div style={{ fontFamily: FONT }}>
+      <div style={{ display: 'inline-flex', padding: S.sm, backgroundColor: 'var(--chrome)', borderRadius: R.card }}>
+        <AnnotationBadge count={drafts.length} onClick={() => {}} />
+      </div>
+      <AnnotationDropdown
+        annotations={annotations}
+        open={true}
+        dropdownRef={ref}
+        onApplyAll={() => {}}
+        onApplyOne={() => {}}
+        onNavigate={() => {}}
+        forceOpen
+      />
+    </div>
+  )
+}
+
 const sampleProjects = [
   { project: 'settings-page' },
   { project: 'dashboard' },
@@ -151,21 +181,6 @@ export function Components() {
             mode="manual"
             sidebarOpen={sidebarOpen}
             onToggleSidebar={() => setSidebarOpen(o => !o)}
-          />
-        </div>
-      </Section>
-
-      <Section title="TopBar — Watch Mode">
-        <div style={{ border: `1px solid var(--border)`, borderRadius: R.card, overflow: 'hidden' }}>
-          <PreviewTopBar
-            projectName={sampleProjects[0].project}
-            iterations={sampleIterations}
-            activeIterationIndex={1}
-            onSelectIteration={() => {}}
-            pendingCount={0}
-            mode="watch"
-            sidebarOpen={true}
-            onToggleSidebar={() => {}}
           />
         </div>
       </Section>
@@ -303,6 +318,30 @@ export function Components() {
 
       <Section title="Annotation Card — Watch Mode">
         <CommentCard header="Frame · section" comment="Increase border radius" onApply="Send" showCheck />
+      </Section>
+
+      <Section title="Annotation Badge — With Drafts">
+        <div style={{ display: 'inline-flex', padding: S.sm, backgroundColor: 'var(--chrome)', borderRadius: R.card }}>
+          <AnnotationBadge count={3} onClick={() => {}} />
+        </div>
+      </Section>
+
+      <Section title="Annotation Badge — Empty">
+        <div style={{ display: 'inline-flex', padding: S.sm, backgroundColor: 'var(--chrome)', borderRadius: R.card }}>
+          <AnnotationBadge count={0} onClick={() => {}} />
+        </div>
+      </Section>
+
+      <Section title="Annotation Dropdown — With Drafts">
+        <AnnotationDropdownStatic annotations={SHOWCASE_ANNOTATIONS} />
+      </Section>
+
+      <Section title="Annotation Dropdown — Empty">
+        <AnnotationDropdownStatic annotations={[]} />
+      </Section>
+
+      <Section title="Annotation Dropdown — All Resolved">
+        <AnnotationDropdownStatic annotations={SHOWCASE_ANNOTATIONS.map(a => ({ ...a, status: 'resolved' as const }))} />
       </Section>
     </div>
   )

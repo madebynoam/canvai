@@ -1,7 +1,8 @@
 import { ProjectPicker } from './ProjectPicker'
 import { IterationPills } from './IterationPills'
+import { AnnotationPanelWidget } from './AnnotationPanel'
 import { PanelLeft } from 'lucide-react'
-import { N, A, W, S, R, T, ICON, FONT } from './tokens'
+import { N, S, R, T, ICON, FONT } from './tokens'
 
 interface TopBarProps {
   projects: { project: string }[]
@@ -10,9 +11,8 @@ interface TopBarProps {
   iterations: { name: string }[]
   activeIterationIndex: number
   onSelectIteration: (index: number) => void
-  pendingCount: number
+  annotationEndpoint: string
   commentCount?: number
-  mode: 'manual' | 'watch'
   sidebarOpen: boolean
   onToggleSidebar: () => void
 }
@@ -28,14 +28,11 @@ export function TopBar({
   iterations,
   activeIterationIndex,
   onSelectIteration,
-  pendingCount,
+  annotationEndpoint,
   commentCount = 0,
-  mode,
   sidebarOpen,
   onToggleSidebar,
 }: TopBarProps) {
-  const isWatch = mode === 'watch'
-
   return (
     <div
       style={{
@@ -95,27 +92,9 @@ export function TopBar({
 
       {/* Right section — annotation UI hidden in production builds */}
       <div style={{ display: 'flex', alignItems: 'center', gap: S.md, flex: '0 0 auto' }}>
-        {/* Pending count */}
-        {import.meta.env.DEV && pendingCount > 0 && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: S.sm }}>
-            <div
-              style={{
-                width: S.lg,
-                height: S.lg,
-                borderRadius: '50%',
-                backgroundColor: A.accent,
-                color: 'oklch(1 0 0)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: T.label,
-                fontWeight: 600,
-              }}
-            >
-              {pendingCount}
-            </div>
-            <span style={{ fontSize: T.caption, color: A.accent, fontWeight: 500 }}>pending</span>
-          </div>
+        {/* Annotation panel */}
+        {import.meta.env.DEV && (
+          <AnnotationPanelWidget endpoint={annotationEndpoint} />
         )}
 
         {/* Comment count badge */}
@@ -143,34 +122,6 @@ export function TopBar({
           </div>
         )}
 
-        {/* Watch mode pill — always visible, green when active, gray when off */}
-        {import.meta.env.DEV && (
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: S.xs,
-              padding: `${S.xs}px ${S.md}px`,
-              borderRadius: R.card,
-              backgroundColor: isWatch ? W.bg : N.chromeSub,
-              border: `1px solid ${isWatch ? 'oklch(0.82 0.06 155)' : N.border}`,
-              fontSize: T.pill,
-              fontWeight: 500,
-              color: isWatch ? W.text : N.txtTer,
-            }}
-          >
-            <div
-              style={{
-                width: S.sm,
-                height: S.sm,
-                borderRadius: '50%',
-                backgroundColor: isWatch ? W.dot : N.txtFaint,
-                boxShadow: 'none',
-              }}
-            />
-            Watch
-          </div>
-        )}
       </div>
     </div>
   )

@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
-import { Check, SquareMousePointer, Trash2 } from 'lucide-react'
+import { SquareMousePointer, Trash2 } from 'lucide-react'
 import { useReducedMotion } from './useReducedMotion'
 import { N, A, F, S, R, T, ICON, FONT } from './tokens'
 import type { CanvasFrame } from './types'
@@ -18,13 +18,9 @@ interface TargetInfo {
   rect: DOMRect
 }
 
-type AnnotateMode = 'manual' | 'watch'
-
 interface AnnotationOverlayProps {
   endpoint: string
   frames: CanvasFrame[]
-  annotateMode?: AnnotateMode
-  onPendingChange?: (count: number) => void
 }
 
 /* ── Spring presence hook ──
@@ -257,7 +253,7 @@ interface AnnotationMarker {
   comment: string
 }
 
-export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual', onPendingChange }: AnnotationOverlayProps) {
+export function AnnotationOverlay({ endpoint, frames }: AnnotationOverlayProps) {
   const reducedMotion = useReducedMotion()
   const [mode, setMode] = useState<Mode>('idle')
   const [highlight, setHighlight] = useState<DOMRect | null>(null)
@@ -321,10 +317,23 @@ export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual', o
     return () => clearTimeout(t)
   }, [toast])
 
-  // Notify parent of pending annotation count
+  // Load persisted annotations on mount (survive page refresh)
   useEffect(() => {
-    onPendingChange?.(markers.length)
-  }, [markers.length, onPendingChange])
+    fetch(`${endpoint}/annotations`)
+      .then(r => r.json())
+      .then((all: { id: string; frameId: string; selector: string; comment: string; status: string }[]) => {
+        const active = all.filter(a => a.status === 'draft' || a.status === 'pending')
+        if (active.length === 0) return
+        setMarkers(active.map(a => ({
+          id: nextMarkerId.current++,
+          serverId: a.id,
+          frameId: a.frameId,
+          selector: a.selector,
+          comment: a.comment,
+        })))
+      })
+      .catch(() => {})
+  }, [endpoint])
 
   // Subscribe to SSE for resolved annotations — remove markers when agent resolves them
   useEffect(() => {
@@ -469,18 +478,16 @@ export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual', o
           comment: comment.trim(),
         }])
       }
-      if (annotateMode === 'watch') {
-        setToast('Sent to agent')
-      }
+      setToast('Saved')
     } catch {
-      setToast('Failed to send')
+      setToast('Failed to save')
     }
 
     setMode('idle')
     setTarget(null)
     setComment('')
     setEditingMarkerId(null)
-  }, [target, comment, endpoint, editingMarkerId, annotateMode])
+  }, [target, comment, endpoint, editingMarkerId])
 
   const handleCancel = useCallback(() => {
     setMode('idle')
@@ -682,12 +689,7 @@ export function AnnotationOverlay({ endpoint, frames, annotateMode = 'manual', o
                 gap: S.xs,
               }}
             >
-              {annotateMode === 'watch' ? (
-                <>
-                  Send
-                  <Check size={ICON.md} strokeWidth={2} />
-                </>
-              ) : 'Save'}
+              Save
             </HoverButton>
           </div>
         </div>

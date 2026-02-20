@@ -36,6 +36,7 @@ Check for pending canvas annotations and process them.
 
 ## Notes
 
+- Annotations only become pending after the designer clicks "Apply" in the TopBar dropdown. Draft annotations are not visible to the agent.
 - If an annotation requests exploration or new iterations, use the `/canvai-iterate` workflow
 - Process annotations in order (lowest ID first)
 - Always resolve annotations after applying changes

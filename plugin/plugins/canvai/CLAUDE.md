@@ -17,7 +17,7 @@ Tenets are decision-making tools — each names the alternative and rejects it.
 
 1. **`/canvai-init <project-name>`** — Creates a new design project, installs canvai if needed, starts the dev server + annotation MCP.
 2. **Describe** — The designer describes the component (or attaches a sketch). The agent generates **multiple distinct design directions** — not just one version with states, but several different design bets shown simultaneously on the canvas. The designer reacts visually and picks a direction (or mixes elements). Then refine from there.
-3. **Annotate** — The designer clicks "Annotate" on the canvas, selects an element, types a comment, and clicks "Apply". The annotation is pushed to the agent automatically via the MCP watch loop.
+3. **Annotate** — The designer clicks "Annotate" on the canvas, selects an element, types a comment, and clicks "Save". This creates a draft. The designer reviews drafts in the TopBar dropdown and clicks "Apply" (single or all) to send them to the agent.
 4. **`/canvai-iterate`** — Creates a new iteration (complete snapshot copy). Old iterations are frozen.
 5. **`/canvai-ship`** — PR the finished components to a production codebase.
 
@@ -494,15 +494,18 @@ The following features are **not implemented** and must never be rendered, refer
 
 If a designer asks for a feature not in this inventory, the agent must say: "That feature doesn't exist in Canvai yet. Would you like to design it as a new component instead?" — never invent UI for features that aren't built.
 
-## Annotation flow (push-driven)
+## Annotation flow (draft-then-apply)
 
-The canvas has a built-in annotation overlay. The designer clicks "Annotate", selects an element, types a comment, and clicks "Apply". The annotation is pushed to the canvai HTTP server.
+The canvas has a built-in annotation overlay. The designer clicks "Annotate", selects an element, types a comment, and clicks "Save". This creates a **draft** annotation. Drafts are visible in the TopBar dropdown where the designer can review them. When ready, the designer clicks "Apply" (single or all) to promote drafts to **pending** — only then does the agent receive them.
 
-### Two modes
+```
+draft  →  pending  →  resolved
+ (Save)    (Apply)     (agent done)
+```
 
-**Chat mode (default):** The agent stays conversational. The designer can chat and request changes. To process annotations, the agent calls `get_pending_annotations` between tasks or when the designer asks.
+Annotations persist to `.canvai/annotations.json` and survive page refresh and server restart.
 
-**Watch mode (opt-in):** The designer says "enter watch mode" or uses `/canvai-dev`. The agent calls `watch_annotations` in a blocking loop for rapid annotation sessions. Exit by sending any message.
+**`/canvai-dev`** starts the dev server and automatically enters the watch loop. The agent calls `watch_annotations` in a blocking loop, processing annotations as the designer applies them. The designer controls the pace — annotations arrive only when they click Apply.
 
 ### Processing an annotation
 

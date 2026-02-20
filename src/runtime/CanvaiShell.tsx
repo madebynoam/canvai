@@ -21,8 +21,6 @@ interface CanvaiShellProps {
 
 export function CanvaiShell({ manifests, annotationEndpoint = 'http://localhost:4748' }: CanvaiShellProps) {
   const [activeProjectIndex, setActiveProjectIndex] = useState(0)
-  const [mode, setMode] = useState<'manual' | 'watch'>('manual')
-  const [pendingCount, setPendingCount] = useState(0)
   const [commentCount, setCommentCount] = useState(0)
   const [sidebarOpen, setSidebarOpen] = useState(true)
 
@@ -31,21 +29,6 @@ export function CanvaiShell({ manifests, annotationEndpoint = 'http://localhost:
     activeProject?.project ?? '',
     activeProject?.iterations ?? [],
   )
-
-  // Listen for agent mode changes via SSE
-  useEffect(() => {
-    if (!import.meta.env.DEV) return
-    const es = new EventSource(`${annotationEndpoint}/annotations/events`)
-    es.onmessage = (e) => {
-      try {
-        const data = JSON.parse(e.data)
-        if (data.type === 'mode') setMode(data.mode)
-      } catch {}
-    }
-    // Fetch initial mode
-    fetch(`${annotationEndpoint}/mode`).then(r => r.json()).then(d => setMode(d.mode)).catch(() => {})
-    return () => es.close()
-  }, [annotationEndpoint])
 
   const activeIteration = activeProject?.iterations?.[activeIterationIndex]
   const iterClass = activeIteration ? `iter-${activeIteration.name.toLowerCase()}` : ''
@@ -68,9 +51,8 @@ export function CanvaiShell({ manifests, annotationEndpoint = 'http://localhost:
         iterations={activeProject?.iterations ?? []}
         activeIterationIndex={activeIterationIndex}
         onSelectIteration={setActiveIterationIndex}
-        pendingCount={pendingCount}
+        annotationEndpoint={annotationEndpoint}
         commentCount={commentCount}
-        mode={mode}
         sidebarOpen={sidebarOpen}
         onToggleSidebar={() => setSidebarOpen(o => !o)}
       />
@@ -125,7 +107,7 @@ export function CanvaiShell({ manifests, annotationEndpoint = 'http://localhost:
         </div>
       </div>
 
-      {import.meta.env.DEV && <AnnotationOverlay endpoint={annotationEndpoint} frames={frames} annotateMode={mode} onPendingChange={setPendingCount} />}
+      {import.meta.env.DEV && <AnnotationOverlay endpoint={annotationEndpoint} frames={frames} />}
       <CommentOverlay endpoint={annotationEndpoint} frames={frames} onCommentCountChange={setCommentCount} />
     </div>
   )

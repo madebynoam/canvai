@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 
 import { createServer } from 'http'
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs'
+import { join } from 'path'
 import {
   initiateDeviceFlow,
   pollForToken,
@@ -25,31 +27,45 @@ import {
   buildIssueTitle,
 } from './github.js'
 
+// --- Persistence ---
+
+const STORE_DIR = join(process.cwd(), '.canvai')
+const STORE_FILE = join(STORE_DIR, 'annotations.json')
+
+function loadAnnotations() {
+  try {
+    if (existsSync(STORE_FILE)) {
+      const data = JSON.parse(readFileSync(STORE_FILE, 'utf8'))
+      if (Array.isArray(data)) {
+        for (const a of data) annotations.set(a.id, a)
+        if (data.length > 0) {
+          nextId = Math.max(...data.map(a => Number(a.id))) + 1
+        }
+      }
+    }
+  } catch {
+    // Corrupt file — start fresh
+  }
+}
+
+function persistAnnotations() {
+  try {
+    if (!existsSync(STORE_DIR)) mkdirSync(STORE_DIR, { recursive: true })
+    writeFileSync(STORE_FILE, JSON.stringify([...annotations.values()], null, 2))
+  } catch (err) {
+    console.error('[canvai] Failed to persist annotations:', err.message)
+  }
+}
+
 // --- Annotation store ---
 
 const annotations = new Map()
 const waiters = [] // Array of { resolve } for long-poll /annotations/next
 const sseClients = [] // Array of response objects for SSE
 let nextId = 1
-let agentWatching = false // true when agent has a long-poll waiter registered
-let watchdogTimer = null
 
-function broadcastMode(mode) {
-  for (const client of sseClients) {
-    client.write(`data: ${JSON.stringify({ type: 'mode', mode })}\n\n`)
-  }
-}
-
-// After a waiter is consumed, the agent has ~5s to re-register before we declare manual mode
-function scheduleWatchdog() {
-  if (watchdogTimer) clearTimeout(watchdogTimer)
-  watchdogTimer = setTimeout(() => {
-    if (waiters.length === 0 && agentWatching) {
-      agentWatching = false
-      broadcastMode('manual')
-    }
-  }, 5000)
-}
+// Load persisted annotations on startup
+loadAnnotations()
 
 function addAnnotation(data) {
   const id = String(nextId++)
@@ -65,25 +81,66 @@ function addAnnotation(data) {
     computedStyles: data.computedStyles ?? {},
     comment: data.comment ?? '',
     timestamp: Date.now(),
-    status: 'pending',
+    status: 'draft',
   }
   annotations.set(id, annotation)
+  persistAnnotations()
 
-  // Unblock the oldest long-poll waiter (FIFO)
+  return annotation
+}
+
+function applyAnnotation(id) {
+  const annotation = annotations.get(id)
+  if (!annotation || annotation.status !== 'draft') return null
+  annotation.status = 'pending'
+  persistAnnotations()
+
+  // Unblock oldest long-poll waiter
   if (waiters.length > 0) {
     const waiter = waiters.shift()
     waiter.resolve(annotation)
-    // Agent will re-register if still in watch mode — watchdog catches if it doesn't
-    scheduleWatchdog()
+  }
+
+  // Notify SSE clients
+  for (const client of sseClients) {
+    client.write(`data: ${JSON.stringify({ type: 'applied', id })}\n\n`)
   }
 
   return annotation
+}
+
+function applyAllAnnotations() {
+  const applied = []
+  for (const annotation of annotations.values()) {
+    if (annotation.status === 'draft') {
+      annotation.status = 'pending'
+      applied.push(annotation)
+    }
+  }
+  if (applied.length === 0) return applied
+  persistAnnotations()
+
+  // Unblock waiters for each applied annotation (FIFO)
+  for (const annotation of applied) {
+    if (waiters.length > 0) {
+      const waiter = waiters.shift()
+      waiter.resolve(annotation)
+    }
+  }
+
+  // Notify SSE clients
+  for (const client of sseClients) {
+    client.write(`data: ${JSON.stringify({ type: 'applied-all', ids: applied.map(a => a.id) })}\n\n`)
+  }
+
+  return applied
 }
 
 function resolveAnnotation(id) {
   const annotation = annotations.get(id)
   if (annotation) {
     annotation.status = 'resolved'
+    persistAnnotations()
     // Notify all SSE clients
     for (const client of sseClients) {
       client.write(`data: ${JSON.stringify({ type: 'resolved', id })}\n\n`)
@@ -94,6 +151,10 @@ function resolveAnnotation(id) {
 
 function getPending() {
   return [...annotations.values()].filter(a => a.status === 'pending')
+}
+
+function getDrafts() {
+  return [...annotations.values()].filter(a => a.status === 'draft')
 }
 
 function getAll() {
@@ -185,42 +246,45 @@ const httpServer = createServer(async (req, res) => {
         return
       }
 
-      // Agent is now watching — broadcast mode change, cancel watchdog
-      if (watchdogTimer) clearTimeout(watchdogTimer)
-      if (!agentWatching) {
-        agentWatching = true
-        broadcastMode('watch')
-      }
-
-      // Block until a new annotation arrives
+      // Block until a pending annotation arrives
       const annotation = await new Promise((resolve) => {
         const waiter = { resolve }
         waiters.push(waiter)
-        // If the request closes (agent exits watch), remove waiter and update mode
         req.on('close', () => {
           const idx = waiters.indexOf(waiter)
           if (idx !== -1) waiters.splice(idx, 1)
-          if (waiters.length === 0 && agentWatching) {
-            agentWatching = false
-            broadcastMode('manual')
-          }
         })
       })
       sendJson(res, 200, annotation)
       return
     }
 
-    // GET /mode — current agent mode
-    if (req.method === 'GET' && url.pathname === '/mode') {
-      sendJson(res, 200, { mode: agentWatching ? 'watch' : 'manual' })
+    // POST /annotations/apply — apply all drafts
+    if (req.method === 'POST' && url.pathname === '/annotations/apply') {
+      const applied = applyAllAnnotations()
+      sendJson(res, 200, applied)
       return
     }
 
-    // GET /annotations — list all
+    // POST /annotations/:id/apply — apply single draft
+    const applyMatch = url.pathname.match(/^\/annotations\/(.+)\/apply$/)
+    if (req.method === 'POST' && applyMatch) {
+      const annotation = applyAnnotation(applyMatch[1])
+      if (annotation) {
+        sendJson(res, 200, annotation)
+      } else {
+        sendJson(res, 404, { error: 'Annotation not found or not a draft' })
+      }
+      return
+    }
+
+    // GET /annotations — list all (with optional ?status= filter)
     if (req.method === 'GET' && url.pathname === '/annotations') {
       const status = url.searchParams.get('status')
       if (status === 'pending') {
         sendJson(res, 200, getPending())
+      } else if (status === 'draft') {
+        sendJson(res, 200, getDrafts())
       } else {
         sendJson(res, 200, getAll())
       }

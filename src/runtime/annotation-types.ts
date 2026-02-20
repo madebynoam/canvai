@@ -10,5 +10,5 @@ export interface CanvaiAnnotation {
   computedStyles: Record<string, string>
   comment: string
   timestamp: number
-  status: 'pending' | 'resolved'
+  status: 'draft' | 'pending' | 'resolved'
 }
