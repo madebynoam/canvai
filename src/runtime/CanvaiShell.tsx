@@ -85,7 +85,7 @@ export function CanvaiShell({ manifests, annotationEndpoint = 'http://localhost:
           <div style={{
             width: '100%',
             height: '100%',
-            borderRadius: 20,
+            borderRadius: 32,
             cornerShape: 'squircle',
             backgroundColor: canvasBg,
             boxShadow: E.shadow,
