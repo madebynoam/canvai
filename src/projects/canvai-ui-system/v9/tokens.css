@@ -1,0 +1,25 @@
+/* canvai-ui-system V9 — Dark Mode */
+.iter-v9 {
+  --chrome: oklch(0.130 0.005 80);
+  --chrome-sub: oklch(0.170 0.005 80);
+  --canvas: oklch(0.100 0.003 80);
+  --card: oklch(0.160 0.005 80);
+  --border: oklch(0.240 0.005 80);
+  --border-soft: oklch(0.200 0.005 80);
+  --txt-pri: oklch(0.930 0.003 80);
+  --txt-sec: oklch(0.720 0.005 80);
+  --txt-ter: oklch(0.540 0.005 80);
+  --txt-faint: oklch(0.420 0.003 80);
+  --accent: oklch(0.800 0.005 80);
+  --accent-hover: oklch(0.700 0.005 80);
+  --accent-muted: oklch(0.200 0.005 80);
+  --accent-strong: oklch(0.880 0.005 80);
+  --accent-border: oklch(0.400 0.005 80);
+  --watch-bg: oklch(0.18 0.04 155);
+  --watch-dot: oklch(0.60 0.14 155);
+  --watch-text: oklch(0.68 0.12 155);
+  --fn-comment: oklch(0.820 0.005 80);
+  --fn-resolved: oklch(0.420 0.003 80);
+  --fn-success: oklch(0.65 0.14 155);
+  --fn-danger: oklch(0.62 0.20 28);
+}

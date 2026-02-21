@@ -31,6 +31,12 @@ import { Components as V8Components } from './v8/pages/components'
 import { Shell as V8Shell } from './v8/pages/shell'
 import { FlowStep1_SignIn as V8FlowStep1, FlowStep2_Compose as V8FlowStep2, FlowStep3_Thread as V8FlowStep3, FlowStep4_Pins as V8FlowStep4, FlowStep5_Promote as V8FlowStep5, FlowStep6_DeepLink as V8FlowStep6, FlowStep7_Resolve as V8FlowStep7 } from './v8/pages/comments'
 import { AnnotationPanelInteractive, AnnotationPanelEmpty, AnnotationPanelResolved } from './v8/pages/annotation-panel'
+import './v9/tokens.css'
+import { Tokens as V9Tokens } from './v9/pages/tokens'
+import { Components as V9Components } from './v9/pages/components'
+import { Shell as V9Shell } from './v9/pages/shell'
+import { FlowStep1_SignIn as V9FlowStep1, FlowStep2_Compose as V9FlowStep2, FlowStep3_Thread as V9FlowStep3, FlowStep4_Pins as V9FlowStep4, FlowStep5_Promote as V9FlowStep5, FlowStep6_DeepLink as V9FlowStep6, FlowStep7_Resolve as V9FlowStep7 } from './v9/pages/comments'
+import { AnnotationPanelInteractive as V9AnnotationPanelInteractive, AnnotationPanelEmpty as V9AnnotationPanelEmpty, AnnotationPanelResolved as V9AnnotationPanelResolved } from './v9/pages/annotation-panel'
 import type { ProjectManifest } from '../../runtime/types'
 
 const manifest: ProjectManifest = {
@@ -240,7 +246,7 @@ const manifest: ProjectManifest = {
     },
     {
       name: 'V8',
-      frozen: false,
+      frozen: true,
       pages: [
         {
           name: 'Tokens',
@@ -283,6 +289,55 @@ const manifest: ProjectManifest = {
             { id: 'v8-annot-interactive', title: 'Annotation Panel — Interactive', component: AnnotationPanelInteractive },
             { id: 'v8-annot-empty', title: 'Annotation Panel — Empty State', component: AnnotationPanelEmpty },
             { id: 'v8-annot-resolved', title: 'Annotation Panel — All Resolved', component: AnnotationPanelResolved },
+          ],
+        },
+      ],
+    },
+    {
+      name: 'V9',
+      frozen: false,
+      pages: [
+        {
+          name: 'Tokens',
+          grid: { columns: 1, columnWidth: 560, rowHeight: 1600, gap: 40 },
+          frames: [
+            { id: 'v9-tokens', title: 'OKLCH Token System — Dark', component: V9Tokens },
+          ],
+        },
+        {
+          name: 'Components',
+          grid: { columns: 1, columnWidth: 640, rowHeight: 2400, gap: 40 },
+          frames: [
+            { id: 'v9-components', title: 'Runtime Components — Dark', component: V9Components },
+          ],
+        },
+        {
+          name: 'Shell',
+          grid: { columns: 1, columnWidth: 900, rowHeight: 1200, gap: 40 },
+          frames: [
+            { id: 'v9-shell', title: 'Shell — Dark Mode', component: V9Shell },
+          ],
+        },
+        {
+          name: 'GitHub Comments Flow',
+          grid: { columns: 2, columnWidth: 560, rowHeight: 440, gap: 40 },
+          frames: [
+            { id: 'v9-step1-signin', title: 'Step 1 — Sign In', component: V9FlowStep1 },
+            { id: 'v9-step2-compose', title: 'Step 2 — Target & Compose', component: V9FlowStep2 },
+            { id: 'v9-step3-thread', title: 'Step 3 — Thread', component: V9FlowStep3 },
+            { id: 'v9-step4-pins', title: 'Step 4 — Pins', component: V9FlowStep4 },
+            { id: 'v9-step5-promote', title: 'Step 5 — Promote to Annotation', component: V9FlowStep5 },
+            { id: 'v9-step6-deeplink', title: 'Step 6 — Copy Link → Deep Link', component: V9FlowStep6 },
+            { id: 'v9-step7-resolve', title: 'Step 7 — Resolve', component: V9FlowStep7 },
+          ],
+        },
+        {
+          name: 'Annotation Panel',
+          grid: { columns: 1, columnWidth: 480, rowHeight: 600, gap: 40 },
+          frames: [
+            { id: 'v9-annot-interactive', title: 'Annotation Panel — Interactive', component: V9AnnotationPanelInteractive },
+            { id: 'v9-annot-empty', title: 'Annotation Panel — Empty State', component: V9AnnotationPanelEmpty },
+            { id: 'v9-annot-resolved', title: 'Annotation Panel — All Resolved', component: V9AnnotationPanelResolved },
           ],
         },
       ],
