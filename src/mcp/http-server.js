@@ -163,6 +163,18 @@ function resolveAnnotation(id) {
   return annotation
 }
 
+function deleteAnnotation(id) {
+  const annotation = annotations.get(id)
+  if (!annotation) return null
+  annotations.delete(id)
+  persistAnnotations()
+  // Notify all SSE clients
+  for (const client of sseClients) {
+    client.write(`data: ${JSON.stringify({ type: 'deleted', id })}\n\n`)
+  }
+  return annotation
+}
+
 function getPending() {
   return [...annotations.values()].filter(a => a.status === 'pending')
 }
@@ -333,6 +345,19 @@ const httpServer = createServer(async (req, res) => {
     if (req.method === 'POST' && resolveMatch) {
       const annotation = resolveAnnotation(resolveMatch[1])
       if (annotation) {
+        sendJson(res, 200, annotation)
+      } else {
+        sendJson(res, 404, { error: 'Annotation not found' })
+      }
+      return
+    }
+
+    // DELETE /annotations/:id — delete an annotation
+    const deleteAnnotationMatch = url.pathname.match(/^\/annotations\/(\d+)$/)
+    if (req.method === 'DELETE' && deleteAnnotationMatch) {
+      const annotation = deleteAnnotation(deleteAnnotationMatch[1])
+      if (annotation) {
+        console.log(`[canvai] Annotation #${deleteAnnotationMatch[1]} deleted`)
         sendJson(res, 200, annotation)
       } else {
         sendJson(res, 404, { error: 'Annotation not found' })

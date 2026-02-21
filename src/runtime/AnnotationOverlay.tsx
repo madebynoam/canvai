@@ -191,7 +191,7 @@ export function AnnotationOverlay({ endpoint, frames }: AnnotationOverlayProps) 
     source.onmessage = (e) => {
       try {
         const data = JSON.parse(e.data)
-        if (data.type === 'resolved' && data.id) {
+        if ((data.type === 'resolved' || data.type === 'deleted') && data.id) {
           setMarkers(prev => prev.filter(m => m.serverId !== data.id))
         }
       } catch { /* ignore parse errors */ }
@@ -352,13 +352,17 @@ export function AnnotationOverlay({ endpoint, frames }: AnnotationOverlayProps) 
 
   const handleDelete = useCallback(() => {
     if (editingMarkerId === null) return
+    const marker = markers.find(m => m.id === editingMarkerId)
+    if (marker?.serverId) {
+      fetch(`${endpoint}/annotations/${marker.serverId}`, { method: 'DELETE' }).catch(() => {})
+    }
     setMarkers(prev => prev.filter(m => m.id !== editingMarkerId))
     setMode('idle')
     setTarget(null)
     setComment('')
     setEditingMarkerId(null)
     setToast('Annotation deleted')
-  }, [editingMarkerId])
+  }, [editingMarkerId, markers, endpoint])
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && mode === 'commenting') {
