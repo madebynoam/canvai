@@ -1,7 +1,9 @@
 import { useRef, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { SlidersHorizontal, ExternalLink } from 'lucide-react'
-import { N, S, R, T, ICON, FONT } from '../tokens'
+import { S, R, T, ICON, FONT } from '../tokens'
+import { ThemeToggle } from './ThemeToggle'
+import type { ThemeMode } from './ThemeToggle'
 
 const VERSION = '0.0.26'
 const GITHUB_URL = 'https://github.com/madebynoam/canvai'
@@ -25,9 +27,9 @@ function MenuRow({ children, href }: {
         border: 'none',
         padding: `${S.xs}px ${S.sm}px`,
         borderRadius: R.control,
-        backgroundColor: hovered ? 'rgba(255,255,255,0.06)' : 'transparent',
+        backgroundColor: hovered ? 'var(--hover-subtle)' : 'transparent',
         fontFamily: FONT, textAlign: 'left',
-        fontSize: T.body, color: N.txtSec,
+        fontSize: T.body, color: 'var(--txt-sec)',
         cursor: 'default',
         textDecoration: 'none',
       }}
@@ -37,7 +39,12 @@ function MenuRow({ children, href }: {
   )
 }
 
-export function InfoButton() {
+interface InfoButtonProps {
+  themeMode?: ThemeMode
+  onThemeMode?: (mode: ThemeMode) => void
+}
+
+export function InfoButton({ themeMode, onThemeMode }: InfoButtonProps) {
   const [open, setOpen] = useState(false)
   const [triggerHover, setTriggerHover] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -128,8 +135,8 @@ export function InfoButton() {
         left: rect ? rect.left : -9999,
         bottom: rect ? window.innerHeight - rect.top + S.xs : -9999,
         minWidth: 160,
-        background: N.card,
-        border: `1px solid ${N.border}`,
+        background: 'var(--card)',
+        border: `1px solid var(--border)`,
         borderRadius: R.card,
         padding: S.xs,
         fontFamily: FONT,
@@ -140,10 +147,28 @@ export function InfoButton() {
         pointerEvents: open ? 'auto' : 'none',
       }}
     >
+      {/* Theme toggle row */}
+      {themeMode && onThemeMode && (
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: `${S.xs}px ${S.sm}px`,
+          marginBottom: S.xs,
+        }}>
+          <span style={{ fontSize: T.body, color: 'var(--txt-sec)', fontFamily: FONT }}>Theme</span>
+          <ThemeToggle mode={themeMode} onChange={onThemeMode} />
+        </div>
+      )}
+      {/* Separator */}
+      {themeMode && onThemeMode && (
+        <div style={{
+          height: 1, backgroundColor: 'var(--border-soft)',
+          margin: `${S.xs}px ${S.sm}px`,
+        }} />
+      )}
       {/* Version — static, not interactive */}
       <div style={{
         padding: `${S.xs}px ${S.sm}px`,
-        fontSize: T.caption, color: N.txtTer,
+        fontSize: T.caption, color: 'var(--txt-ter)',
         fontFamily: FONT,
         userSelect: 'none',
       }}>
@@ -151,7 +176,7 @@ export function InfoButton() {
       </div>
       <MenuRow href={GITHUB_URL}>
         <span style={{ flex: 1 }}>GitHub</span>
-        <ExternalLink size={ICON.sm} strokeWidth={1.5} color={N.txtTer} />
+        <ExternalLink size={ICON.sm} strokeWidth={1.5} color="var(--txt-ter)" />
       </MenuRow>
     </div>
   )
@@ -163,13 +188,13 @@ export function InfoButton() {
         onClick={() => setOpen(o => !o)}
         onMouseEnter={() => setTriggerHover(true)}
         onMouseLeave={() => setTriggerHover(false)}
-        title="About canvai"
+        title="Settings"
         style={{
           width: 28,
           height: 28,
           borderRadius: '50%',
           border: 'none',
-          background: triggerHover ? 'rgba(255,255,255,0.08)' : N.chromeSub,
+          background: triggerHover ? 'var(--hover-subtle)' : 'var(--chrome-sub)',
           cursor: 'default',
           padding: 0,
           display: 'flex',
@@ -178,7 +203,7 @@ export function InfoButton() {
           transition: 'background-color 120ms ease',
         }}
       >
-        <SlidersHorizontal size={ICON.md} strokeWidth={1.5} color={N.txtTer} />
+        <SlidersHorizontal size={ICON.md} strokeWidth={1.5} color="var(--txt-ter)" />
       </button>
       {createPortal(menu, document.body)}
     </>

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { SquareMousePointer } from 'lucide-react'
 import { E, S, R, T, FONT } from '../tokens'
-import { PreviewTopBar, PreviewSidebar, ZoomControl, CanvasColorPicker, ThemeToggle } from '../components'
+import { PreviewTopBar, PreviewSidebar, ZoomControl, CanvasColorPicker, InfoButton } from '../components'
 import type { ThemeMode } from '../components'
 
 const iterations = ['V1', 'V2', 'V3']
@@ -152,19 +152,27 @@ function ShellPreview({ label, canvasColor, onCanvasColor, canvasPresets, themeM
             } as React.CSSProperties}>
               <CanvasContent />
             </div>
-            {/* Controls — top-right */}
+            {/* Controls — top-right: settings + canvas color */}
             <div style={{
               position: 'absolute',
               top: E.inset + S.md,
               right: E.inset + S.md,
               display: 'flex', gap: S.sm, alignItems: 'center',
             }}>
-              <ThemeToggle mode={themeMode} onChange={onThemeMode} />
               <CanvasColorPicker
                 activeColor={canvasColor}
                 onSelect={onCanvasColor}
                 presets={canvasPresets}
               />
+              <InfoButton themeMode={themeMode} onThemeMode={onThemeMode} />
+            </div>
+            {/* Zoom — bottom-center of canvas */}
+            <div style={{
+              position: 'absolute',
+              bottom: E.inset + S.md,
+              left: '50%',
+              transform: 'translateX(-50%)',
+            }}>
               <ZoomControl
                 zoom={zoom}
                 onZoomIn={() => onZoom(Math.min(5, zoom * 1.2))}
