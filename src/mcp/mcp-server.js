@@ -23,17 +23,17 @@ const mcp = new McpServer({
   version: '1.0.0',
 })
 
-// watch_annotations — long-polls the HTTP server until an annotation arrives
+// watch_annotations — long-polls the HTTP server with a timeout
 mcp.registerTool(
   'watch_annotations',
   {
     title: 'Watch Annotations',
     description:
-      'Blocks until a new annotation arrives from the canvas. Call this in a loop to process annotations as the designer submits them. Returns the annotation with frameId, componentName, selector, comment, and computedStyles.',
+      'Waits for a new annotation from the canvas with a 30-second timeout. Returns the annotation if one arrives, or { "timeout": true } if the timeout expires with no annotation. Call this in a loop to process annotations — between calls you can respond to designer messages.',
   },
   async () => {
     try {
-      const annotation = await httpGet('/annotations/next')
+      const annotation = await httpGet('/annotations/next?timeout=30000')
       return {
         content: [{ type: 'text', text: JSON.stringify(annotation, null, 2) }],
       }

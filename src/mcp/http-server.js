@@ -238,7 +238,7 @@ const httpServer = createServer(async (req, res) => {
       return
     }
 
-    // GET /annotations/next — long-poll, blocks until a pending annotation exists
+    // GET /annotations/next — long-poll with timeout, returns pending annotation or { timeout: true }
     if (req.method === 'GET' && url.pathname === '/annotations/next') {
       const pending = getPending()
       if (pending.length > 0) {
@@ -246,16 +246,39 @@ const httpServer = createServer(async (req, res) => {
         return
       }
 
-      // Block until a pending annotation arrives
+      const timeoutMs = Number(url.searchParams.get('timeout')) || 30000
+
       const annotation = await new Promise((resolve) => {
         const waiter = { resolve }
         waiters.push(waiter)
+
+        const timer = setTimeout(() => {
+          const idx = waiters.indexOf(waiter)
+          if (idx !== -1) {
+            waiters.splice(idx, 1)
+            resolve(null)
+          }
+        }, timeoutMs)
+
+        // Wrap resolve to clear the timer when an annotation arrives
+        const original = waiter.resolve
+        waiter.resolve = (value) => {
+          clearTimeout(timer)
+          original(value)
+        }
+
         req.on('close', () => {
+          clearTimeout(timer)
           const idx = waiters.indexOf(waiter)
           if (idx !== -1) waiters.splice(idx, 1)
         })
       })
-      sendJson(res, 200, annotation)
+
+      if (annotation === null) {
+        sendJson(res, 200, { timeout: true })
+      } else {
+        sendJson(res, 200, annotation)
+      }
       return
     }
 

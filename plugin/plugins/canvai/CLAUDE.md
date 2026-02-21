@@ -507,7 +507,7 @@ draft  →  pending  →  resolved
 
 Annotations persist to `.canvai/annotations.json` and survive page refresh and server restart.
 
-**`/canvai-dev`** starts the dev server and automatically enters the watch loop. The agent calls `watch_annotations` in a blocking loop, processing annotations as the designer applies them. The designer controls the pace — annotations arrive only when they click Apply.
+**`/canvai-dev`** starts the dev server and enters the watch loop. The agent calls `watch_annotations` in a loop (each call times out after 30 seconds), processing annotations as the designer applies them. Between timeouts the agent can respond to chat messages. The designer controls the pace — annotations arrive only when they click Apply.
 
 ### Processing an annotation
 

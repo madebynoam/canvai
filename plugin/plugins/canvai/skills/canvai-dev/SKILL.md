@@ -24,7 +24,9 @@ Start the Canvai dev server and enter watch mode.
 
 4. **Drain backlog:** Call `get_pending_annotations` to process any that arrived before the session started. Process each one following the guard protocol.
 
-5. **Enter watch loop:** Call `watch_annotations` in a blocking loop. This waits for the designer to click "Apply" on annotations in the TopBar dropdown. When an annotation arrives:
+5. **Enter watch loop:** Call `watch_annotations` in a loop. Each call waits up to 30 seconds for the designer to click "Apply" on an annotation. Two outcomes:
+
+   **Annotation arrives** — process it:
    - Read the `comment`, `componentName`, `selector`, and `computedStyles`
    - **Follow the guard protocol** (see CLAUDE.md "Before any edit")
    - Map the annotation to the relevant file in `v<N>/components/` or `v<N>/pages/`
@@ -35,4 +37,6 @@ Start the Canvai dev server and enter watch mode.
    - Commit: `git add src/projects/ && git commit -m 'style: annotation #<N> — <brief description>'`
    - Call `watch_annotations` again — back to waiting
 
-6. **Exit:** The designer sends any message to break out of watch mode and return to normal chat.
+   **Timeout** (response contains `"timeout": true`) — no annotation arrived. Call `watch_annotations` again to keep waiting. The timeout exists so you stay responsive to designer messages between polls.
+
+6. **Chat while watching:** The designer can send messages at any time — you'll see them between `watch_annotations` calls. Handle the message (answer a question, make a change, kill the server, etc.), then resume the watch loop by calling `watch_annotations` again.
