@@ -60,7 +60,7 @@ export function ZoomControl({
       borderRadius: R.card,
       padding: 2,
       fontFamily: FONT,
-      boxShadow: '0 1px 3px rgba(0,0,0,0.16), 0 0 0 0.5px rgba(0,0,0,0.12)',
+      boxShadow: '0 0.5px 1px rgba(0,0,0,0.06), 0 0 0 0.5px rgba(0,0,0,0.06)',
     }}>
       <ZoomButton onClick={onZoomOut} title="Zoom out (Cmd -)">
         <Minus size={ICON.sm} strokeWidth={1.5} />

@@ -2,7 +2,8 @@
 
 ## V9
 
-- **FAB icon**: Changed icon color from `var(--txt-pri)` to `var(--text-on-accent)` — fixes invisible icon on dark FAB in light mode (annotation #1)
+- **ZoomControl shadow**: Reduced from `0 1px 3px rgba(0,0,0,0.16)` to `0 0.5px 1px rgba(0,0,0,0.06)` — subtler, less distracting (annotation #1)
+- **FAB icon**: Changed icon color from `var(--txt-pri)` to `var(--text-on-accent)` — fixes invisible icon on dark FAB in light mode
 
 ## V7
 
