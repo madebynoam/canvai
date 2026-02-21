@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { PanelLeft, ChevronDown, SquareMousePointer, Palette, Check } from 'lucide-react'
+import { PanelLeft, ChevronDown, SquareMousePointer, Palette, Check, Sun, Moon, Monitor } from 'lucide-react'
 import { E, S, R, T, FONT } from '../tokens'
-import { PreviewTopBar, PreviewSidebar, ZoomControl, CanvasColorPicker } from '../components'
+import { PreviewTopBar, PreviewSidebar, ZoomControl, CanvasColorPicker, ThemeToggle } from '../components'
+import type { ThemeMode } from '../components'
 
 const iterations = ['V1', 'V2', 'V3']
 
@@ -67,9 +68,50 @@ const lightCanvasPresets = [
   { name: 'Cream',   value: 'oklch(0.960 0.012 90)' },
 ]
 
+/* ─── Light theme toggle (inline, uses light tokens) ─── */
+function LightThemeToggle({ mode, onChange }: { mode: ThemeMode; onChange: (m: ThemeMode) => void }) {
+  const modes: { value: ThemeMode; Icon: typeof Sun }[] = [
+    { value: 'system', Icon: Monitor },
+    { value: 'light',  Icon: Sun },
+    { value: 'dark',   Icon: Moon },
+  ]
+
+  return (
+    <div style={{
+      display: 'inline-flex', gap: 2, padding: 2,
+      borderRadius: R.pill,
+      backgroundColor: L.chromeSub,
+      fontFamily: FONT,
+    }}>
+      {modes.map(m => {
+        const active = m.value === mode
+        return (
+          <button
+            key={m.value}
+            onClick={() => onChange(m.value)}
+            title={m.value.charAt(0).toUpperCase() + m.value.slice(1)}
+            style={{
+              width: 28, height: 24, border: 'none',
+              borderRadius: R.pill,
+              backgroundColor: active ? L.card : 'transparent',
+              color: active ? L.txtPri : L.txtFaint,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'default', padding: 0,
+              boxShadow: active ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
+            }}
+          >
+            <m.Icon size={12} strokeWidth={1.5} />
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
 /* ─── Static light mode shell (reference for contrast comparison) ─── */
-function LightShellPreview({ canvasColor, onCanvasColor }: {
+function LightShellPreview({ canvasColor, onCanvasColor, themeMode, onThemeMode }: {
   canvasColor: string; onCanvasColor: (c: string) => void
+  themeMode: ThemeMode; onThemeMode: (m: ThemeMode) => void
 }) {
   return (
     <div style={{
@@ -172,17 +214,21 @@ function LightShellPreview({ canvasColor, onCanvasColor }: {
           }}>
             <CanvasFrames cardBg={L.card} borderColor={L.borderSoft} accentColor={L.accent} subBg={L.chromeSub} textColor={L.txtSec} />
           </div>
-          {/* Light canvas color dots */}
+          {/* Light controls — top-right */}
           <div style={{
             position: 'absolute',
             top: E.inset + S.md,
             right: E.inset + S.md,
-            display: 'flex', gap: S.sm,
-            background: L.chrome,
-            border: `1px solid ${L.borderSoft}`,
-            borderRadius: R.card,
-            padding: S.sm,
+            display: 'flex', gap: S.sm, alignItems: 'center',
           }}>
+            <LightThemeToggle mode={themeMode} onChange={onThemeMode} />
+            <div style={{
+              display: 'flex', gap: S.sm,
+              background: L.chrome,
+              border: `1px solid ${L.borderSoft}`,
+              borderRadius: R.card,
+              padding: S.sm,
+            }}>
             {lightCanvasPresets.map(p => (
               <button
                 key={p.name}
@@ -201,6 +247,7 @@ function LightShellPreview({ canvasColor, onCanvasColor }: {
                 {canvasColor === p.value && <Check size={10} strokeWidth={2.5} color={L.accent} />}
               </button>
             ))}
+            </div>
           </div>
         </div>
       </div>
@@ -232,6 +279,8 @@ export function Shell() {
   const [zoom, setZoom] = useState(0.85)
   const [darkCanvas, setDarkCanvas] = useState('oklch(0.180 0.005 80)')
   const [lightCanvas, setLightCanvas] = useState('oklch(0.972 0.001 197)')
+  const [themeMode, setThemeMode] = useState<ThemeMode>('dark')
+  const [lightThemeMode, setLightThemeMode] = useState<ThemeMode>('light')
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: S.xxl }}>
@@ -290,6 +339,7 @@ export function Shell() {
                   right: E.inset + S.md,
                   display: 'flex', gap: S.sm, alignItems: 'center',
                 }}>
+                  <ThemeToggle mode={themeMode} onChange={setThemeMode} />
                   <CanvasColorPicker
                     activeColor={darkCanvas}
                     onSelect={setDarkCanvas}
@@ -316,7 +366,7 @@ export function Shell() {
           }}>
             Light Mode
           </div>
-          <LightShellPreview canvasColor={lightCanvas} onCanvasColor={setLightCanvas} />
+          <LightShellPreview canvasColor={lightCanvas} onCanvasColor={setLightCanvas} themeMode={lightThemeMode} onThemeMode={setLightThemeMode} />
         </div>
       </div>
     </div>

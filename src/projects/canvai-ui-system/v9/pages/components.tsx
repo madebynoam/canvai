@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
 import { N, S, R, T, ICON, FONT } from '../tokens'
-import { PreviewTopBar, PreviewSidebar, PreviewProjectPicker, ColorPicker, ZoomControl, CanvasColorPicker, AnnotationBadge, AnnotationDropdown } from '../components'
+import { PreviewTopBar, PreviewSidebar, PreviewProjectPicker, ColorPicker, ZoomControl, CanvasColorPicker, AnnotationBadge, AnnotationDropdown, ThemeToggle } from '../components'
 import type { Annotation } from '../components'
 import { PickerDropdown } from '../../../../runtime/PickerDropdown'
 import { Check, Trash2 } from 'lucide-react'
@@ -356,6 +356,18 @@ export function Components() {
         <div style={{ display: 'inline-flex', padding: S.sm, backgroundColor: 'var(--chrome)', borderRadius: R.card }}>
           <AnnotationBadge count={0} onClick={() => {}} />
         </div>
+      </Section>
+
+      <Section title="Theme Toggle — System">
+        <ThemeToggle mode="system" />
+      </Section>
+
+      <Section title="Theme Toggle — Light">
+        <ThemeToggle mode="light" />
+      </Section>
+
+      <Section title="Theme Toggle — Dark">
+        <ThemeToggle mode="dark" />
       </Section>
 
       <Section title="Annotation Dropdown — With Drafts">

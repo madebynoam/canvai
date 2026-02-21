@@ -2,6 +2,7 @@
 
 ## V9 — Dark Mode Iteration
 
+- Added `ThemeToggle` component — segmented System/Light/Dark toggle with Monitor/Sun/Moon icons
 - Shell page: side-by-side dark vs light comparison with per-mode canvas color presets
 - Canvas color presets tuned per mode — dark: Seamless/Subtle/Soft/Medium/Cool; light: Default/Warm/Neutral/Cool/Cream
 - Dropped sidebar section divider and shell preview borders — borderless chrome, matching light mode
