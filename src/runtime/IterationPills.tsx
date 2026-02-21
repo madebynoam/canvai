@@ -98,7 +98,11 @@ interface IterationPillsProps {
   onSelect: (index: number) => void
 }
 
+/** @deprecated Use PickerDropdown instead. IterationPills will be removed in a future version. */
 export function IterationPills({ items, activeIndex, onSelect }: IterationPillsProps) {
+  if (typeof console !== 'undefined') {
+    console.warn('[canvai] IterationPills is deprecated, use PickerDropdown instead')
+  }
   const [active, setActive] = useState(activeIndex)
   const stripRef = useRef<HTMLDivElement>(null)
   const highlightRef = useRef<HTMLDivElement>(null)

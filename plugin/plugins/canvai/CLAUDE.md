@@ -119,7 +119,7 @@ Iterations are always named **V1, V2, V3, ...** — sequential, uppercase V + nu
 1. Freeze the current iteration in the manifest (`frozen: true`)
 2. **Literal folder copy:** `cp -r v<N>/ v<N+1>/`
 3. Rename CSS scope: `.iter-v<N>` → `.iter-v<N+1>` in `v<N+1>/tokens.css`
-4. Add new iteration to manifest with `frozen: false`
+4. Add new iteration to manifest with `frozen: false` and a `description` (one-line blurb shown in the iteration picker dropdown, e.g. `description: 'Revised spacing and color'`)
 5. Update import paths from `v<N>` to `v<N+1>`
 
 ### Freezing rules
@@ -166,6 +166,7 @@ const manifest: ProjectManifest = {
   iterations: [
     {
       name: 'V1',
+      description: 'Initial exploration',
       frozen: true,
       pages: [
         {
@@ -186,6 +187,7 @@ const manifest: ProjectManifest = {
     },
     {
       name: 'V2',
+      description: 'Revised spacing and color',
       frozen: false,
       pages: [
         /* ... carried forward + new pages ... */
@@ -466,9 +468,9 @@ This is a hard constraint. Before rendering any component or feature, check this
 |---|---|
 | `Canvas` | Infinite pannable/zoomable surface. Renders Frame children at absolute positions. |
 | `Frame` | Draggable card on the canvas. Title bar + content area. Wraps a single component instance. |
-| `TopBar` | Top navigation bar. Shows project picker, sidebar toggle, iteration pills (center), watch mode pill, pending annotation count. |
-| `ProjectPicker` | Dropdown to switch between design projects. Orange letter avatar + chevron trigger. |
-| `IterationPills` | Pill strip in TopBar center for switching iterations. Click, drag-to-scrub, arrows + counter for 5+ items. |
+| `TopBar` | Top navigation bar. Breadcrumb layout: sidebar toggle → ProjectPicker → separator → iteration PickerDropdown. Comment count badge on the right. |
+| `ProjectPicker` | Dropdown to switch between design projects. Accent letter avatar + ChevronsUpDown trigger. Uses PickerDropdown internally. |
+| `PickerDropdown` | Generic dropdown component shared by ProjectPicker and iteration picker. Spring reveal animation, click-outside/Escape close, ChevronsUpDown trigger, Check icon on active row. |
 | `IterationSidebar` | Collapsible left sidebar showing the active iteration's pages as a flat list. |
 | `AnnotationOverlay` | Fixed overlay for the annotation workflow: FAB button, targeting crosshair, highlight box, comment card, numbered markers, toast notifications. |
 

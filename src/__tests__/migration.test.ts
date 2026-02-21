@@ -1475,6 +1475,70 @@ describe('migration 0.0.29', () => {
   })
 })
 
+// --- Migration 0.0.32: Iteration description guidance in CLAUDE.md ---
+
+const claudeMdWithoutDescription = `# Project Rules
+
+These rules are enforced by the agent. Do not remove this file.
+
+## Hard constraints
+
+- **All colors in OKLCH.** No hex values. No rgb. No hsl.
+- **All spacing multiples of 4.** 0, 4, 8, 12, 16, 20, 24… Font sizes exempt.
+- **Iterations named V1, V2, V3.** Sequential, never descriptive.
+
+## Before any edit
+
+1. Read \`manifest.ts\`
+`
+
+describe('migration 0.0.32', () => {
+  const migration = migrations.find(m => m.version === '0.0.32')!
+
+  it('exists in the registry', () => {
+    expect(migration).toBeDefined()
+    expect(migration.version).toBe('0.0.32')
+  })
+
+  it('applies when CLAUDE.md has iterations constraint but no description guidance', () => {
+    expect(migration.applies({ 'CLAUDE.md': claudeMdWithoutDescription })).toBe(true)
+  })
+
+  it('does not apply when CLAUDE.md already has description guidance', () => {
+    const updated = claudeMdWithoutDescription.replace(
+      'Sequential, never descriptive.',
+      "Sequential, never descriptive. Each iteration should include a `description` — a one-line blurb shown in the iteration picker dropdown (e.g. `description: 'Revised spacing and color'`).",
+    )
+    expect(migration.applies({ 'CLAUDE.md': updated })).toBe(false)
+  })
+
+  it('does not apply when CLAUDE.md is missing', () => {
+    expect(migration.applies({})).toBe(false)
+  })
+
+  it('does not apply when CLAUDE.md has no iterations constraint', () => {
+    expect(migration.applies({ 'CLAUDE.md': '# Custom rules\nNo iterations here.' })).toBe(false)
+  })
+
+  it('adds description guidance to iterations constraint', () => {
+    const result = migration.migrate({ 'CLAUDE.md': claudeMdWithoutDescription })
+    expect(result['CLAUDE.md']).toContain('include a `description`')
+    expect(result['CLAUDE.md']).toContain('one-line blurb')
+    expect(result['CLAUDE.md']).toContain('iteration picker dropdown')
+  })
+
+  it('preserves surrounding content', () => {
+    const result = migration.migrate({ 'CLAUDE.md': claudeMdWithoutDescription })
+    expect(result['CLAUDE.md']).toContain('All colors in OKLCH')
+    expect(result['CLAUDE.md']).toContain('Before any edit')
+  })
+
+  it('is idempotent', () => {
+    const first = migration.migrate({ 'CLAUDE.md': claudeMdWithoutDescription })
+    expect(migration.applies({ 'CLAUDE.md': first['CLAUDE.md'] })).toBe(false)
+  })
+})
+
 describe('compareSemver', () => {
   it('handles equal versions', () => {
     expect(compareSemver('0.0.10', '0.0.10')).toBe(0)

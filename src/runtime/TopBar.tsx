@@ -1,14 +1,15 @@
 import { ProjectPicker } from './ProjectPicker'
-import { IterationPills } from './IterationPills'
+import { PickerDropdown } from './PickerDropdown'
 import { AnnotationPanelWidget } from './AnnotationPanel'
-import { PanelLeft } from 'lucide-react'
+import { PanelLeft, ChevronRight } from 'lucide-react'
 import { N, S, R, T, ICON, FONT } from './tokens'
+import type { IterationManifest } from './types'
 
 interface TopBarProps {
   projects: { project: string }[]
   activeProjectIndex: number
   onSelectProject: (index: number) => void
-  iterations: { name: string }[]
+  iterations: IterationManifest[]
   activeIterationIndex: number
   onSelectIteration: (index: number) => void
   annotationEndpoint: string
@@ -33,6 +34,10 @@ export function TopBar({
   sidebarOpen,
   onToggleSidebar,
 }: TopBarProps) {
+  // Reverse so newest iteration is on top
+  const reversedIterations = [...iterations].reverse()
+  const reversedActiveIndex = iterations.length - 1 - activeIterationIndex
+
   return (
     <div
       style={{
@@ -44,11 +49,10 @@ export function TopBar({
         backgroundColor: N.chrome,
         fontFamily: FONT,
         flexShrink: 0,
-        position: 'relative',
       }}
     >
-      {/* Left section: sidebar toggle + project picker */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: S.sm, flex: '0 0 auto' }}>
+      {/* Left section: sidebar toggle → project picker → separator → iteration picker */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: S.xs, flex: '0 0 auto' }}>
         <button
           onClick={onToggleSidebar}
           style={{
@@ -71,22 +75,46 @@ export function TopBar({
           activeIndex={activeProjectIndex}
           onSelect={onSelectProject}
         />
-      </div>
 
-      {/* Center section: iteration pills — absolutely centered, immune to left/right width changes */}
-      <div style={{
-        position: 'absolute',
-        left: '50%',
-        top: '50%',
-        transform: 'translate(-50%, -50%)',
-        pointerEvents: 'auto',
-      }}>
         {iterations.length > 0 && (
-          <IterationPills
-            items={iterations.map(iter => iter.name)}
-            activeIndex={activeIterationIndex}
-            onSelect={onSelectIteration}
-          />
+          <>
+            <ChevronRight size={ICON.sm} strokeWidth={1.5} color={N.txtTer} />
+            <PickerDropdown
+              items={reversedIterations}
+              activeIndex={reversedActiveIndex}
+              onSelect={(i) => onSelectIteration(iterations.length - 1 - i)}
+              width={280}
+              renderTriggerLabel={(item) => (
+                <span style={{ fontSize: T.title, fontWeight: 500, color: N.txtPri }}>
+                  {item.name}
+                </span>
+              )}
+              renderRow={(item, _i, isActive) => (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <span style={{
+                    fontSize: T.body,
+                    fontWeight: 500,
+                    color: N.txtPri,
+                    textWrap: 'pretty',
+                  }}>
+                    {item.name}
+                  </span>
+                  {item.description && (
+                    <span style={{
+                      fontSize: T.caption,
+                      fontWeight: 400,
+                      color: N.txtTer,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}>
+                      {item.description}
+                    </span>
+                  )}
+                </div>
+              )}
+            />
+          </>
         )}
       </div>
 

@@ -2,7 +2,7 @@ import { useState, useRef } from 'react'
 import { N, S, R, T, ICON, FONT } from '../tokens'
 import { PreviewTopBar, PreviewSidebar, PreviewProjectPicker, ColorPicker, ZoomControl, CanvasColorPicker, AnnotationBadge, AnnotationDropdown } from '../components'
 import type { Annotation } from '../components'
-import { IterationPills } from '../../../../runtime/IterationPills'
+import { PickerDropdown } from '../../../../runtime/PickerDropdown'
 import { Check, Trash2 } from 'lucide-react'
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -206,22 +206,48 @@ export function Components() {
         </div>
       </Section>
 
-      <Section title="IterationPills — 3 items">
-        <div style={{ display: 'inline-block', padding: S.sm, backgroundColor: 'var(--chrome)', borderRadius: R.card }}>
-          <IterationPills
-            items={sampleIterations}
-            activeIndex={iterIdx}
-            onSelect={setIterIdx}
+      <Section title="PickerDropdown — Iteration Picker">
+        <div style={{ display: 'inline-block', position: 'relative', minHeight: 160 }}>
+          <PickerDropdown
+            items={[
+              { name: 'V3', description: 'Final polish pass' },
+              { name: 'V2', description: 'Revised spacing and color' },
+              { name: 'V1', description: 'Initial exploration' },
+            ]}
+            activeIndex={0}
+            onSelect={() => {}}
+            width={280}
+            forceOpen
+            renderTriggerLabel={(item) => (
+              <span style={{ fontSize: T.title, fontWeight: 500, color: N.txtPri }}>{item.name}</span>
+            )}
+            renderRow={(item) => (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <span style={{ fontSize: T.body, fontWeight: 500, color: N.txtPri }}>{item.name}</span>
+                {item.description && (
+                  <span style={{ fontSize: T.caption, fontWeight: 400, color: N.txtTer, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {item.description}
+                  </span>
+                )}
+              </div>
+            )}
           />
         </div>
       </Section>
 
-      <Section title="IterationPills — 6 items (scrolling)">
-        <div style={{ display: 'inline-block', padding: S.sm, backgroundColor: 'var(--chrome)', borderRadius: R.card }}>
-          <IterationPills
-            items={['V1', 'V2', 'V3', 'V4', 'V5', 'V6']}
-            activeIndex={0}
-            onSelect={() => {}}
+      <Section title="PickerDropdown — Simple List">
+        <div style={{ display: 'inline-block' }}>
+          <PickerDropdown
+            items={sampleIterations.map(name => ({ name }))}
+            activeIndex={iterIdx}
+            onSelect={setIterIdx}
+            width={180}
+            renderTriggerLabel={(item) => (
+              <span style={{ fontSize: T.title, fontWeight: 500, color: N.txtPri }}>{item.name}</span>
+            )}
+            renderRow={(item) => (
+              <span style={{ fontSize: T.body, color: N.txtPri }}>{item.name}</span>
+            )}
           />
         </div>
       </Section>

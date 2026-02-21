@@ -178,7 +178,7 @@ Pages (v<N>/pages/)           → import ONLY from ../components/, no raw styled
 - **Pages define exactly one exported function.** Any named function returning JSX belongs in \\\`components/\\\`, not in the page file. This is not optional — a 1,000-line page file is a bug.
 - **Pages import only from \\\`../components/\\\`.** No inline styled HTML, no local sub-components.
 - **Components must be interactive.** Inputs typeable, buttons clickable, menus openable. No static mockups — the whole point is that everything works.
-- **Iterations named V1, V2, V3.** Sequential, never descriptive.
+- **Iterations named V1, V2, V3.** Sequential, never descriptive. Each iteration should include a \\\`description\\\` — a one-line blurb shown in the iteration picker dropdown (e.g. \\\`description: 'Revised spacing and color'\\\`).
 
 ## Mandatory pages
 

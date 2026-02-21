@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.0.32 — Iteration Picker Breadcrumb
+
+- Replaced `IterationPills` pill strip with a breadcrumb dropdown: `Project › Iteration`
+- New `PickerDropdown` generic dropdown component — shared by `ProjectPicker` and iteration picker
+- `ProjectPicker` refactored to use `PickerDropdown` internally
+- TopBar layout: sidebar toggle → ProjectPicker → ChevronRight separator → iteration PickerDropdown (left-aligned, no more center-absolute section)
+- Iteration dropdown rows show name + optional description blurb, newest on top
+- Added `description?: string` to `IterationManifest` type
+- Trigger icon changed from `ChevronDown` to `ChevronsUpDown` for both pickers
+- `IterationPills` deprecated with `console.warn` — will be removed in a future version
+- No consumer migration needed (all changes internal to `CanvaiShell`)
+
 ## 0.0.28 — GitHub Comments
 
 - Added full GitHub-backed comment system to the canvas
