@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Plus, Minus, Maximize2 } from 'lucide-react'
-import { N, S, R, T, ICON, FONT } from '../tokens'
+import { S, R, T, ICON, FONT } from '../tokens'
 
 interface ZoomControlProps {
   zoom?: number
@@ -26,11 +26,11 @@ function ZoomButton({ children, onClick, title }: {
         width: S.xxl,
         height: S.xxl,
         border: 'none',
-        background: hovered ? 'rgba(255,255,255,0.06)' : 'transparent',
+        background: hovered ? 'var(--hover-subtle)' : 'transparent',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        color: N.txtSec,
+        color: 'var(--txt-sec)',
         borderRadius: R.control,
         cursor: 'default',
         transition: 'background-color 120ms ease',
@@ -55,8 +55,8 @@ export function ZoomControl({
       display: 'flex',
       alignItems: 'center',
       gap: 0,
-      background: N.chrome,
-      border: `1px solid ${N.border}`,
+      background: 'var(--chrome)',
+      border: `1px solid var(--border)`,
       borderRadius: R.card,
       padding: 2,
       fontFamily: FONT,
@@ -71,7 +71,7 @@ export function ZoomControl({
         textAlign: 'center',
         fontSize: T.caption,
         fontWeight: 500,
-        color: N.txtPri,
+        color: 'var(--txt-pri)',
         fontVariantNumeric: 'tabular-nums',
         userSelect: 'none',
         letterSpacing: '-0.01em',
@@ -86,7 +86,7 @@ export function ZoomControl({
       <div style={{
         width: 1,
         height: S.md,
-        backgroundColor: N.border,
+        backgroundColor: 'var(--border)',
         marginInline: 2,
       }} />
 

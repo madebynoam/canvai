@@ -25,7 +25,7 @@ function PickerRow({ project, active, onClick }: {
         display: 'flex', alignItems: 'center', width: '100%',
         gap: S.sm, padding: `${S.sm}px`,
         border: 'none', borderRadius: R.control,
-        backgroundColor: active ? 'rgba(255,255,255,0.08)' : hovered ? 'rgba(255,255,255,0.06)' : 'transparent',
+        backgroundColor: active ? 'var(--hover-active)' : hovered ? 'var(--hover-subtle)' : 'transparent',
         fontFamily: FONT, textAlign: 'left',
         fontSize: T.title, color: 'var(--txt-pri)',
         cursor: 'default',
@@ -35,7 +35,7 @@ function PickerRow({ project, active, onClick }: {
       <div style={{
         width: S.xl, height: S.xl, borderRadius: '50%',
         backgroundColor: active ? 'var(--accent)' : 'var(--border)',
-        color: active ? 'oklch(0.08 0 0)' : 'var(--txt-sec)',
+        color: active ? 'var(--text-on-accent)' : 'var(--txt-sec)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         fontSize: T.pill, fontWeight: 600, flexShrink: 0,
       }}>

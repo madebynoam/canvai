@@ -41,7 +41,7 @@ export const E = {
   insetTop: 6,
   inset:  12,
   radius: 20,
-  shadow: `0 1px 3px rgba(0,0,0,0.24), 0 0 0 1px ${oklch(0.200, 0.005, 80)}`,
+  shadow: `0 1px 3px rgba(0,0,0,0.24), 0 0 0 1px var(--border-soft)`,
 }
 
 /* Functional — boosted lightness for dark backgrounds */

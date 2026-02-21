@@ -45,7 +45,7 @@ export function ThemeToggle({ mode = 'system', onChange }: ThemeToggleProps) {
               backgroundColor: active
                 ? 'var(--card)'
                 : hovered
-                  ? 'rgba(255,255,255,0.06)'
+                  ? 'var(--hover-subtle)'
                   : 'transparent',
               color: active ? 'var(--txt-pri)' : 'var(--txt-faint)',
               display: 'flex',

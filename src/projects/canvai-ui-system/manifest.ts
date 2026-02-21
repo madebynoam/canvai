@@ -313,7 +313,7 @@ const manifest: ProjectManifest = {
         },
         {
           name: 'Shell',
-          grid: { columns: 1, columnWidth: 1400, rowHeight: 600, gap: 40 },
+          grid: { columns: 1, columnWidth: 900, rowHeight: 1100, gap: 40 },
           frames: [
             { id: 'v9-shell', title: 'Shell — Dark vs Light', component: V9Shell },
           ],

@@ -1,13 +1,13 @@
 import { useRef, useEffect, useState } from 'react'
 import { Check, Palette } from 'lucide-react'
-import { N, A, S, R, ICON, FONT } from '../tokens'
+import { S, R, ICON, FONT } from '../tokens'
 
-interface CanvasColorPreset {
+export interface CanvasColorPreset {
   name: string
   value: string
 }
 
-const presets: CanvasColorPreset[] = [
+const darkPresets: CanvasColorPreset[] = [
   { name: 'Seamless', value: 'oklch(0.130 0.005 80)' },
   { name: 'Subtle',   value: 'oklch(0.180 0.005 80)' },
   { name: 'Soft',     value: 'oklch(0.250 0.005 80)' },
@@ -15,12 +15,17 @@ const presets: CanvasColorPreset[] = [
   { name: 'Cool',     value: 'oklch(0.140 0.010 260)' },
 ]
 
+function isDarkColor(value: string): boolean {
+  const match = value.match(/oklch\(([0-9.]+)/)
+  return match ? parseFloat(match[1]) < 0.5 : false
+}
+
 function ColorDot({ preset, isActive, onSelect }: {
   preset: CanvasColorPreset
   isActive: boolean
   onSelect: () => void
 }) {
-  const isDark = true // all dark-mode presets
+  const dark = isDarkColor(preset.value)
 
   return (
     <button
@@ -31,8 +36,8 @@ function ColorDot({ preset, isActive, onSelect }: {
         height: S.xl,
         borderRadius: '50%',
         border: isActive
-          ? `2px solid ${A.accent}`
-          : `1px solid ${isDark ? 'rgba(255,255,255,0.12)' : N.border}`,
+          ? `2px solid var(--accent)`
+          : `1px solid ${dark ? 'rgba(255,255,255,0.12)' : 'var(--border)'}`,
         background: preset.value,
         cursor: 'default',
         padding: 0,
@@ -46,7 +51,7 @@ function ColorDot({ preset, isActive, onSelect }: {
         <Check
           size={10}
           strokeWidth={2.5}
-          color={isDark ? 'rgba(255,255,255,0.8)' : A.accent}
+          color={dark ? 'rgba(255,255,255,0.8)' : 'var(--accent)'}
         />
       )}
     </button>
@@ -56,12 +61,15 @@ function ColorDot({ preset, isActive, onSelect }: {
 interface CanvasColorPickerProps {
   activeColor?: string
   onSelect?: (color: string) => void
+  presets?: CanvasColorPreset[]
 }
 
 export function CanvasColorPicker({
-  activeColor = presets[0].value,
+  activeColor,
   onSelect,
+  presets = darkPresets,
 }: CanvasColorPickerProps) {
+  const effectiveActive = activeColor ?? presets[0].value
   const [open, setOpen] = useState(false)
   const [triggerHover, setTriggerHover] = useState(false)
   const popoverRef = useRef<HTMLDivElement>(null)
@@ -95,8 +103,8 @@ export function CanvasColorPicker({
           width: 24,
           height: 24,
           borderRadius: '50%',
-          border: `1px solid ${triggerHover ? N.border : N.borderSoft}`,
-          background: triggerHover ? 'rgba(255,255,255,0.06)' : N.chrome,
+          border: `1px solid ${triggerHover ? 'var(--border)' : 'var(--border-soft)'}`,
+          background: triggerHover ? 'var(--chrome-sub)' : 'var(--chrome)',
           cursor: 'default',
           padding: 0,
           display: 'flex',
@@ -105,7 +113,7 @@ export function CanvasColorPicker({
           transition: 'border-color 120ms ease, background-color 120ms ease',
         }}
       >
-        <Palette size={ICON.sm} strokeWidth={1.5} color={N.txtSec} />
+        <Palette size={ICON.sm} strokeWidth={1.5} color="var(--txt-sec)" />
       </button>
 
       {/* Popover — dots only */}
@@ -116,8 +124,8 @@ export function CanvasColorPicker({
             position: 'absolute',
             top: 28,
             right: 0,
-            background: N.chrome,
-            border: `1px solid ${N.border}`,
+            background: 'var(--chrome)',
+            border: `1px solid var(--border)`,
             borderRadius: R.card,
             padding: S.sm,
             fontFamily: FONT,
@@ -131,7 +139,7 @@ export function CanvasColorPicker({
             <ColorDot
               key={preset.name}
               preset={preset}
-              isActive={activeColor === preset.value}
+              isActive={effectiveActive === preset.value}
               onSelect={() => {
                 onSelect?.(preset.value)
                 setOpen(false)

@@ -47,7 +47,7 @@ export function PreviewTopBar({
         }}>
           <div style={{
             width: S.xl, height: S.xl, borderRadius: '50%',
-            backgroundColor: 'var(--accent)', color: 'oklch(0.08 0 0)',
+            backgroundColor: 'var(--accent)', color: 'var(--text-on-accent)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: T.pill, fontWeight: 600, flexShrink: 0,
           }}>
@@ -88,7 +88,7 @@ export function PreviewTopBar({
           <div style={{ display: 'flex', alignItems: 'center', gap: S.sm }}>
             <div style={{
               width: S.lg, height: S.lg, borderRadius: '50%',
-              backgroundColor: 'var(--accent)', color: 'oklch(0.08 0 0)',
+              backgroundColor: 'var(--accent)', color: 'var(--text-on-accent)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: T.label, fontWeight: 600,
             }}>

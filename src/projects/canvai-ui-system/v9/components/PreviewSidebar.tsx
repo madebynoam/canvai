@@ -42,7 +42,7 @@ function SidebarRow({ children, icon, active, onClick }: {
         padding: `${S.xs}px ${S.sm}px`,
         margin: `0 ${S.sm}px`,
         borderRadius: R.control,
-        backgroundColor: active ? 'var(--chrome-sub)' : hovered ? 'rgba(255,255,255,0.06)' : 'transparent',
+        backgroundColor: active ? 'var(--chrome-sub)' : hovered ? 'var(--hover-subtle)' : 'transparent',
         fontFamily: FONT, textAlign: 'left',
         fontSize: T.body, fontWeight: 400,
         color: active ? 'var(--txt-pri)' : 'var(--txt-sec)',
