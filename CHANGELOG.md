@@ -2,6 +2,7 @@
 
 ## V9 — Dark Mode Iteration
 
+- InfoButton icon changed from `Info` (circle-in-circle) to `SlidersHorizontal` (settings sliders)
 - Canvas corners now use `corner-shape: squircle` with 20px radius (was 12px round)
 - Added `ThemeToggle` component — segmented System/Light/Dark toggle with Monitor/Sun/Moon icons
 - Shell page: side-by-side dark vs light comparison with per-mode canvas color presets

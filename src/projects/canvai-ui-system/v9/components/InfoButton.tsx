@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Info, ExternalLink } from 'lucide-react'
+import { SlidersHorizontal, ExternalLink } from 'lucide-react'
 import { N, S, R, T, ICON, FONT } from '../tokens'
 
 const VERSION = '0.0.26'
@@ -178,7 +178,7 @@ export function InfoButton() {
           transition: 'background-color 120ms ease',
         }}
       >
-        <Info size={ICON.md} strokeWidth={1.5} color={N.txtTer} />
+        <SlidersHorizontal size={ICON.md} strokeWidth={1.5} color={N.txtTer} />
       </button>
       {createPortal(menu, document.body)}
     </>
