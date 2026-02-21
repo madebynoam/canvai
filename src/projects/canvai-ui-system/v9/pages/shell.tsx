@@ -204,6 +204,7 @@ function LightShellPreview({ canvasColor, onCanvasColor, themeMode, onThemeMode 
           <div style={{
             width: '100%', height: '100%',
             borderRadius: E.radius,
+            cornerShape: 'squircle',
             backgroundColor: canvasColor,
             boxShadow: `0 1px 3px rgba(0,0,0,0.04), 0 0 0 1px ${L.borderSoft}`,
             overflow: 'hidden',
@@ -211,7 +212,7 @@ function LightShellPreview({ canvasColor, onCanvasColor, themeMode, onThemeMode 
             alignItems: 'center',
             justifyContent: 'center',
             transition: 'background-color 200ms ease',
-          }}>
+          } as React.CSSProperties}>
             <CanvasFrames cardBg={L.card} borderColor={L.borderSoft} accentColor={L.accent} subBg={L.chromeSub} textColor={L.txtSec} />
           </div>
           {/* Light controls — top-right */}
@@ -323,6 +324,7 @@ export function Shell() {
                 <div style={{
                   width: '100%', height: '100%',
                   borderRadius: E.radius,
+                  cornerShape: 'squircle',
                   backgroundColor: darkCanvas,
                   boxShadow: E.shadow,
                   overflow: 'hidden',
@@ -330,7 +332,7 @@ export function Shell() {
                   alignItems: 'center',
                   justifyContent: 'center',
                   transition: 'background-color 200ms ease',
-                }}>
+                } as React.CSSProperties}>
                   <DarkCanvasContent />
                 </div>
                 <div style={{
