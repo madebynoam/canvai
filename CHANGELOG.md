@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.0.33 — Playwright Visual Review
+
+- Added `screenshot_canvas` MCP tool — agent can screenshot the canvas after applying changes for visual self-review
+- Two modes: frame-specific (`frameId` param) or full-canvas (fit-to-view)
+- Exposed `window.__canvai` bridge on Canvas component (`fitToView`, `getFrameBounds`, `getCanvasElement`)
+- Added `data-canvas-content` attribute to canvas transform container for Playwright targeting
+- Lazy Playwright browser — launched on first screenshot, graceful 503 if not installed
+- Added `playwright` as optional dependency
+- Removed `/canvai-check` skill (redundant — `/canvai-dev` drains backlog on startup)
+- Added fast file lookup hint to `/canvai-dev` — parse annotation `frameId` directly instead of searching
+
 ## V9 — Dark Mode Iteration
 
 - InfoButton icon changed from `Info` (circle-in-circle) to `SlidersHorizontal` (settings sliders)

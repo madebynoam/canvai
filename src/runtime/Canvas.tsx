@@ -350,6 +350,19 @@ export function Canvas({ children, pageKey, hud }: CanvasProps) {
     commitState(newPan, fitZoom)
   }
 
+  // Expose canvas API for Playwright visual review
+  useEffect(() => {
+    (window as any).__canvai = {
+      fitToView: () => doFitToView(),
+      getFrameBounds: (frameId: string) => {
+        const el = document.querySelector(`[data-frame-id="${frameId}"]`)
+        return el?.getBoundingClientRect()
+      },
+      getCanvasElement: () => document.querySelector('[data-canvas-content]'),
+    }
+    return () => { delete (window as any).__canvai }
+  }, [])
+
   // Keyboard shortcuts
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -386,6 +399,7 @@ export function Canvas({ children, pageKey, hud }: CanvasProps) {
         <TokenOverrideContext.Provider value={overrideAPI}>
           <div
             ref={contentRef}
+            data-canvas-content
             style={{
               transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})`,
               transformOrigin: '0 0',

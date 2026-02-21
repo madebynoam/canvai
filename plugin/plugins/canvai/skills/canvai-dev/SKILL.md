@@ -27,11 +27,17 @@ Start the Canvai dev server and enter watch mode.
 5. **Enter watch loop:** Call `watch_annotations` in a loop. Each call waits up to 30 seconds for the designer to click "Apply" on an annotation. Three outcomes:
 
    **Regular annotation arrives** (no `type` field or `type: 'annotation'`) — process it:
+   - **Fast file lookup:** Parse `frameId` (e.g. `"v9-shell"`) to get the iteration (`v9`) and component hint. Grep for `componentName` in that iteration's folder. The annotation metadata is a direct map to the file — never use an Explore agent or broad codebase search.
    - Read the `comment`, `componentName`, `selector`, and `computedStyles`
    - **Follow the guard protocol** (see CLAUDE.md "Before any edit")
    - Map the annotation to the relevant file in `v<N>/components/` or `v<N>/pages/`
    - **Token routing:** Route visual value changes through `tokens.css`
    - Apply the requested changes
+   - **Visual review:** Call `screenshot_canvas` with the annotation's `frameId`
+     - Read the returned screenshot file to see the result
+     - Check for: broken contrast, overflow/clipping, misalignment, wrong colors, missing styles
+     - If issues found: fix them and screenshot again
+     - If clean: proceed
    - Call `resolve_annotation` with the annotation `id`
    - Log the change to `CHANGELOG.md`
    - Commit: `git add src/projects/ && git commit -m 'style: annotation #<N> — <brief description>'`
@@ -45,8 +51,11 @@ Start the Canvai dev server and enter watch mode.
    5. Add new iteration to manifest with `frozen: false`, update import paths
    6. Apply the changes described in the annotation's `comment`
    7. Follow all guards (showcase, component hierarchy, token routing)
-   8. Call `resolve_annotation` with the annotation `id`
-   9. Log to `CHANGELOG.md`, commit: `git add src/projects/ && git commit -m 'feat: iteration V<N+1> — <brief description>'`
+   8. **Visual review:** Call `screenshot_canvas` (no frameId — screenshot all frames)
+      - Read the screenshot to verify the new iteration looks correct
+      - Fix any visual issues before resolving
+   9. Call `resolve_annotation` with the annotation `id`
+   10. Log to `CHANGELOG.md`, commit: `git add src/projects/ && git commit -m 'feat: iteration V<N+1> — <brief description>'`
    - Call `watch_annotations` again — back to waiting
 
    **Timeout** (response contains `"timeout": true`) — no annotation arrived. Call `watch_annotations` again to keep waiting. The timeout exists so you stay responsive to designer messages between polls.

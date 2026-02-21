@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { createServer } from 'http'
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs'
+import { readFileSync, writeFileSync, mkdirSync, existsSync, statSync } from 'fs'
 import { join } from 'path'
 import {
   initiateDeviceFlow,
@@ -26,6 +26,41 @@ import {
   buildIssueBody,
   buildIssueTitle,
 } from './github.js'
+
+// --- Playwright (lazy) ---
+
+let _browser = null
+let _page = null
+
+async function getPage() {
+  if (_page) return _page
+
+  let chromium
+  try {
+    const pw = await import('playwright')
+    chromium = pw.chromium
+  } catch {
+    return null // playwright not installed
+  }
+
+  _browser = await chromium.launch({ headless: true })
+  _page = await _browser.newPage()
+  await _page.setViewportSize({ width: 1920, height: 1080 })
+  await _page.goto('http://localhost:5173', { waitUntil: 'load' })
+  await _page.waitForSelector('[data-frame-id]', { timeout: 15000 })
+  return _page
+}
+
+function closeBrowser() {
+  if (_browser) {
+    _browser.close().catch(() => {})
+    _browser = null
+    _page = null
+  }
+}
+
+process.on('SIGTERM', closeBrowser)
+process.on('exit', closeBrowser)
 
 // --- Persistence ---
 
@@ -593,6 +628,71 @@ const httpServer = createServer(async (req, res) => {
 
       console.log(`[canvai] Comment #${issueNumber} promoted to annotation #${annotation.id}`)
       sendJson(res, 201, { annotationId: annotation.id })
+      return
+    }
+
+    // ── Screenshot route ────────────────────────────────────────────────────
+
+    if (req.method === 'GET' && url.pathname === '/screenshot') {
+      const page = await getPage()
+      if (!page) {
+        sendJson(res, 503, {
+          error: 'playwright not installed',
+          install: 'npx playwright install chromium',
+        })
+        return
+      }
+
+      const frameId = url.searchParams.get('frame')
+      const delay = Number(url.searchParams.get('delay')) || 500
+
+      try {
+        // Wait for HMR to settle (Vite pushes updates via WebSocket — no reload needed)
+        await new Promise(r => setTimeout(r, delay))
+        await page.waitForSelector('[data-frame-id]', { timeout: 10000 })
+
+        // Ensure screenshots directory exists (STORE_DIR may be a file in the framework repo)
+        const storeIsDir = existsSync(STORE_DIR) && statSync(STORE_DIR).isDirectory()
+        const screenshotDir = storeIsDir
+          ? join(STORE_DIR, 'screenshots')
+          : join(process.cwd(), '.canvai-screenshots')
+        if (!existsSync(screenshotDir)) mkdirSync(screenshotDir, { recursive: true })
+
+        const timestamp = Date.now()
+        const filename = `${timestamp}.png`
+        const filepath = join(screenshotDir, filename)
+
+        if (frameId) {
+          // Frame mode — screenshot a specific frame's content
+          await page.evaluate(() => window.__canvai?.fitToView())
+          await new Promise(r => setTimeout(r, 300))
+
+          const frameContent = await page.$(`[data-frame-id="${frameId}"] [data-frame-content]`)
+          if (!frameContent) {
+            sendJson(res, 404, { error: `Frame "${frameId}" not found` })
+            return
+          }
+          await frameContent.screenshot({ path: filepath })
+        } else {
+          // Page mode — fit all frames into view, screenshot canvas content
+          await page.evaluate(() => window.__canvai?.fitToView())
+          await new Promise(r => setTimeout(r, 300))
+
+          const canvasContent = await page.$('[data-canvas-content]')
+          if (!canvasContent) {
+            sendJson(res, 500, { error: 'Canvas content element not found' })
+            return
+          }
+          await canvasContent.screenshot({ path: filepath })
+        }
+
+        const relPath = screenshotDir.replace(process.cwd() + '/', '') + '/' + filename
+        sendJson(res, 200, { path: relPath, absolutePath: filepath })
+      } catch (err) {
+        // Reset browser on errors so next call gets a fresh instance
+        closeBrowser()
+        sendJson(res, 500, { error: `Screenshot failed: ${err.message}` })
+      }
       return
     }
 

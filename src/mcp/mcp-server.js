@@ -99,6 +99,50 @@ mcp.registerTool(
   }
 )
 
+// screenshot_canvas — screenshot the canvas for visual review
+mcp.registerTool(
+  'screenshot_canvas',
+  {
+    title: 'Screenshot Canvas',
+    description:
+      'Screenshot the canvas for visual review. Returns a file path to a PNG image — read it with the Read tool to see what the canvas looks like. Use after applying changes to verify they look correct.',
+    inputSchema: {
+      frameId: z.string().optional().describe('Frame ID to screenshot (e.g. "v1-shell"). Omit for all frames.'),
+      delay: z.number().optional().describe('HMR settle delay in ms (default 500)'),
+    },
+  },
+  async ({ frameId, delay }) => {
+    try {
+      const params = new URLSearchParams()
+      if (frameId) params.set('frame', frameId)
+      if (delay) params.set('delay', String(delay))
+      const qs = params.toString()
+      const result = await httpGet(`/screenshot${qs ? '?' + qs : ''}`)
+
+      if (result.error) {
+        if (result.install) {
+          return {
+            content: [{ type: 'text', text: `Playwright is not installed. Run: ${result.install}\nSkipping visual review.` }],
+          }
+        }
+        return {
+          content: [{ type: 'text', text: `Screenshot failed: ${result.error}` }],
+          isError: true,
+        }
+      }
+
+      return {
+        content: [{ type: 'text', text: `Screenshot saved to ${result.path}\nRead this file to see the canvas.` }],
+      }
+    } catch (err) {
+      return {
+        content: [{ type: 'text', text: `Error taking screenshot: ${err.message}. Is canvai dev running?` }],
+        isError: true,
+      }
+    }
+  }
+)
+
 // list_annotations — return all annotations
 mcp.registerTool(
   'list_annotations',

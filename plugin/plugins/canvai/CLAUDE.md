@@ -549,7 +549,6 @@ Each entry includes the `selector`, a brief description of the change, and the a
 ## Skills
 
 - **`/canvai-init <project-name>`** — Create a new design project and start designing
-- **`/canvai-check`** — Check for pending annotations and process them
 - **`/canvai-dev`** — Start (or restart) the dev server (chat mode)
 - **`/canvai-watch`** — Enter watch mode for rapid annotation sessions
 - **`/canvai-iterate`** — Create a new design iteration
