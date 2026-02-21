@@ -88,7 +88,6 @@ export function Shell() {
           display: 'flex', flexDirection: 'column',
           fontFamily: FONT, overflow: 'hidden',
           position: 'relative',
-          border: `1px solid var(--border)`,
           borderRadius: R.card,
         }}>
           <PreviewTopBar
@@ -162,7 +161,6 @@ export function Shell() {
           display: 'flex', flexDirection: 'column',
           fontFamily: FONT, overflow: 'hidden',
           position: 'relative',
-          border: `1px solid var(--border)`,
           borderRadius: R.card,
         }}>
           <PreviewTopBar

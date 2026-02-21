@@ -104,9 +104,7 @@ export function PreviewSidebar({ pages, activePageIndex, onSelectPage, collapsed
         </div>
       )}
 
-      {systemPages.length > 0 && iterPages.length > 0 && (
-        <div style={{ height: 1, backgroundColor: 'var(--border-soft)', margin: `0 ${S.lg}px` }} />
-      )}
+      {/* No divider — borderless sidebar, matching light mode */}
 
       {iterPages.length > 0 && (
         <div style={{ marginTop: systemPages.length > 0 ? S.md : 0 }}>

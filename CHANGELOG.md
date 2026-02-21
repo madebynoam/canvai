@@ -2,6 +2,7 @@
 
 ## V9 — Dark Mode Iteration
 
+- Dropped sidebar section divider and shell preview borders — borderless chrome, matching light mode
 - Created V9 from V8 — full dark mode exploration
 - Inverted OKLCH lightness values: chrome L=0.130, canvas L=0.100, text L=0.930
 - Accent flipped to light charcoal (L=0.800) with dark text-on-accent
