@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { SquareMousePointer } from 'lucide-react'
 import { E, S, R, T, FONT } from '../tokens'
-import { PreviewTopBar, PreviewSidebar, ZoomControl, CanvasColorPicker, InfoButton } from '../components'
+import { PreviewTopBar, PreviewSidebar, ZoomControl, CanvasColorPicker } from '../components'
 import type { ThemeMode } from '../components'
 
 const iterations = ['V1', 'V2', 'V3']
@@ -136,6 +136,8 @@ function ShellPreview({ label, canvasColor, onCanvasColor, canvasPresets, themeM
             activePageIndex={pageIdx}
             onSelectPage={onPageIdx}
             collapsed={!sidebarOpen}
+            themeMode={themeMode}
+            onThemeMode={onThemeMode}
           />
           <div style={{ flex: 1, backgroundColor: 'var(--chrome)', padding: E.inset, position: 'relative' }}>
             <div style={{
@@ -152,19 +154,17 @@ function ShellPreview({ label, canvasColor, onCanvasColor, canvasPresets, themeM
             } as React.CSSProperties}>
               <CanvasContent />
             </div>
-            {/* Controls — top-right: settings + canvas color */}
+            {/* Canvas color picker — top-right */}
             <div style={{
               position: 'absolute',
               top: E.inset + S.md,
               right: E.inset + S.md,
-              display: 'flex', gap: S.sm, alignItems: 'center',
             }}>
               <CanvasColorPicker
                 activeColor={canvasColor}
                 onSelect={onCanvasColor}
                 presets={canvasPresets}
               />
-              <InfoButton themeMode={themeMode} onThemeMode={onThemeMode} />
             </div>
             {/* Zoom — bottom-center of canvas */}
             <div style={{

@@ -3,11 +3,15 @@ import { Palette, Layers } from 'lucide-react'
 import { S, R, T, ICON, FONT } from '../tokens'
 import { InfoButton } from './InfoButton'
 
+import type { ThemeMode } from './ThemeToggle'
+
 interface PreviewSidebarProps {
   pages: { name: string }[]
   activePageIndex: number
   onSelectPage: (index: number) => void
   collapsed: boolean
+  themeMode?: ThemeMode
+  onThemeMode?: (mode: ThemeMode) => void
 }
 
 function SectionHeader({ children }: { children: React.ReactNode }) {
@@ -57,7 +61,7 @@ function SidebarRow({ children, icon, active, onClick }: {
   )
 }
 
-export function PreviewSidebar({ pages, activePageIndex, onSelectPage, collapsed }: PreviewSidebarProps) {
+export function PreviewSidebar({ pages, activePageIndex, onSelectPage, collapsed, themeMode, onThemeMode }: PreviewSidebarProps) {
   if (pages.length === 0) return null
 
   const systemNames = ['Tokens', 'Components']
@@ -126,7 +130,7 @@ export function PreviewSidebar({ pages, activePageIndex, onSelectPage, collapsed
 
       {/* Info button — bottom of sidebar */}
       <div style={{ padding: `0 ${S.lg}px`, paddingBottom: S.xs }}>
-        <InfoButton />
+        <InfoButton themeMode={themeMode} onThemeMode={onThemeMode} />
       </div>
     </div>
   )
