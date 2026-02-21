@@ -1,48 +1,14 @@
 import { useRef, useEffect, useState } from 'react'
-import { createPortal } from 'react-dom'
 import { Info, ExternalLink } from 'lucide-react'
-import { N, S, R, T, ICON, FONT } from './tokens'
+import { N, S, T, ICON, FONT } from './tokens'
+import { useMenu, MenuPanel, MenuRow } from './Menu'
 
 const GITHUB_URL = 'https://github.com/madebynoam/canvai'
 
-function MenuRow({ children, href }: {
-  children: React.ReactNode
-  href?: string
-}) {
-  const [hovered, setHovered] = useState(false)
-
-  return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        display: 'flex', alignItems: 'center', gap: S.sm,
-        width: '100%', boxSizing: 'border-box',
-        border: 'none',
-        padding: `${S.xs}px ${S.sm}px`,
-        borderRadius: R.control,
-        backgroundColor: hovered ? 'rgba(0,0,0,0.03)' : 'transparent',
-        fontFamily: FONT, textAlign: 'left',
-        fontSize: T.body, color: N.txtSec,
-        cursor: 'default',
-        textDecoration: 'none',
-      }}
-    >
-      {children}
-    </a>
-  )
-}
-
 export function InfoButton() {
-  const [open, setOpen] = useState(false)
+  const { open, setOpen, containerRef, portalRef } = useMenu()
   const [triggerHover, setTriggerHover] = useState(false)
-  const menuRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
-  const animRef = useRef<number>(0)
-  const springState = useRef({ value: 0, velocity: 0 })
   const [rect, setRect] = useState<DOMRect | null>(null)
 
   // Measure trigger position on open
@@ -52,112 +18,8 @@ export function InfoButton() {
     }
   }, [open])
 
-  // Spring animation — same as ProjectPicker (tension 233, friction 21)
-  useEffect(() => {
-    const target = open ? 1 : 0
-    cancelAnimationFrame(animRef.current)
-
-    const tension = 233
-    const friction = 21
-    const DT = 1 / 120
-    let accum = 0
-    let prev = performance.now()
-
-    function step(now: number) {
-      accum += Math.min((now - prev) / 1000, 0.064)
-      prev = now
-      const s = springState.current
-      while (accum >= DT) {
-        const spring = -tension * (s.value - target)
-        const damp = -friction * s.velocity
-        s.velocity += (spring + damp) * DT
-        s.value += s.velocity * DT
-        accum -= DT
-      }
-      if (menuRef.current) {
-        const v = Math.max(0, Math.min(1, s.value))
-        const scale = 0.92 + 0.08 * v
-        const ty = (1 - v) * S.xs
-        menuRef.current.style.transform = `scale(${scale}) translateY(${ty}px)`
-        menuRef.current.style.opacity = `${v}`
-      }
-      if (Math.abs(s.value - target) > 0.001 || Math.abs(s.velocity) > 0.001) {
-        animRef.current = requestAnimationFrame(step)
-      } else {
-        s.value = target
-        s.velocity = 0
-        if (menuRef.current) {
-          const scale = 0.92 + 0.08 * target
-          menuRef.current.style.transform = `scale(${scale}) translateY(${target === 1 ? 0 : S.xs}px)`
-          menuRef.current.style.opacity = `${target}`
-        }
-      }
-    }
-    animRef.current = requestAnimationFrame(step)
-    return () => cancelAnimationFrame(animRef.current)
-  }, [open])
-
-  // Click-outside + Escape
-  useEffect(() => {
-    if (!open) return
-    function handlePointerDown(e: MouseEvent) {
-      if (
-        menuRef.current && !menuRef.current.contains(e.target as Node) &&
-        triggerRef.current && !triggerRef.current.contains(e.target as Node)
-      ) {
-        setOpen(false)
-      }
-    }
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape') setOpen(false)
-    }
-    document.addEventListener('pointerdown', handlePointerDown)
-    document.addEventListener('keydown', handleKeyDown)
-    return () => {
-      document.removeEventListener('pointerdown', handlePointerDown)
-      document.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [open])
-
-  const menu = (
-    <div
-      ref={menuRef}
-      style={{
-        position: 'fixed',
-        left: rect ? rect.left : -9999,
-        bottom: rect ? window.innerHeight - rect.top + S.xs : -9999,
-        minWidth: 160,
-        background: N.card,
-        border: `1px solid ${N.border}`,
-        borderRadius: R.card,
-        padding: S.xs,
-        fontFamily: FONT,
-        boxShadow: '0 4px 12px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.04)',
-        zIndex: 1000,
-        transformOrigin: 'bottom left',
-        transform: `scale(0.92) translateY(${S.xs}px)`,
-        opacity: 0,
-        pointerEvents: open ? 'auto' as const : 'none' as const,
-      }}
-    >
-      {/* Version — static, not interactive */}
-      <div style={{
-        padding: `${S.xs}px ${S.sm}px`,
-        fontSize: T.caption, color: N.txtTer,
-        fontFamily: FONT,
-        userSelect: 'none',
-      }}>
-        v{typeof __CANVAI_VERSION__ !== 'undefined' ? __CANVAI_VERSION__ : '0.0.0'}
-      </div>
-      <MenuRow href={GITHUB_URL}>
-        <span style={{ flex: 1 }}>GitHub</span>
-        <ExternalLink size={ICON.sm} strokeWidth={1.5} color={N.txtTer} />
-      </MenuRow>
-    </div>
-  )
-
   return (
-    <>
+    <div ref={containerRef} style={{ display: 'inline-flex' }}>
       <button
         ref={triggerRef}
         onClick={() => setOpen(o => !o)}
@@ -175,12 +37,40 @@ export function InfoButton() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          transition: 'background-color 120ms ease',
         }}
       >
         <Info size={ICON.md} strokeWidth={1.5} color={N.txtTer} />
       </button>
-      {createPortal(menu, document.body)}
-    </>
+      {open && rect && (
+        <MenuPanel
+          portal={{ triggerRect: rect, position: 'above' }}
+          portalRef={portalRef}
+          width={160}
+          zIndex={1000}
+        >
+          {/* Version — static, not interactive */}
+          <div style={{
+            padding: `${S.xs}px ${S.sm}px`,
+            fontSize: T.caption, color: N.txtTer,
+            fontFamily: FONT,
+            userSelect: 'none',
+          }}>
+            v{typeof __CANVAI_VERSION__ !== 'undefined' ? __CANVAI_VERSION__ : '0.0.0'}
+          </div>
+          <MenuRow
+            href={GITHUB_URL}
+            style={{
+              gap: S.sm,
+              padding: `${S.xs}px ${S.sm}px`,
+              fontSize: T.body,
+              color: N.txtSec,
+            }}
+          >
+            <span style={{ flex: 1 }}>GitHub</span>
+            <ExternalLink size={ICON.sm} strokeWidth={1.5} color={N.txtTer} />
+          </MenuRow>
+        </MenuPanel>
+      )}
+    </div>
   )
 }

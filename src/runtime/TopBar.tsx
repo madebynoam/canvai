@@ -1,7 +1,7 @@
 import { ProjectPicker } from './ProjectPicker'
 import { PickerDropdown } from './PickerDropdown'
 import { AnnotationPanelWidget } from './AnnotationPanel'
-import { PanelLeft, ChevronRight } from 'lucide-react'
+import { PanelLeft } from 'lucide-react'
 import { N, S, R, T, ICON, FONT } from './tokens'
 import type { IterationManifest } from './types'
 
@@ -78,7 +78,7 @@ export function TopBar({
 
         {iterations.length > 0 && (
           <>
-            <ChevronRight size={ICON.sm} strokeWidth={1.5} color={N.txtTer} />
+            <span style={{ fontSize: T.body, color: N.border, userSelect: 'none' }}>/</span>
             <PickerDropdown
               items={reversedIterations}
               activeIndex={reversedActiveIndex}

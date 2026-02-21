@@ -139,7 +139,6 @@ function NumericInput({ label, value, onChange, step = 1, min = 0, max = 360 }: 
           fontFamily: 'SF Mono, Monaco, Inconsolata, monospace',
           fontVariantNumeric: 'tabular-nums',
           outline: 'none',
-          transition: 'border-color 120ms ease',
         }}
       />
     </label>
@@ -182,7 +181,6 @@ function HexInput({ value, onChange }: {
           fontSize: T.body,
           fontFamily: 'SF Mono, Monaco, Inconsolata, monospace',
           outline: 'none',
-          transition: 'border-color 120ms ease',
         }}
       />
     </label>
@@ -418,7 +416,6 @@ export function ColorPicker({ l: initL, c: initC, h: initH, onChange, onApply, o
               background: discardHover ? 'rgba(0,0,0,0.06)' : 'transparent',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               borderRadius: R.control, color: N.txtTer, cursor: 'default',
-              transition: 'background-color 120ms ease',
             }}
             title="Discard change"
           >
@@ -436,7 +433,6 @@ export function ColorPicker({ l: initL, c: initC, h: initH, onChange, onApply, o
             color: N.txtSec,
             border: `1px solid ${N.border}`, borderRadius: R.card,
             fontSize: T.body, fontWeight: 500, fontFamily: FONT, cursor: 'default',
-            transition: 'background-color 120ms ease',
           }}
         >
           Cancel
@@ -451,7 +447,6 @@ export function ColorPicker({ l: initL, c: initC, h: initH, onChange, onApply, o
             color: 'oklch(1 0 0)',
             border: 'none', borderRadius: R.card,
             fontSize: T.body, fontWeight: 500, fontFamily: FONT, cursor: 'default',
-            transition: 'background-color 120ms ease',
           }}
         >
           Apply

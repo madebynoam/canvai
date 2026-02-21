@@ -27,7 +27,6 @@ function ZoomButton({ children, onClick, title }: {
         color: N.txtSec,
         borderRadius: R.control,
         cursor: 'default',
-        transition: 'background-color 120ms ease',
         padding: 0,
       }}
     >

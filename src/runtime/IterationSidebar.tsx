@@ -91,7 +91,6 @@ export function IterationSidebar({ iterationName, pages, activePageIndex, onSele
       padding: `${S.md}px 0`,
       display: 'flex',
       flexDirection: 'column',
-      transition: 'width 0.15s ease',
       overflow: 'hidden',
       flexShrink: 0,
       fontFamily: FONT,

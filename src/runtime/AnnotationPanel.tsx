@@ -1,7 +1,7 @@
-import { useState, useRef, useEffect, useCallback } from 'react'
-import { useReducedMotion } from './useReducedMotion'
+import { useState, useEffect, useCallback } from 'react'
 import { N, A, F, S, R, T, ICON, FONT } from './tokens'
 import { Wand2, Crosshair, Loader2 } from 'lucide-react'
+import { useMenu, MenuPanel } from './Menu'
 
 /* ─── Types ───────────────────────────────────────────── */
 
@@ -13,72 +13,6 @@ interface Annotation {
   frameId: string
   selector: string
   status: 'draft' | 'pending' | 'resolved'
-}
-
-/* ─── useDropdownSpring ───────────────────────────────── */
-
-function useDropdownSpring(open: boolean, reducedMotion: boolean) {
-  const ref = useRef<HTMLDivElement>(null)
-  const animRef = useRef<number>(0)
-  const stateRef = useRef({ value: 0, velocity: 0 })
-
-  const animate = useCallback((target: number) => {
-    cancelAnimationFrame(animRef.current)
-
-    if (reducedMotion) {
-      stateRef.current = { value: target, velocity: 0 }
-      if (ref.current) {
-        ref.current.style.transform = target === 1 ? 'scale(1) translateY(0)' : `scale(0.92) translateY(-${S.xs}px)`
-        ref.current.style.opacity = `${target}`
-      }
-      return
-    }
-
-    const tension = 233
-    const friction = 21
-    const DT = 1 / 120
-    let accum = 0
-    let prev = performance.now()
-
-    function step(now: number) {
-      accum += Math.min((now - prev) / 1000, 0.064)
-      prev = now
-      const s = stateRef.current
-      while (accum >= DT) {
-        const spring = -tension * (s.value - target)
-        const damp = -friction * s.velocity
-        s.velocity += (spring + damp) * DT
-        s.value += s.velocity * DT
-        accum -= DT
-      }
-      if (ref.current) {
-        const v = Math.max(0, Math.min(1, s.value))
-        const scale = 0.92 + 0.08 * v
-        const ty = (1 - v) * -S.xs
-        ref.current.style.transform = `scale(${scale}) translateY(${ty}px)`
-        ref.current.style.opacity = `${v}`
-      }
-      if (Math.abs(s.value - target) > 0.001 || Math.abs(s.velocity) > 0.001) {
-        animRef.current = requestAnimationFrame(step)
-      } else {
-        s.value = target
-        s.velocity = 0
-        if (ref.current) {
-          const scale = 0.92 + 0.08 * target
-          ref.current.style.transform = `scale(${scale}) translateY(${target === 1 ? 0 : -S.xs}px)`
-          ref.current.style.opacity = `${target}`
-        }
-      }
-    }
-    animRef.current = requestAnimationFrame(step)
-  }, [reducedMotion])
-
-  useEffect(() => {
-    animate(open ? 1 : 0)
-    return () => cancelAnimationFrame(animRef.current)
-  }, [open, animate])
-
-  return ref
 }
 
 /* ─── AnnotationBadge ─────────────────────────────────── */
@@ -103,7 +37,6 @@ function AnnotationBadge({ count, onClick }: { count: number; onClick: () => voi
         fontWeight: 500,
         color: count > 0 ? A.accent : N.txtTer,
         cursor: 'default',
-        transition: 'background-color 0.1s ease',
       }}
     >
       <div
@@ -158,7 +91,6 @@ function AnnotationRow({
         backgroundColor: hovered && !isResolved ? 'rgba(0,0,0,0.03)' : 'transparent',
         opacity: isResolved ? 0.4 : 1,
         cursor: 'default',
-        transition: 'background-color 0.1s ease',
       }}
     >
       {/* Marker dot */}
@@ -300,9 +232,8 @@ function PendingRow({ annotation }: { annotation: Annotation }) {
 /* ─── useAnnotationPanel hook ─────────────────────────── */
 
 function useAnnotationPanel(endpoint: string) {
-  const [open, setOpen] = useState(false)
+  const { open, setOpen, containerRef } = useMenu()
   const [annotations, setAnnotations] = useState<Annotation[]>([])
-  const containerRef = useRef<HTMLDivElement>(null)
 
   const drafts = annotations.filter(a => a.status === 'draft')
   const pending = annotations.filter(a => a.status === 'pending')
@@ -369,34 +300,13 @@ function useAnnotationPanel(endpoint: string) {
     } catch { /* selector may not match */ }
   }, [annotations])
 
-  // Click-outside + Escape to close
-  useEffect(() => {
-    if (!open) return
-    function handleClick(e: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setOpen(false)
-      }
-    }
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape') setOpen(false)
-    }
-    document.addEventListener('pointerdown', handleClick)
-    document.addEventListener('keydown', handleKeyDown)
-    return () => {
-      document.removeEventListener('pointerdown', handleClick)
-      document.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [open])
-
   return { open, setOpen, annotations, drafts, pending, containerRef, handleApplyAll, handleApplyOne, handleNavigate }
 }
 
 /* ─── AnnotationPanelWidget ───────────────────────────── */
 
 export function AnnotationPanelWidget({ endpoint }: { endpoint: string }) {
-  const reducedMotion = useReducedMotion()
   const { open, setOpen, annotations, drafts, pending, containerRef, handleApplyAll, handleApplyOne, handleNavigate } = useAnnotationPanel(endpoint)
-  const dropdownRef = useDropdownSpring(open, reducedMotion)
 
   const resolved = annotations.filter(a => a.status === 'resolved')
 
@@ -405,28 +315,9 @@ export function AnnotationPanelWidget({ endpoint }: { endpoint: string }) {
       <style>{`@keyframes canvai-spin { to { transform: rotate(360deg) } }`}</style>
       <AnnotationBadge count={drafts.length + pending.length} onClick={() => setOpen(o => !o)} />
 
-      {/* Dropdown — always rendered, spring drives visibility */}
-      <div
-        ref={dropdownRef}
-        style={{
-          position: 'absolute',
-          top: '100%',
-          right: 0,
-          marginTop: S.xs,
-          width: 280,
-          background: N.card,
-          borderRadius: R.card,
-          border: `1px solid ${N.border}`,
-          boxShadow: `0 ${S.xs}px ${S.lg}px rgba(0, 0, 0, 0.08), 0 1px ${S.xs}px rgba(0, 0, 0, 0.04)`,
-          padding: 0,
-          zIndex: 100,
-          transformOrigin: 'top right',
-          transform: `scale(0.92) translateY(-${S.xs}px)`,
-          opacity: 0,
-          pointerEvents: open ? 'auto' : 'none',
-          fontFamily: FONT,
-        }}
-      >
+      {/* Dropdown — instant show/hide */}
+      {open && (
+        <MenuPanel width={280} align="right" style={{ padding: 0 }}>
         {/* Header */}
         <div style={{
           display: 'flex',
@@ -524,7 +415,8 @@ export function AnnotationPanelWidget({ endpoint }: { endpoint: string }) {
             </button>
           </div>
         )}
-      </div>
+        </MenuPanel>
+      )}
     </div>
   )
 }

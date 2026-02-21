@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { MessageSquare, X, Check, Send, MoreHorizontal, Pencil, Trash2, Copy, Github } from 'lucide-react'
-import { useReducedMotion } from './useReducedMotion'
 import { N, A, F, S, R, T, ICON, FONT } from './tokens'
+import { MenuPanel, MenuRow } from './Menu'
 import type { CanvasFrame } from './types'
 import type { CommentThread, CommentMessage, CommentAuthor, CommentPin } from './comment-types'
 import {
@@ -73,66 +73,6 @@ function getStyleSubset(el: Element): Record<string, string> {
   return styles
 }
 
-// ── Spring presence hook (matches AnnotationOverlay pattern) ─────────────────
-
-function useSpringMount(
-  visible: boolean,
-  apply: (el: HTMLElement, v: number) => void,
-  reducedMotion: boolean,
-) {
-  const ref = useRef<HTMLElement | null>(null)
-  const [render, setRender] = useState(visible)
-  const animRef = useRef(0)
-  const stRef = useRef({ value: visible ? 1 : 0, velocity: 0 })
-  const applyRef = useRef(apply)
-  applyRef.current = apply
-
-  useEffect(() => {
-    if (visible) setRender(true)
-
-    if (reducedMotion) {
-      cancelAnimationFrame(animRef.current)
-      stRef.current.value = visible ? 1 : 0
-      stRef.current.velocity = 0
-      if (ref.current) applyRef.current(ref.current, visible ? 1 : 0)
-      if (!visible) setRender(false)
-      return
-    }
-
-    cancelAnimationFrame(animRef.current)
-    const target = visible ? 1 : 0
-    const tension = 233
-    const friction = 21
-    const DT = 1 / 120
-    let accum = 0
-    let prev = performance.now()
-
-    function step(now: number) {
-      accum += Math.min((now - prev) / 1000, 0.064)
-      prev = now
-      const s = stRef.current
-      while (accum >= DT) {
-        s.velocity += (-tension * (s.value - target) - friction * s.velocity) * DT
-        s.value += s.velocity * DT
-        accum -= DT
-      }
-      if (ref.current) applyRef.current(ref.current, Math.max(0, Math.min(1, s.value)))
-      if (Math.abs(s.value - target) > 0.001 || Math.abs(s.velocity) > 0.001) {
-        animRef.current = requestAnimationFrame(step)
-      } else {
-        s.value = target
-        s.velocity = 0
-        if (ref.current) applyRef.current(ref.current, target)
-        if (!visible) setRender(false)
-      }
-    }
-    animRef.current = requestAnimationFrame(step)
-    return () => cancelAnimationFrame(animRef.current)
-  }, [visible, reducedMotion])
-
-  return { ref, render }
-}
-
 // ── Avatar ───────────────────────────────────────────────────────────────────
 
 function Avatar({ name, size = 28 }: { name: string; size?: number }) {
@@ -177,7 +117,7 @@ function HoverButton({ children, onClick, title, style }: {
   )
 }
 
-// ── SpringDropdown ────────────────────────────────────────────────────────────
+// ── ContextMenu ───────────────────────────────────────────────────────────────
 
 interface DropdownItem {
   label: string
@@ -188,93 +128,36 @@ interface DropdownItem {
   onClick?: () => void
 }
 
-function SpringDropdown({ items, onClose, reducedMotion }: {
+function ContextMenu({ items, onClose }: {
   items: DropdownItem[]
   onClose: () => void
-  reducedMotion: boolean
 }) {
-  const dropRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (!dropRef.current || reducedMotion) return
-    const el = dropRef.current
-    let value = 0
-    let velocity = 0
-    const tension = 233
-    const friction = 19
-    const DT = 1 / 120
-    let accum = 0
-    let prev = performance.now()
-    let raf = 0
-
-    function step(now: number) {
-      accum += Math.min((now - prev) / 1000, 0.064)
-      prev = now
-      while (accum >= DT) {
-        velocity += (-tension * (value - 1) - friction * velocity) * DT
-        value += velocity * DT
-        accum -= DT
-      }
-      el.style.transform = `scaleY(${Math.max(0, Math.min(1, value))})`
-      el.style.opacity = `${Math.max(0, Math.min(1, value))}`
-      if (Math.abs(value - 1) > 0.001 || Math.abs(velocity) > 0.001) {
-        raf = requestAnimationFrame(step)
-      } else {
-        el.style.transform = 'scaleY(1)'
-        el.style.opacity = '1'
-      }
-    }
-    raf = requestAnimationFrame(step)
-    return () => cancelAnimationFrame(raf)
-  }, [reducedMotion])
-
   return (
-    <>
-      <div style={{ position: 'fixed', inset: 0, zIndex: 99999 }} onClick={onClose} />
-      <div
-        ref={dropRef}
-        style={{
-          position: 'absolute', top: '100%', right: 0, marginTop: S.xs, zIndex: 100000,
-          width: 208, background: N.card, borderRadius: R.card,
-          border: `1px solid ${N.border}`,
-          boxShadow: '0 4px 16px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04)',
-          padding: S.xs, fontFamily: FONT,
-          transformOrigin: 'top right',
-          transform: 'scaleY(0)', opacity: 0,
-        }}
-      >
-        {items.map(item => (
-          <DropdownRow key={item.label} item={item} onClose={onClose} />
-        ))}
-      </div>
-    </>
-  )
-}
-
-function DropdownRow({ item, onClose }: { item: DropdownItem; onClose: () => void }) {
-  const [hovered, setHovered] = useState(false)
-  return (
-    <button
-      onClick={() => { item.onClick?.(); onClose() }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        width: '100%', padding: `${S.sm}px ${S.md}px`, borderRadius: R.control, border: 'none',
-        fontSize: T.title,
-        color: item.destructive ? (hovered ? F.danger : N.txtSec) : item.accent ? A.accent : N.txtPri,
-        fontWeight: item.accent ? 500 : 400,
-        backgroundColor: item.destructive && hovered ? 'oklch(0.96 0.04 28)' : hovered ? 'rgba(0,0,0,0.04)' : 'transparent',
-        display: 'flex', alignItems: 'center', gap: S.sm,
-        borderTop: item.separator ? `1px solid ${N.border}` : 'none',
-        marginTop: item.separator ? S.xs : 0,
-        fontFamily: FONT, textAlign: 'left', cursor: 'default',
-      }}
+    <MenuPanel
+      width={208}
+      align="right"
+      zIndex={100000}
+      backdrop
+      onBackdropClick={onClose}
     >
-      <span style={{ width: ICON.lg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-        {item.icon}
-      </span>
-      {item.label}
-    </button>
+      {items.map(item => (
+        <MenuRow
+          key={item.label}
+          icon={item.icon}
+          destructive={item.destructive}
+          accent={item.accent}
+          separator={item.separator}
+          onClick={() => { item.onClick?.(); onClose() }}
+          style={{
+            padding: `${S.sm}px ${S.md}px`,
+            fontSize: T.title,
+            gap: S.sm,
+          }}
+        >
+          {item.label}
+        </MenuRow>
+      ))}
+    </MenuPanel>
   )
 }
 
@@ -282,11 +165,10 @@ function DropdownRow({ item, onClose }: { item: DropdownItem; onClose: () => voi
 
 const QUICK_REACTIONS = ['👍', '🤔', '🔥']
 
-function ThreadMessage({ message, menuItems, onReact, reducedMotion }: {
+function ThreadMessage({ message, menuItems, onReact }: {
   message: CommentMessage
   menuItems: DropdownItem[]
   onReact?: (emoji: string) => void
-  reducedMotion: boolean
 }) {
   const [hovered, setHovered] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -328,10 +210,9 @@ function ThreadMessage({ message, menuItems, onReact, reducedMotion }: {
                   <MoreHorizontal size={ICON.lg} strokeWidth={1.5} />
                 </HoverButton>
                 {menuOpen && (
-                  <SpringDropdown
+                  <ContextMenu
                     items={menuItems}
                     onClose={() => setMenuOpen(false)}
-                    reducedMotion={reducedMotion}
                   />
                 )}
               </div>
@@ -379,49 +260,14 @@ function formatTimeAgo(iso: string): string {
 
 // ── AvatarPin ─────────────────────────────────────────────────────────────────
 
-function AvatarPin({ pin, onClick, reducedMotion }: {
+function AvatarPin({ pin, onClick }: {
   pin: CommentPin & { rect: DOMRect }
   onClick: () => void
-  reducedMotion: boolean
 }) {
-  const ref = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (!ref.current || reducedMotion) return
-    const el = ref.current
-    let value = 0.5
-    let velocity = 0
-    const tension = 233
-    const friction = 19
-    const DT = 1 / 120
-    let accum = 0
-    let prev = performance.now()
-    let raf = 0
-
-    function step(now: number) {
-      accum += Math.min((now - prev) / 1000, 0.064)
-      prev = now
-      while (accum >= DT) {
-        velocity += (-tension * (value - 1) - friction * velocity) * DT
-        value += velocity * DT
-        accum -= DT
-      }
-      el.style.transform = `scale(${Math.max(0, Math.min(1.2, value))})` // allow slight overshoot
-      if (Math.abs(value - 1) > 0.001 || Math.abs(velocity) > 0.001) {
-        raf = requestAnimationFrame(step)
-      } else {
-        el.style.transform = 'scale(1)'
-      }
-    }
-    raf = requestAnimationFrame(step)
-    return () => cancelAnimationFrame(raf)
-  }, [reducedMotion])
-
   const isResolved = pin.status === 'resolved'
 
   return (
     <div
-      ref={ref}
       onClick={onClick}
       title={`${pin.author.login}${pin.replyCount > 0 ? ` · ${pin.replyCount} ${pin.replyCount === 1 ? 'reply' : 'replies'}` : ''}`}
       style={{
@@ -431,7 +277,6 @@ function AvatarPin({ pin, onClick, reducedMotion }: {
         zIndex: 99997,
         cursor: 'default',
         userSelect: 'none',
-        transform: reducedMotion ? 'scale(1)' : 'scale(0.5)',
         opacity: isResolved ? 0.5 : 1,
       }}
     >
@@ -477,10 +322,9 @@ function AvatarPin({ pin, onClick, reducedMotion }: {
 
 // ── Auth card ─────────────────────────────────────────────────────────────────
 
-function AuthCard({ onClose, onSuccess, reducedMotion }: {
+function AuthCard({ onClose, onSuccess }: {
   onClose: () => void
   onSuccess: (user: CommentAuthor) => void
-  reducedMotion: boolean
 }) {
   const [phase, setPhase] = useState<AuthPhase>('signing-in')
   const [userCode, setUserCode] = useState('')
@@ -616,7 +460,6 @@ function AuthCard({ onClose, onSuccess, reducedMotion }: {
 // ── CommentOverlay ─────────────────────────────────────────────────────────────
 
 export function CommentOverlay({ endpoint, frames, repo: repoProp, onCommentCountChange }: CommentOverlayProps) {
-  const reducedMotion = useReducedMotion()
   const isDev = import.meta.env.DEV
   const [mode, setMode] = useState<OverlayMode>('idle')
   const [highlight, setHighlight] = useState<DOMRect | null>(null)
@@ -636,8 +479,6 @@ export function CommentOverlay({ endpoint, frames, repo: repoProp, onCommentCoun
   const [threadMenuOpen, setThreadMenuOpen] = useState(false)
   const overlayRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
-  const lastToastRef = useRef<string | null>(null)
-  if (toast) lastToastRef.current = toast
 
   const activeThread = threads.find(t => t.id === activeThreadId) ?? null
 
@@ -1062,55 +903,8 @@ export function CommentOverlay({ endpoint, frames, repo: repoProp, onCommentCoun
     setMode('targeting')
   }, [mode, user])
 
-  // ── Spring mounts ─────────────────────────────────────────────────────────
-
-  const fabSpring = useSpringMount(
-    mode === 'idle' && !showAuthCard,
-    (el, v) => {
-      el.style.opacity = `${v}`
-      el.style.transform = `scale(${0.8 + 0.2 * v})`
-    },
-    reducedMotion,
-  )
-
   const cardVisible = mode === 'composing' && target !== null
-  const composeCard = useSpringMount(
-    cardVisible,
-    (el, v) => {
-      el.style.opacity = `${v}`
-      el.style.transform = `scale(${0.96 + 0.04 * v}) translateY(${(1 - v) * S.sm}px)`
-    },
-    reducedMotion,
-  )
-
   const threadVisible = mode === 'viewing' && activeThread !== null
-  const threadCard = useSpringMount(
-    threadVisible,
-    (el, v) => {
-      el.style.opacity = `${v}`
-      el.style.transform = `scale(${0.96 + 0.04 * v}) translateY(${(1 - v) * S.sm}px)`
-    },
-    reducedMotion,
-  )
-
-  const authVisible = showAuthCard
-  const authCard = useSpringMount(
-    authVisible,
-    (el, v) => {
-      el.style.opacity = `${v}`
-      el.style.transform = `scale(${0.96 + 0.04 * v}) translateY(${(1 - v) * S.sm}px)`
-    },
-    reducedMotion,
-  )
-
-  const toastSpring = useSpringMount(
-    toast !== null,
-    (el, v) => {
-      el.style.opacity = `${v}`
-      el.style.transform = `translateX(-50%) translateY(${(1 - v) * S.lg}px)`
-    },
-    reducedMotion,
-  )
 
   // ── Compose card position ─────────────────────────────────────────────────
 
@@ -1144,7 +938,6 @@ export function CommentOverlay({ endpoint, frames, repo: repoProp, onCommentCoun
     return { top, left }
   }
 
-  const displayToast = toast ?? lastToastRef.current
 
   // ── Pins ─────────────────────────────────────────────────────────────────
 
@@ -1272,26 +1065,20 @@ export function CommentOverlay({ endpoint, frames, repo: repoProp, onCommentCoun
           borderRadius: R.control,
           pointerEvents: 'none',
           zIndex: 99999,
-          transition: 'left 0.05s ease-out, top 0.05s ease-out, width 0.05s ease-out, height 0.05s ease-out',
         }} />
       )}
 
       {/* Auth card */}
-      {authCard.render && (
+      {showAuthCard && (
         <div
-          ref={authCard.ref as React.RefObject<HTMLDivElement>}
           style={{
             position: 'fixed',
             bottom: S.lg + S.md + 40 + S.sm + 40 + S.sm,
             right: S.lg + S.md,
             zIndex: 99999,
-            opacity: 0,
-            transform: `scale(0.96) translateY(${S.sm}px)`,
-            willChange: 'opacity, transform',
           }}
         >
           <AuthCard
-            reducedMotion={reducedMotion}
             onClose={() => setShowAuthCard(false)}
             onSuccess={(u) => {
               setUser(u)
@@ -1303,11 +1090,10 @@ export function CommentOverlay({ endpoint, frames, repo: repoProp, onCommentCoun
       )}
 
       {/* Compose card */}
-      {composeCard.render && target && (() => {
+      {cardVisible && target && (() => {
         const pos = getComposeCardPos()
         return (
           <div
-            ref={composeCard.ref as React.RefObject<HTMLDivElement>}
             style={{
               position: 'fixed',
               ...pos,
@@ -1319,9 +1105,6 @@ export function CommentOverlay({ endpoint, frames, repo: repoProp, onCommentCoun
               border: `1px solid ${N.border}`,
               boxShadow: `0 ${S.xs}px ${S.xxl}px rgba(0,0,0,0.08), 0 1px ${S.xs}px rgba(0,0,0,0.04)`,
               fontFamily: FONT,
-              opacity: 0,
-              transform: `scale(0.96) translateY(${S.sm}px)`,
-              willChange: 'opacity, transform',
               display: 'flex',
               flexDirection: 'column',
               gap: S.sm,
@@ -1389,11 +1172,10 @@ export function CommentOverlay({ endpoint, frames, repo: repoProp, onCommentCoun
       })()}
 
       {/* Thread card */}
-      {threadCard.render && activeThread && (() => {
+      {threadVisible && activeThread && (() => {
         const pos = getThreadCardPos()
         return (
           <div
-            ref={threadCard.ref as React.RefObject<HTMLDivElement>}
             style={{
               position: 'fixed',
               ...pos,
@@ -1406,9 +1188,6 @@ export function CommentOverlay({ endpoint, frames, repo: repoProp, onCommentCoun
               border: `1px solid ${N.border}`,
               boxShadow: `0 4px 24px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04)`,
               fontFamily: FONT,
-              opacity: 0,
-              transform: `scale(0.96) translateY(${S.sm}px)`,
-              willChange: 'opacity, transform',
               display: 'flex',
               flexDirection: 'column',
               gap: S.md,
@@ -1429,10 +1208,9 @@ export function CommentOverlay({ endpoint, frames, repo: repoProp, onCommentCoun
                     <MoreHorizontal size={ICON.lg} strokeWidth={1.5} />
                   </HoverButton>
                   {threadMenuOpen && (
-                    <SpringDropdown
+                    <ContextMenu
                       items={threadMenuItems}
                       onClose={() => setThreadMenuOpen(false)}
-                      reducedMotion={reducedMotion}
                     />
                   )}
                 </div>
@@ -1489,7 +1267,6 @@ export function CommentOverlay({ endpoint, frames, repo: repoProp, onCommentCoun
                   message={message}
                   menuItems={getMsgMenuItems(message)}
                   onReact={user ? (emoji) => handleReact(message, emoji) : undefined}
-                  reducedMotion={reducedMotion}
                 />
               ))}
             </div>
@@ -1532,17 +1309,13 @@ export function CommentOverlay({ endpoint, frames, repo: repoProp, onCommentCoun
       })()}
 
       {/* FAB — stacked above annotation FAB */}
-      {fabSpring.render && (
+      {mode === 'idle' && !showAuthCard && (
         <div
-          ref={fabSpring.ref as React.RefObject<HTMLDivElement>}
           style={{
             position: 'fixed',
             bottom: S.lg + S.md + 40 + S.sm,  // annotation FAB height (40) + gap (S.sm) above it
             right: S.lg + S.md,
             zIndex: 99999,
-            opacity: 0,
-            transform: 'scale(0.8)',
-            willChange: 'opacity, transform',
           }}
         >
           <div style={{ position: 'relative' }}>
@@ -1562,8 +1335,6 @@ export function CommentOverlay({ endpoint, frames, repo: repoProp, onCommentCoun
                 boxShadow: buttonState === 'pressed'
                   ? 'inset 0 1px 2px rgba(0,0,0,0.15), 0 1px 2px rgba(0,0,0,0.08)'
                   : 'inset 0 1px 0 rgba(255,255,255,0.08), 0 1px 3px rgba(0,0,0,0.12), 0 0 0 0.5px rgba(0,0,0,0.06)',
-                transform: buttonState === 'pressed' ? 'scale(0.95)' : 'scale(1)',
-                transition: 'transform 0.1s ease, box-shadow 0.15s ease, background 0.1s ease',
                 cursor: 'default',
                 opacity: loadingThreads ? 0.7 : 1,
               }}
@@ -1607,7 +1378,6 @@ export function CommentOverlay({ endpoint, frames, repo: repoProp, onCommentCoun
         <AvatarPin
           key={pin.threadId}
           pin={pin}
-          reducedMotion={reducedMotion}
           onClick={() => {
             setActiveThreadId(pin.threadId)
             setMode('viewing')
@@ -1616,14 +1386,14 @@ export function CommentOverlay({ endpoint, frames, repo: repoProp, onCommentCoun
       ))}
 
       {/* Toast */}
-      {toastSpring.render && displayToast && (
+      {/* Toast */}
+      {toast && (
         <div
-          ref={toastSpring.ref as React.RefObject<HTMLDivElement>}
           style={{
             position: 'fixed',
             bottom: S.xxl,
             left: '50%',
-            transform: `translateX(-50%) translateY(${S.lg}px)`,
+            transform: 'translateX(-50%)',
             zIndex: 99999,
             padding: `${S.sm}px ${S.xxl}px`,
             background: N.txtPri,
@@ -1633,12 +1403,10 @@ export function CommentOverlay({ endpoint, frames, repo: repoProp, onCommentCoun
             fontWeight: 500,
             fontFamily: FONT,
             boxShadow: `0 2px ${S.md}px rgba(0,0,0,0.12)`,
-            opacity: 0,
-            willChange: 'opacity, transform',
             whiteSpace: 'nowrap',
           }}
         >
-          {displayToast}
+          {toast}
         </div>
       )}
     </>

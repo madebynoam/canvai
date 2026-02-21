@@ -1,6 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { SquareMousePointer, Trash2 } from 'lucide-react'
-import { useReducedMotion } from './useReducedMotion'
 import { N, A, F, S, R, T, ICON, FONT } from './tokens'
 import type { CanvasFrame } from './types'
 
@@ -23,130 +22,15 @@ interface AnnotationOverlayProps {
   frames: CanvasFrame[]
 }
 
-/* ── Spring presence hook ──
- * Manages mount/unmount lifecycle with spring enter/exit.
- * Consumer provides an `apply` callback to map spring value (0→1) to styles.
- * Returns { ref, render, dismiss } — dismiss() skips exit animation (keyboard shortcut path).
- */
-function useSpringMount(
-  visible: boolean,
-  apply: (el: HTMLElement, v: number) => void,
-  reducedMotion: boolean,
-) {
-  const ref = useRef<HTMLElement | null>(null)
-  const [render, setRender] = useState(visible)
-  const animRef = useRef(0)
-  const stRef = useRef({ value: visible ? 1 : 0, velocity: 0 })
-  const applyRef = useRef(apply)
-  applyRef.current = apply
-  const instantRef = useRef(false)
-
-  const dismiss = useCallback(() => { instantRef.current = true }, [])
-
-  useEffect(() => {
-    if (visible) {
-      setRender(true)
-      instantRef.current = false
-    }
-
-    // Reduced motion: snap immediately
-    if (reducedMotion) {
-      cancelAnimationFrame(animRef.current)
-      stRef.current.value = visible ? 1 : 0
-      stRef.current.velocity = 0
-      if (ref.current) applyRef.current(ref.current, visible ? 1 : 0)
-      if (!visible) setRender(false)
-      return
-    }
-
-    // Instant dismiss (keyboard shortcut path — Emil: keyboard = no animation)
-    if (!visible && instantRef.current) {
-      cancelAnimationFrame(animRef.current)
-      stRef.current.value = 0
-      stRef.current.velocity = 0
-      if (ref.current) applyRef.current(ref.current, 0)
-      setRender(false)
-      return
-    }
-
-    cancelAnimationFrame(animRef.current)
-    const target = visible ? 1 : 0
-    const tension = 233
-    const friction = 21
-    const DT = 1 / 120
-    let accum = 0
-    let prev = performance.now()
-
-    function step(now: number) {
-      accum += Math.min((now - prev) / 1000, 0.064)
-      prev = now
-      const s = stRef.current
-      while (accum >= DT) {
-        s.velocity += (-tension * (s.value - target) - friction * s.velocity) * DT
-        s.value += s.velocity * DT
-        accum -= DT
-      }
-      if (ref.current) applyRef.current(ref.current, Math.max(0, Math.min(1, s.value)))
-      if (Math.abs(s.value - target) > 0.001 || Math.abs(s.velocity) > 0.001) {
-        animRef.current = requestAnimationFrame(step)
-      } else {
-        s.value = target
-        s.velocity = 0
-        if (ref.current) applyRef.current(ref.current, target)
-        if (!visible) setRender(false)
-      }
-    }
-    animRef.current = requestAnimationFrame(step)
-    return () => cancelAnimationFrame(animRef.current)
-  }, [visible, reducedMotion])
-
-  return { ref, render, dismiss }
-}
-
-/* ── Marker dot with spring-in on mount ── */
-function MarkerDot({ id, comment, rect, onClick, reducedMotion }: {
+/* ── Marker dot ── */
+function MarkerDot({ id, comment, rect, onClick }: {
   id: number
   comment: string
   rect: DOMRect
   onClick: () => void
-  reducedMotion: boolean
 }) {
-  const ref = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (!ref.current || reducedMotion) return
-    const el = ref.current
-    let value = 0.5
-    let velocity = 0
-    const tension = 233
-    const friction = 19
-    const DT = 1 / 120
-    let accum = 0
-    let prev = performance.now()
-    let raf = 0
-
-    function step(now: number) {
-      accum += Math.min((now - prev) / 1000, 0.064)
-      prev = now
-      while (accum >= DT) {
-        velocity += (-tension * (value - 1) - friction * velocity) * DT
-        value += velocity * DT
-        accum -= DT
-      }
-      el.style.transform = `scale(${value})`
-      if (Math.abs(value - 1) > 0.001 || Math.abs(velocity) > 0.001) {
-        raf = requestAnimationFrame(step)
-      } else {
-        el.style.transform = 'scale(1)'
-      }
-    }
-    raf = requestAnimationFrame(step)
-    return () => cancelAnimationFrame(raf)
-  }, [reducedMotion])
-
   return (
     <div
-      ref={ref}
       title={comment}
       onClick={onClick}
       style={{
@@ -168,7 +52,6 @@ function MarkerDot({ id, comment, rect, onClick, reducedMotion }: {
         boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08), 0 1px 2px rgba(0,0,0,0.15), 0 0 0 0.5px rgba(0,0,0,0.06)',
         cursor: 'default',
         userSelect: 'none',
-        transform: reducedMotion ? 'scale(1)' : 'scale(0.5)',
       }}
     >
       {id}
@@ -194,7 +77,6 @@ function HoverButton({ children, onClick, baseStyle, hoverBg, title }: {
       style={{
         ...baseStyle,
         backgroundColor: hovered ? hoverBg : (baseStyle.backgroundColor ?? baseStyle.background as string ?? 'transparent'),
-        transition: 'background-color 150ms ease',
       }}
     >
       {children}
@@ -254,7 +136,6 @@ interface AnnotationMarker {
 }
 
 export function AnnotationOverlay({ endpoint, frames }: AnnotationOverlayProps) {
-  const reducedMotion = useReducedMotion()
   const [mode, setMode] = useState<Mode>('idle')
   const [highlight, setHighlight] = useState<DOMRect | null>(null)
   const [target, setTarget] = useState<TargetInfo | null>(null)
@@ -266,42 +147,8 @@ export function AnnotationOverlay({ endpoint, frames }: AnnotationOverlayProps) 
   const [editingMarkerId, setEditingMarkerId] = useState<number | null>(null)
   const overlayRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const cardRef = useRef<HTMLDivElement>(null)
   const nextMarkerId = useRef(1)
-
-  // Keep last target/toast around for exit animation content
-  const lastTargetRef = useRef<TargetInfo | null>(null)
-  const lastToastRef = useRef<string | null>(null)
-  if (target) lastTargetRef.current = target
-  if (toast) lastToastRef.current = toast
-
-  // Spring presence for comment card, toast, FAB
-  const cardVisible = mode === 'commenting' && target !== null
-  const card = useSpringMount(
-    cardVisible,
-    (el, v) => {
-      el.style.opacity = `${v}`
-      el.style.transform = `translateY(${(1 - v) * S.sm}px) scale(${0.96 + 0.04 * v})`
-    },
-    reducedMotion,
-  )
-
-  const toastSpring = useSpringMount(
-    toast !== null,
-    (el, v) => {
-      el.style.opacity = `${v}`
-      el.style.transform = `translateX(-50%) translateY(${(1 - v) * S.lg}px)`
-    },
-    reducedMotion,
-  )
-
-  const fab = useSpringMount(
-    mode === 'idle',
-    (el, v) => {
-      el.style.opacity = `${v}`
-      el.style.transform = `scale(${0.8 + 0.2 * v})`
-    },
-    reducedMotion,
-  )
 
   // Focus textarea when entering commenting mode
   useEffect(() => {
@@ -401,6 +248,9 @@ export function AnnotationOverlay({ endpoint, frames }: AnnotationOverlayProps) 
     if (mode !== 'targeting') return
     const overlay = overlayRef.current
     if (!overlay) return
+
+    // Stop native event from reaching document-level click-outside listener
+    e.nativeEvent.stopImmediatePropagation()
 
     overlay.style.pointerEvents = 'none'
     const el = document.elementFromPoint(e.clientX, e.clientY)
@@ -509,11 +359,9 @@ export function AnnotationOverlay({ endpoint, frames }: AnnotationOverlayProps) 
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && mode === 'commenting') {
-      // Keyboard-initiated: instant dismiss (Emil: keyboard = no animation)
-      card.dismiss()
       handleApply()
     }
-  }, [handleApply, mode, card])
+  }, [handleApply, mode])
 
   // Global Escape to dismiss targeting/commenting mode
   useEffect(() => {
@@ -527,22 +375,25 @@ export function AnnotationOverlay({ endpoint, frames }: AnnotationOverlayProps) 
     return () => document.removeEventListener('keydown', onKeyDown)
   }, [mode, handleCancel])
 
-  // Click-outside to dismiss comment card
+  // Click-outside to dismiss comment card (skip first frame to avoid race with originating click)
   useEffect(() => {
     if (mode !== 'commenting') return
+    let armed = false
+    const rafId = requestAnimationFrame(() => { armed = true })
     function handlePointerDown(e: MouseEvent) {
-      const cardEl = card.ref.current
-      if (cardEl && !cardEl.contains(e.target as Node)) {
+      if (!armed) return
+      if (cardRef.current && !cardRef.current.contains(e.target as Node)) {
         handleCancel()
       }
     }
     document.addEventListener('pointerdown', handlePointerDown)
-    return () => document.removeEventListener('pointerdown', handlePointerDown)
-  }, [mode, handleCancel, card.ref])
+    return () => {
+      cancelAnimationFrame(rafId)
+      document.removeEventListener('pointerdown', handlePointerDown)
+    }
+  }, [mode, handleCancel])
 
-  // Use last-known target/toast for exit animation content
-  const displayTarget = target || lastTargetRef.current
-  const displayToast = toast || lastToastRef.current
+  const cardVisible = mode === 'commenting' && target !== null
 
   return (
     <>
@@ -574,19 +425,18 @@ export function AnnotationOverlay({ endpoint, frames }: AnnotationOverlayProps) 
             borderRadius: R.control,
             pointerEvents: 'none',
             zIndex: 99999,
-            transition: 'left 0.05s ease-out, top 0.05s ease-out, width 0.05s ease-out, height 0.05s ease-out',
           }}
         />
       )}
 
-      {/* Comment card — spring enter/exit, positioned near target element */}
-      {card.render && displayTarget && (() => {
+      {/* Comment card — positioned near target element */}
+      {cardVisible && target && (() => {
         const cardWidth = 320
         const cardHeight = 220
-        let top = displayTarget.rect.bottom + S.sm
-        let left = displayTarget.rect.left
+        let top = target.rect.bottom + S.sm
+        let left = target.rect.left
         if (top + cardHeight > window.innerHeight) {
-          top = displayTarget.rect.top - cardHeight - S.sm
+          top = target.rect.top - cardHeight - S.sm
         }
         if (left + cardWidth > window.innerWidth - S.lg) {
           left = window.innerWidth - cardWidth - S.lg
@@ -595,7 +445,7 @@ export function AnnotationOverlay({ endpoint, frames }: AnnotationOverlayProps) 
         if (top < S.lg) top = S.lg
         return (
         <div
-          ref={card.ref as React.RefObject<HTMLDivElement>}
+          ref={cardRef}
           onKeyDown={handleKeyDown}
           style={{
             position: 'fixed',
@@ -609,15 +459,12 @@ export function AnnotationOverlay({ endpoint, frames }: AnnotationOverlayProps) 
             border: `1px solid ${N.border}`,
             width: cardWidth,
             fontFamily: FONT,
-            opacity: 0,
-            transform: `translateY(${S.sm}px) scale(0.96)`,
-            willChange: 'opacity, transform',
           }}
         >
           {/* Header: component·tag + delete icon (when re-editing) */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: S.sm }}>
             <div style={{ fontSize: T.caption, color: N.txtTer, letterSpacing: '0.02em' }}>
-              {displayTarget.componentName} &middot; {displayTarget.elementTag}
+              {target.componentName} &middot; {target.elementTag}
             </div>
             {editingMarkerId !== null && (
               <HoverButton
@@ -696,18 +543,14 @@ export function AnnotationOverlay({ endpoint, frames }: AnnotationOverlayProps) 
         )
       })()}
 
-      {/* FAB — spring enter/exit on mode change */}
-      {fab.render && (
+      {/* FAB */}
+      {mode === 'idle' && (
         <div
-          ref={fab.ref as React.RefObject<HTMLDivElement>}
           style={{
             position: 'fixed',
             bottom: S.lg + S.md,
             right: S.lg + S.md,
             zIndex: 99999,
-            opacity: 0,
-            transform: 'scale(0.8)',
-            willChange: 'opacity, transform',
           }}
         >
           <button
@@ -733,8 +576,6 @@ export function AnnotationOverlay({ endpoint, frames }: AnnotationOverlayProps) 
                 : buttonState === 'hover'
                   ? 'inset 0 1px 0 rgba(255,255,255,0.10), 0 2px 6px rgba(0,0,0,0.16), 0 0 0 0.5px rgba(0,0,0,0.06)'
                   : 'inset 0 1px 0 rgba(255,255,255,0.08), 0 1px 3px rgba(0,0,0,0.12), 0 0 0 0.5px rgba(0,0,0,0.06)',
-              transform: buttonState === 'pressed' ? 'scale(0.95)' : 'scale(1)',
-              transition: 'transform 0.1s ease, box-shadow 0.15s ease, background 0.1s ease',
             }}
           >
             <SquareMousePointer size={S.xl} strokeWidth={1.5} />
@@ -742,7 +583,7 @@ export function AnnotationOverlay({ endpoint, frames }: AnnotationOverlayProps) 
         </div>
       )}
 
-      {/* Annotation markers — spring scale on placement */}
+      {/* Annotation markers */}
       {markers.map((marker) => {
         const rect = markerRects.get(marker.id)
         if (!rect) return null
@@ -752,7 +593,6 @@ export function AnnotationOverlay({ endpoint, frames }: AnnotationOverlayProps) 
             id={marker.id}
             comment={marker.comment}
             rect={rect}
-            reducedMotion={reducedMotion}
             onClick={() => {
               const frameEl = document.querySelector(`[data-frame-id="${marker.frameId}"]`)
               if (!frameEl) return
@@ -785,15 +625,14 @@ export function AnnotationOverlay({ endpoint, frames }: AnnotationOverlayProps) 
         )
       })}
 
-      {/* Toast — spring enter from below, fade exit */}
-      {toastSpring.render && displayToast && (
+      {/* Toast */}
+      {toast && (
         <div
-          ref={toastSpring.ref as React.RefObject<HTMLDivElement>}
           style={{
             position: 'fixed',
             bottom: S.xxl,
             left: '50%',
-            transform: `translateX(-50%) translateY(${S.lg}px)`,
+            transform: 'translateX(-50%)',
             zIndex: 99999,
             padding: `${S.sm}px ${S.xxl}px`,
             background: N.txtPri,
@@ -803,11 +642,9 @@ export function AnnotationOverlay({ endpoint, frames }: AnnotationOverlayProps) 
             fontWeight: 500,
             fontFamily: FONT,
             boxShadow: `0 2px ${S.md}px rgba(0, 0, 0, 0.12)`,
-            opacity: 0,
-            willChange: 'opacity, transform',
           }}
         >
-          {displayToast}
+          {toast}
         </div>
       )}
     </>

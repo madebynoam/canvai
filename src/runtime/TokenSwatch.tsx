@@ -72,7 +72,6 @@ export function TokenSwatch({ color, label, sublabel, oklch, tokenPath }: TokenS
           borderRadius: R.control,
           backgroundColor: interactive && hovered ? 'rgba(0,0,0,0.03)' : 'transparent',
           cursor: 'default',
-          transition: 'background-color 120ms ease',
         }}
       >
         <div style={{ position: 'relative', flexShrink: 0 }}>
