@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState } from 'react'
-import { Info, ExternalLink } from 'lucide-react'
+import { SlidersHorizontal, ExternalLink } from 'lucide-react'
 import { N, S, T, ICON, FONT } from './tokens'
 import { useMenu, MenuPanel, MenuRow } from './Menu'
 
@@ -39,7 +39,7 @@ export function InfoButton() {
           justifyContent: 'center',
         }}
       >
-        <Info size={ICON.md} strokeWidth={1.5} color={N.txtTer} />
+        <SlidersHorizontal size={ICON.md} strokeWidth={1.5} color={N.txtTer} />
       </button>
       {open && rect && (
         <MenuPanel

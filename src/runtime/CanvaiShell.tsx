@@ -85,12 +85,13 @@ export function CanvaiShell({ manifests, annotationEndpoint = 'http://localhost:
           <div style={{
             width: '100%',
             height: '100%',
-            borderRadius: E.radius,
+            borderRadius: 20,
+            cornerShape: 'squircle',
             backgroundColor: canvasBg,
             boxShadow: E.shadow,
             overflow: 'hidden',
             position: 'relative',
-          }}>
+          } as React.CSSProperties}>
             <Canvas
               pageKey={`${activeProject?.project ?? ''}-${activeIteration?.name ?? ''}-${activePage?.name ?? ''}`}
               hud={<>
