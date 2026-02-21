@@ -2,6 +2,8 @@
 
 ## V9 — Dark Mode Iteration
 
+- Shell page: side-by-side dark vs light comparison with per-mode canvas color presets
+- Canvas color presets tuned per mode — dark: Seamless/Subtle/Soft/Medium/Cool; light: Default/Warm/Neutral/Cool/Cream
 - Dropped sidebar section divider and shell preview borders — borderless chrome, matching light mode
 - Created V9 from V8 — full dark mode exploration
 - Inverted OKLCH lightness values: chrome L=0.130, canvas L=0.100, text L=0.930
