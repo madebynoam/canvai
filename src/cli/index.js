@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { spawn } from 'child_process'
+import { spawn, execSync } from 'child_process'
 import { existsSync, mkdirSync, writeFileSync, rmSync } from 'fs'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
@@ -146,6 +146,10 @@ function startDev() {
   if (applied > 0) {
     console.log(`Applied ${applied} migration${applied === 1 ? '' : 's'}.\n`)
   }
+
+  // Kill anything holding our ports (stale processes, orphaned browsers, etc.)
+  try { execSync('lsof -ti :4748 | xargs kill -9 2>/dev/null', { stdio: 'ignore' }) } catch {}
+  try { execSync('lsof -ti :5173 | xargs kill -9 2>/dev/null', { stdio: 'ignore' }) } catch {}
 
   // Start Vite dev server
   const vite = spawn('npx', ['vite', '--open'], {
