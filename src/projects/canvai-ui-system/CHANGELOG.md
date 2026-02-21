@@ -1,5 +1,9 @@
 # canvai-ui-system
 
+## V9
+
+- **FAB icon**: Changed icon color from `var(--txt-pri)` to `var(--text-on-accent)` — fixes invisible icon on dark FAB in light mode (annotation #1)
+
 ## V7
 
 - **CommentFlowV7 avatars**: All avatars now use `F.marker` (annotation blue) instead of per-user differentiation colors (annotation #1)

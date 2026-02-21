@@ -75,7 +75,7 @@ function FAB() {
       <div style={{
         width: 40, height: 40, borderRadius: '50%',
         backgroundColor: 'var(--accent)',
-        color: 'var(--txt-pri)',
+        color: 'var(--text-on-accent)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         boxShadow: '0 1px 3px rgba(0,0,0,0.24), 0 0 0 0.5px rgba(0,0,0,0.12)',
       }}>
