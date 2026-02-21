@@ -24,9 +24,9 @@ Start the Canvai dev server and enter watch mode.
 
 4. **Drain backlog:** Call `get_pending_annotations` to process any that arrived before the session started. Process each one following the guard protocol.
 
-5. **Enter watch loop:** Call `watch_annotations` in a loop. Each call waits up to 30 seconds for the designer to click "Apply" on an annotation. Two outcomes:
+5. **Enter watch loop:** Call `watch_annotations` in a loop. Each call waits up to 30 seconds for the designer to click "Apply" on an annotation. Three outcomes:
 
-   **Annotation arrives** — process it:
+   **Regular annotation arrives** (no `type` field or `type: 'annotation'`) — process it:
    - Read the `comment`, `componentName`, `selector`, and `computedStyles`
    - **Follow the guard protocol** (see CLAUDE.md "Before any edit")
    - Map the annotation to the relevant file in `v<N>/components/` or `v<N>/pages/`
@@ -35,6 +35,18 @@ Start the Canvai dev server and enter watch mode.
    - Call `resolve_annotation` with the annotation `id`
    - Log the change to `CHANGELOG.md`
    - Commit: `git add src/projects/ && git commit -m 'style: annotation #<N> — <brief description>'`
+   - Call `watch_annotations` again — back to waiting
+
+   **Iteration request arrives** (annotation has `type: 'iteration'`) — run the full `/canvai-iterate` protocol:
+   1. Read `manifest.ts`, find the active iteration (last with `frozen: false`)
+   2. Freeze it (`frozen: true`)
+   3. Copy folder: `cp -r v<N>/ v<N+1>/`
+   4. Rename CSS scope in `v<N+1>/tokens.css`: `.iter-v<N>` → `.iter-v<N+1>`
+   5. Add new iteration to manifest with `frozen: false`, update import paths
+   6. Apply the changes described in the annotation's `comment`
+   7. Follow all guards (showcase, component hierarchy, token routing)
+   8. Call `resolve_annotation` with the annotation `id`
+   9. Log to `CHANGELOG.md`, commit: `git add src/projects/ && git commit -m 'feat: iteration V<N+1> — <brief description>'`
    - Call `watch_annotations` again — back to waiting
 
    **Timeout** (response contains `"timeout": true`) — no annotation arrived. Call `watch_annotations` again to keep waiting. The timeout exists so you stay responsive to designer messages between polls.

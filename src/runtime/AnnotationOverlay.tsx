@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { SquareMousePointer, Trash2 } from 'lucide-react'
 import { N, A, F, S, R, T, ICON, FONT } from './tokens'
+import { DialogCard, DialogActions, ActionButton } from './Menu'
 import type { CanvasFrame } from './types'
 
 type Mode = 'idle' | 'targeting' | 'commenting'
@@ -168,8 +169,10 @@ export function AnnotationOverlay({ endpoint, frames }: AnnotationOverlayProps) 
   useEffect(() => {
     fetch(`${endpoint}/annotations`)
       .then(r => r.json())
-      .then((all: { id: string; frameId: string; selector: string; comment: string; status: string }[]) => {
-        const active = all.filter(a => a.status === 'draft' || a.status === 'pending')
+      .then((all: { id: string; type?: string; frameId: string; selector: string; comment: string; status: string }[]) => {
+        const active = all.filter(a =>
+          (a.status === 'draft' || a.status === 'pending') && a.type !== 'iteration'
+        )
         if (active.length === 0) return
         setMarkers(active.map(a => ({
           id: nextMarkerId.current++,
@@ -444,101 +447,53 @@ export function AnnotationOverlay({ endpoint, frames }: AnnotationOverlayProps) 
         if (left < S.lg) left = S.lg
         if (top < S.lg) top = S.lg
         return (
-        <div
-          ref={cardRef}
-          onKeyDown={handleKeyDown}
-          style={{
-            position: 'fixed',
-            top,
-            left,
-            zIndex: 99999,
-            background: N.card,
-            borderRadius: R.card,
-            padding: S.lg,
-            boxShadow: `0 ${S.xs}px ${S.xxl}px rgba(0, 0, 0, 0.08), 0 1px ${S.xs}px rgba(0, 0, 0, 0.04)`,
-            border: `1px solid ${N.border}`,
-            width: cardWidth,
-            fontFamily: FONT,
-          }}
-        >
-          {/* Header: component·tag + delete icon (when re-editing) */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: S.sm }}>
-            <div style={{ fontSize: T.caption, color: N.txtTer, letterSpacing: '0.02em' }}>
-              {target.componentName} &middot; {target.elementTag}
+        <div ref={cardRef} onKeyDown={handleKeyDown}>
+          <DialogCard width={cardWidth} style={{ position: 'fixed', top, left, zIndex: 99999, padding: S.lg }}>
+            {/* Header: component·tag + delete icon (when re-editing) */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: S.sm }}>
+              <div style={{ fontSize: T.caption, color: N.txtTer, letterSpacing: '0.02em' }}>
+                {target.componentName} &middot; {target.elementTag}
+              </div>
+              {editingMarkerId !== null && (
+                <HoverButton
+                  onClick={handleDelete}
+                  hoverBg="rgba(0,0,0,0.06)"
+                  title="Delete annotation"
+                  baseStyle={{
+                    width: S.xxl, height: S.xxl, border: 'none', background: 'transparent',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    borderRadius: R.control, color: N.txtTer,
+                  }}
+                >
+                  <Trash2 size={ICON.md} strokeWidth={1.5} />
+                </HoverButton>
+              )}
             </div>
-            {editingMarkerId !== null && (
-              <HoverButton
-                onClick={handleDelete}
-                hoverBg="rgba(0,0,0,0.06)"
-                title="Delete annotation"
-                baseStyle={{
-                  width: S.xxl, height: S.xxl, border: 'none', background: 'transparent',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  borderRadius: R.control, color: N.txtTer,
-                }}
-              >
-                <Trash2 size={ICON.md} strokeWidth={1.5} />
-              </HoverButton>
-            )}
-          </div>
-          <textarea
-            ref={textareaRef}
-            value={comment}
-            onChange={e => setComment(e.target.value)}
-            placeholder="Describe the change..."
-            style={{
-              width: '100%',
-              minHeight: 72,
-              background: N.canvas,
-              color: N.txtPri,
-              border: `1px solid ${N.border}`,
-              borderRadius: R.card,
-              padding: S.md,
-              fontSize: T.title,
-              lineHeight: 1.5,
-              resize: 'vertical',
-              outline: 'none',
-              fontFamily: 'inherit',
-            }}
-          />
-          <div style={{ display: 'flex', gap: S.sm, marginTop: S.md, justifyContent: 'flex-end' }}>
-            <HoverButton
-              onClick={handleCancel}
-              hoverBg="rgba(0,0,0,0.03)"
-              baseStyle={{
-                padding: `${S.sm}px ${S.md}px`,
-                background: 'transparent',
-                color: N.txtSec,
+            <textarea
+              ref={textareaRef}
+              value={comment}
+              onChange={e => setComment(e.target.value)}
+              placeholder="Describe the change..."
+              style={{
+                width: '100%',
+                minHeight: 72,
+                background: N.canvas,
+                color: N.txtPri,
                 border: `1px solid ${N.border}`,
                 borderRadius: R.card,
-                fontSize: T.body,
-                fontWeight: 500,
-                fontFamily: FONT,
+                padding: S.md,
+                fontSize: T.title,
+                lineHeight: 1.5,
+                resize: 'vertical',
+                outline: 'none',
+                fontFamily: 'inherit',
               }}
-            >
-              Cancel
-            </HoverButton>
-            <HoverButton
-              onClick={handleApply}
-              hoverBg={comment.trim() ? A.hover : ''}
-              baseStyle={{
-                padding: `${S.sm}px ${S.md}px`,
-                background: comment.trim() ? A.accent : A.muted,
-                color: comment.trim() ? 'oklch(1 0 0)' : N.txtTer,
-                border: 'none',
-                borderRadius: R.card,
-                cursor: 'default',
-                fontSize: T.body,
-                fontWeight: 500,
-                fontFamily: FONT,
-                display: 'flex',
-                alignItems: 'center',
-                gap: S.xs,
-              }}
-            >
-              Save
-            </HoverButton>
-          </div>
+            />
+            <DialogActions>
+              <ActionButton variant="ghost" onClick={handleCancel}>Cancel</ActionButton>
+              <ActionButton variant="primary" disabled={!comment.trim()} onClick={handleApply}>Save</ActionButton>
+            </DialogActions>
+          </DialogCard>
         </div>
         )
       })()}

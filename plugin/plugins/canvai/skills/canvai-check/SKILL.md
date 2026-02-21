@@ -13,7 +13,9 @@ Check for pending canvas annotations and process them.
 
 2. **If none pending**, report "No pending annotations." and stop.
 
-3. **For each annotation**, process it:
+3. **For each annotation**, check its `type` field:
+
+   **Regular annotation** (no `type` field or `type: 'annotation'`) — process normally:
    - Read the annotation — `frameId`, `componentName`, `selector`, `comment`, `computedStyles`
    - **Follow the guard protocol** (see CLAUDE.md "Before any edit"):
      1. Read `manifest.ts` — check if the target iteration is frozen. If frozen, resolve with a note ("Iteration V<N> is frozen — skipping") and move to the next annotation.
@@ -31,6 +33,17 @@ Check for pending canvas annotations and process them.
    - Call `resolve_annotation` with the annotation ID
    - Log the change to `src/projects/<project-name>/CHANGELOG.md`
    - Commit the changes: `git add src/projects/ && git commit -m 'style: annotation #<N> — <brief description>'`
+
+   **Iteration request** (`type: 'iteration'`) — run the full `/canvai-iterate` protocol:
+   1. Read `manifest.ts`, find the active iteration (last with `frozen: false`)
+   2. Freeze it (`frozen: true`)
+   3. Copy folder: `cp -r v<N>/ v<N+1>/`
+   4. Rename CSS scope in `v<N+1>/tokens.css`: `.iter-v<N>` → `.iter-v<N+1>`
+   5. Add new iteration to manifest with `frozen: false`, update import paths
+   6. Apply the changes described in the annotation's `comment`
+   7. Follow all guards (showcase, component hierarchy, token routing)
+   8. Call `resolve_annotation` with the annotation ID
+   9. Log to `src/projects/<project-name>/CHANGELOG.md`, commit: `git add src/projects/ && git commit -m 'feat: iteration V<N+1> — <brief description>'`
 
 4. **Report** what was changed.
 

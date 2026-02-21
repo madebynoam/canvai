@@ -69,8 +69,10 @@ loadAnnotations()
 
 function addAnnotation(data) {
   const id = String(nextId++)
+  const isIteration = data.type === 'iteration'
   const annotation = {
     id,
+    type: isIteration ? 'iteration' : 'annotation',
     frameId: data.frameId ?? '',
     componentName: data.componentName ?? '',
     props: data.props ?? {},
@@ -81,10 +83,22 @@ function addAnnotation(data) {
     computedStyles: data.computedStyles ?? {},
     comment: data.comment ?? '',
     timestamp: Date.now(),
-    status: 'draft',
+    status: isIteration ? 'pending' : 'draft',
   }
   annotations.set(id, annotation)
   persistAnnotations()
+
+  // Iteration annotations skip draft — immediately unblock a waiter
+  if (isIteration) {
+    if (waiters.length > 0) {
+      const waiter = waiters.shift()
+      waiter.resolve(annotation)
+    }
+    // Notify SSE clients
+    for (const client of sseClients) {
+      client.write(`data: ${JSON.stringify({ type: 'iteration-pending', id })}\n\n`)
+    }
+  }
 
   return annotation
 }

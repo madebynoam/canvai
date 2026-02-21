@@ -64,3 +64,7 @@ The agent:
 - **No cross-iteration imports.** Each `v<N>/` is completely self-contained. Never import from `../v1/components/` in `v2/`.
 - **One active iteration.** Only the last iteration (with `frozen: false`) can be edited.
 - **Keep iteration names short.** `V1`, `V2`, `V3` — not descriptions.
+
+## Canvas UI trigger
+
+Iterations can also be requested from the canvas UI via the `+` button next to the iteration picker in the TopBar. When the designer clicks `+`, types a prompt, and clicks "Create", it sends a `type: 'iteration'` annotation that skips the draft stage and goes straight to pending. The agent processes it the same way — run the full iterate protocol above.

@@ -1,7 +1,8 @@
+import { useState } from 'react'
 import { ProjectPicker } from './ProjectPicker'
 import { PickerDropdown } from './PickerDropdown'
 import { AnnotationPanelWidget } from './AnnotationPanel'
-import { PanelLeft } from 'lucide-react'
+import { PanelLeft, Plus } from 'lucide-react'
 import { N, S, R, T, ICON, FONT } from './tokens'
 import type { IterationManifest } from './types'
 
@@ -16,10 +17,37 @@ interface TopBarProps {
   commentCount?: number
   sidebarOpen: boolean
   onToggleSidebar: () => void
+  onNewIteration?: () => void
 }
 
 function SidebarIcon() {
   return <PanelLeft size={ICON.lg} strokeWidth={1.5} />
+}
+
+function NewIterationButton({ onClick }: { onClick: () => void }) {
+  const [hovered, setHovered] = useState(false)
+  return (
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      title="New iteration"
+      style={{
+        width: S.xxl,
+        height: S.xxl,
+        border: 'none',
+        background: hovered ? 'rgba(0, 0, 0, 0.04)' : 'transparent',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: N.txtTer,
+        borderRadius: R.control,
+        cursor: 'default',
+      }}
+    >
+      <Plus size={ICON.md} strokeWidth={1.5} />
+    </button>
+  )
 }
 
 export function TopBar({
@@ -33,6 +61,7 @@ export function TopBar({
   commentCount = 0,
   sidebarOpen,
   onToggleSidebar,
+  onNewIteration,
 }: TopBarProps) {
   // Reverse so newest iteration is on top
   const reversedIterations = [...iterations].reverse()
@@ -114,6 +143,9 @@ export function TopBar({
                 </div>
               )}
             />
+            {import.meta.env.DEV && onNewIteration && (
+              <NewIterationButton onClick={onNewIteration} />
+            )}
           </>
         )}
       </div>

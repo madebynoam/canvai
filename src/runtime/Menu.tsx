@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, type CSSProperties, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
-import { N, S, R, T, ICON, FONT } from './tokens'
+import { N, A, S, R, T, ICON, FONT } from './tokens'
 
 /* ─── useMenu hook ───────────────────────────────────── */
 
@@ -233,6 +233,145 @@ export function MenuRow({
       style={sharedStyle}
     >
       {content}
+    </button>
+  )
+}
+
+/* ─── Overlay ───────────────────────────────────────── */
+
+interface OverlayProps {
+  open: boolean
+  onClose: () => void
+  zIndex?: number
+  children: ReactNode
+}
+
+export function Overlay({ open, onClose, zIndex = 99999, children }: OverlayProps) {
+  useEffect(() => {
+    if (!open) return
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [open, onClose])
+
+  if (!open) return null
+
+  return createPortal(
+    <div
+      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex,
+        background: 'rgba(0, 0, 0, 0.15)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      {children}
+    </div>,
+    document.body,
+  )
+}
+
+/* ─── DialogCard ────────────────────────────────────── */
+
+interface DialogCardProps {
+  title?: string
+  width?: number
+  children: ReactNode
+  style?: CSSProperties
+}
+
+export function DialogCard({ title, width = 480, children, style }: DialogCardProps) {
+  return (
+    <div
+      style={{
+        background: N.card,
+        borderRadius: R.card,
+        border: `1px solid ${N.border}`,
+        boxShadow: PANEL_SHADOW,
+        padding: S.xxl,
+        fontFamily: FONT,
+        width,
+        ...style,
+      }}
+    >
+      {title && (
+        <div style={{
+          fontSize: T.title,
+          fontWeight: 600,
+          color: N.txtPri,
+          marginBottom: S.lg,
+          textWrap: 'pretty',
+        }}>
+          {title}
+        </div>
+      )}
+      {children}
+    </div>
+  )
+}
+
+/* ─── DialogActions ─────────────────────────────────── */
+
+export function DialogActions({ children }: { children: ReactNode }) {
+  return (
+    <div style={{
+      display: 'flex',
+      justifyContent: 'flex-end',
+      gap: S.sm,
+      marginTop: S.lg,
+    }}>
+      {children}
+    </div>
+  )
+}
+
+/* ─── ActionButton ──────────────────────────────────── */
+
+interface ActionButtonProps {
+  variant: 'ghost' | 'primary'
+  disabled?: boolean
+  onClick?: () => void
+  children: ReactNode
+}
+
+export function ActionButton({ variant, disabled, onClick, children }: ActionButtonProps) {
+  const [hovered, setHovered] = useState(false)
+
+  const isPrimary = variant === 'primary'
+  const bg = isPrimary
+    ? (disabled ? A.muted : hovered ? A.hover : A.accent)
+    : (hovered ? 'rgba(0, 0, 0, 0.03)' : 'transparent')
+  const color = isPrimary
+    ? (disabled ? N.txtTer : 'oklch(1 0 0)')
+    : N.txtSec
+
+  return (
+    <button
+      onClick={disabled ? undefined : onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        padding: `${S.sm}px ${S.md}px`,
+        background: bg,
+        color,
+        border: isPrimary ? 'none' : `1px solid ${N.border}`,
+        borderRadius: R.card,
+        cursor: 'default',
+        fontSize: T.body,
+        fontWeight: 500,
+        fontFamily: FONT,
+        display: 'flex',
+        alignItems: 'center',
+        gap: S.xs,
+      }}
+    >
+      {children}
     </button>
   )
 }

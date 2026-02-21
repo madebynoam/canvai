@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Canvas } from './Canvas'
 import { Frame } from './Frame'
 import { useFrames } from './useFrames'
@@ -7,6 +7,7 @@ import { TopBar } from './TopBar'
 import { IterationSidebar } from './IterationSidebar'
 import { AnnotationOverlay } from './AnnotationOverlay'
 import { CommentOverlay } from './CommentOverlay'
+import { NewIterationDialog } from './NewIterationDialog'
 import { useNavMemory } from './useNavMemory'
 import { ZoomControl } from './ZoomControl'
 import { CanvasColorPicker } from './CanvasColorPicker'
@@ -23,6 +24,19 @@ export function CanvaiShell({ manifests, annotationEndpoint = 'http://localhost:
   const [activeProjectIndex, setActiveProjectIndex] = useState(0)
   const [commentCount, setCommentCount] = useState(0)
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [iterDialogOpen, setIterDialogOpen] = useState(false)
+
+  const handleNewIteration = useCallback(async (prompt: string) => {
+    try {
+      await fetch(`${annotationEndpoint}/annotations`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'iteration', comment: prompt }),
+      })
+    } catch {
+      // Server may be unavailable
+    }
+  }, [annotationEndpoint])
 
   const activeProject: ProjectManifest | undefined = manifests[activeProjectIndex]
   const { iterationIndex: activeIterationIndex, pageIndex: activePageIndex, setIteration: setActiveIterationIndex, setPage: setActivePageIndex } = useNavMemory(
@@ -55,6 +69,7 @@ export function CanvaiShell({ manifests, annotationEndpoint = 'http://localhost:
         commentCount={commentCount}
         sidebarOpen={sidebarOpen}
         onToggleSidebar={() => setSidebarOpen(o => !o)}
+        onNewIteration={() => setIterDialogOpen(true)}
       />
 
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
@@ -109,6 +124,13 @@ export function CanvaiShell({ manifests, annotationEndpoint = 'http://localhost:
 
       {import.meta.env.DEV && <AnnotationOverlay endpoint={annotationEndpoint} frames={frames} />}
       <CommentOverlay endpoint={annotationEndpoint} frames={frames} onCommentCountChange={setCommentCount} />
+      {import.meta.env.DEV && (
+        <NewIterationDialog
+          open={iterDialogOpen}
+          onClose={() => setIterDialogOpen(false)}
+          onSubmit={handleNewIteration}
+        />
+      )}
     </div>
   )
 }
