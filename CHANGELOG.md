@@ -1,5 +1,14 @@
 # Changelog
 
+## V10 — Live App Mirror
+
+- New iteration matching the actual running Canvai app (light mode)
+- Shell page: faithful replica of the live shell — TopBar, sidebar, canvas with frames, ZoomControl, CanvasColorPicker, and FAB
+- Components page: expanded to catalog every runtime UI component with multiple instances/states
+  - Added FAB (idle/hover/pressed), MarkerDot, ActionButton (primary/ghost/disabled), MenuPanel, DialogCard (empty/filled), InfoButton, Overlay, Frame title
+- Tokens page: updated to show the real runtime light-mode values (L=0.985 chrome, L=0.300 accent, etc.)
+- Carried forward all V9 pages: GitHub Comments Flow, Annotation Panel
+
 ## 0.0.33 — Playwright Visual Review
 
 - Added `screenshot_canvas` MCP tool — agent can screenshot the canvas after applying changes for visual self-review

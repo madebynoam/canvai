@@ -37,6 +37,12 @@ import { Components as V9Components } from './v9/pages/components'
 import { Shell as V9Shell } from './v9/pages/shell'
 import { FlowStep1_SignIn as V9FlowStep1, FlowStep2_Compose as V9FlowStep2, FlowStep3_Thread as V9FlowStep3, FlowStep4_Pins as V9FlowStep4, FlowStep5_Promote as V9FlowStep5, FlowStep6_DeepLink as V9FlowStep6, FlowStep7_Resolve as V9FlowStep7 } from './v9/pages/comments'
 import { AnnotationPanelInteractive as V9AnnotationPanelInteractive, AnnotationPanelEmpty as V9AnnotationPanelEmpty, AnnotationPanelResolved as V9AnnotationPanelResolved } from './v9/pages/annotation-panel'
+import './v10/tokens.css'
+import { Tokens as V10Tokens } from './v10/pages/tokens'
+import { Components as V10Components } from './v10/pages/components'
+import { Shell as V10Shell } from './v10/pages/shell'
+import { FlowStep1_SignIn as V10FlowStep1, FlowStep2_Compose as V10FlowStep2, FlowStep3_Thread as V10FlowStep3, FlowStep4_Pins as V10FlowStep4, FlowStep5_Promote as V10FlowStep5, FlowStep6_DeepLink as V10FlowStep6, FlowStep7_Resolve as V10FlowStep7 } from './v10/pages/comments'
+import { AnnotationPanelInteractive as V10AnnotationPanelInteractive, AnnotationPanelEmpty as V10AnnotationPanelEmpty, AnnotationPanelResolved as V10AnnotationPanelResolved } from './v10/pages/annotation-panel'
 import type { ProjectManifest } from '../../runtime/types'
 
 const manifest: ProjectManifest = {
@@ -295,7 +301,7 @@ const manifest: ProjectManifest = {
     },
     {
       name: 'V9',
-      frozen: false,
+      frozen: true,
       pages: [
         {
           name: 'Tokens',
@@ -338,6 +344,55 @@ const manifest: ProjectManifest = {
             { id: 'v9-annot-interactive', title: 'Annotation Panel — Interactive', component: V9AnnotationPanelInteractive },
             { id: 'v9-annot-empty', title: 'Annotation Panel — Empty State', component: V9AnnotationPanelEmpty },
             { id: 'v9-annot-resolved', title: 'Annotation Panel — All Resolved', component: V9AnnotationPanelResolved },
+          ],
+        },
+      ],
+    },
+    {
+      name: 'V10',
+      frozen: false,
+      pages: [
+        {
+          name: 'Tokens',
+          grid: { columns: 1, columnWidth: 560, rowHeight: 1600, gap: 40 },
+          frames: [
+            { id: 'v10-tokens', title: 'OKLCH Token System — Live App', component: V10Tokens },
+          ],
+        },
+        {
+          name: 'Components',
+          grid: { columns: 1, columnWidth: 640, rowHeight: 5600, gap: 40 },
+          frames: [
+            { id: 'v10-components', title: 'Runtime Components — All Parts', component: V10Components },
+          ],
+        },
+        {
+          name: 'Shell',
+          grid: { columns: 1, columnWidth: 900, rowHeight: 600, gap: 40 },
+          frames: [
+            { id: 'v10-shell', title: 'Live App Shell', component: V10Shell },
+          ],
+        },
+        {
+          name: 'GitHub Comments Flow',
+          grid: { columns: 2, columnWidth: 560, rowHeight: 440, gap: 40 },
+          frames: [
+            { id: 'v10-step1-signin', title: 'Step 1 — Sign In', component: V10FlowStep1 },
+            { id: 'v10-step2-compose', title: 'Step 2 — Target & Compose', component: V10FlowStep2 },
+            { id: 'v10-step3-thread', title: 'Step 3 — Thread', component: V10FlowStep3 },
+            { id: 'v10-step4-pins', title: 'Step 4 — Pins', component: V10FlowStep4 },
+            { id: 'v10-step5-promote', title: 'Step 5 — Promote to Annotation', component: V10FlowStep5 },
+            { id: 'v10-step6-deeplink', title: 'Step 6 — Copy Link → Deep Link', component: V10FlowStep6 },
+            { id: 'v10-step7-resolve', title: 'Step 7 — Resolve', component: V10FlowStep7 },
+          ],
+        },
+        {
+          name: 'Annotation Panel',
+          grid: { columns: 1, columnWidth: 480, rowHeight: 600, gap: 40 },
+          frames: [
+            { id: 'v10-annot-interactive', title: 'Annotation Panel — Interactive', component: V10AnnotationPanelInteractive },
+            { id: 'v10-annot-empty', title: 'Annotation Panel — Empty State', component: V10AnnotationPanelEmpty },
+            { id: 'v10-annot-resolved', title: 'Annotation Panel — All Resolved', component: V10AnnotationPanelResolved },
           ],
         },
       ],
