@@ -214,11 +214,9 @@ The consumer folder always uses `canvai@canvai` — it doesn't need to know whet
 ### Plugin skills (consumer-facing, in `plugin/plugins/canvai/skills/`)
 
 - **`/canvai-init <project-name>`** — Create a new design project and start designing
-- **`/canvai-dev`** — Start (or restart) the dev server (chat mode)
-- **`/canvai-watch`** — Enter watch mode for rapid annotation sessions
-- **`/canvai-iterate`** — Create a new design iteration
+- **`/canvai-dev`** — Start (or restart) the dev server and enter watch mode
 - **`/canvai-share`** — Build and deploy to GitHub Pages for sharing
-- **`/canvai-ship`** — Ship component to a production repo
+- **`/canvai-close`** — Stop all Canvai dev servers and free ports
 - **`/canvai-update`** — Update canvai to the latest version
 
 ### Dev skills (repo-local, in `.claude/skills/`)

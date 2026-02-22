@@ -43,7 +43,7 @@ Start the Canvai dev server and enter watch mode.
    - Commit: `git add src/projects/ && git commit -m 'style: annotation #<N> — <brief description>'`
    - Call `watch_annotations` again — back to waiting
 
-   **Iteration request arrives** (annotation has `type: 'iteration'`) — run the full `/canvai-iterate` protocol:
+   **Iteration request arrives** (annotation has `type: 'iteration'`) — run the iteration protocol:
    1. Read `manifest.ts`, find the active iteration (last with `frozen: false`)
    2. Freeze it (`frozen: true`)
    3. Copy folder: `cp -r v<N>/ v<N+1>/`

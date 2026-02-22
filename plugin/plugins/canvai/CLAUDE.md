@@ -18,8 +18,8 @@ Tenets are decision-making tools — each names the alternative and rejects it.
 1. **`/canvai-init <project-name>`** — Creates a new design project, installs canvai if needed, starts the dev server + annotation MCP.
 2. **Describe** — The designer describes the component (or attaches a sketch). The agent generates **multiple distinct design directions** — not just one version with states, but several different design bets shown simultaneously on the canvas. The designer reacts visually and picks a direction (or mixes elements). Then refine from there.
 3. **Annotate** — The designer clicks "Annotate" on the canvas, selects an element, types a comment, and clicks "Save". This creates a draft. The designer reviews drafts in the TopBar dropdown and clicks "Apply" (single or all) to send them to the agent.
-4. **`/canvai-iterate`** — Creates a new iteration (complete snapshot copy). Old iterations are frozen.
-5. **`/canvai-ship`** — PR the finished components to a production codebase.
+4. **Iterate** — The designer clicks "New Iteration" on the canvas to create a snapshot copy. The agent handles it via the watch loop.
+5. **`/canvai-share`** — Build and deploy to GitHub Pages for sharing.
 
 ## Project structure
 
@@ -549,10 +549,7 @@ Each entry includes the `selector`, a brief description of the change, and the a
 ## Skills
 
 - **`/canvai-init <project-name>`** — Create a new design project and start designing
-- **`/canvai-dev`** — Start (or restart) the dev server (chat mode)
-- **`/canvai-watch`** — Enter watch mode for rapid annotation sessions
-- **`/canvai-iterate`** — Create a new design iteration
+- **`/canvai-dev`** — Start (or restart) the dev server and enter watch mode
 - **`/canvai-share`** — Build and deploy to GitHub Pages for sharing
-- **`/canvai-ship`** — Ship component to a production repo
-- **`/canvai-undo`** — Revert the last design change commit
+- **`/canvai-close`** — Stop all Canvai dev servers and free ports
 - **`/canvai-update`** — Update canvai to the latest version
