@@ -128,12 +128,38 @@ function getStyleSubset(el: Element): Record<string, string> {
   return styles
 }
 
+/** Convert screen coords → canvas-space coords (accounts for pan/zoom) */
+function screenToCanvas(sx: number, sy: number): { x: number; y: number } | null {
+  const el = document.querySelector('[data-canvas-content]') as HTMLElement | null
+  if (!el?.parentElement) return null
+  const container = el.parentElement.getBoundingClientRect()
+  const matrix = new DOMMatrixReadOnly(getComputedStyle(el).transform)
+  return {
+    x: (sx - container.left - matrix.e) / matrix.a,
+    y: (sy - container.top - matrix.f) / matrix.a,
+  }
+}
+
+/** Convert canvas-space coords → screen coords */
+function canvasToScreen(cx: number, cy: number): { x: number; y: number } | null {
+  const el = document.querySelector('[data-canvas-content]') as HTMLElement | null
+  if (!el?.parentElement) return null
+  const container = el.parentElement.getBoundingClientRect()
+  const matrix = new DOMMatrixReadOnly(getComputedStyle(el).transform)
+  return {
+    x: cx * matrix.a + matrix.e + container.left,
+    y: cy * matrix.a + matrix.f + container.top,
+  }
+}
+
 interface AnnotationMarker {
   id: number
   serverId: string
   frameId: string
   selector: string
   comment: string
+  /** Canvas-space coords for notes not tied to a frame element */
+  canvasPoint?: { x: number; y: number }
 }
 
 export function AnnotationOverlay({ endpoint, frames }: AnnotationOverlayProps) {
@@ -206,6 +232,12 @@ export function AnnotationOverlay({ endpoint, frames }: AnnotationOverlayProps) 
     function updateRects() {
       const rects = new Map<number, DOMRect>()
       for (const marker of markers) {
+        // Canvas-level note — convert canvas-space to current screen position
+        if (marker.canvasPoint) {
+          const sp = canvasToScreen(marker.canvasPoint.x, marker.canvasPoint.y)
+          if (sp) rects.set(marker.id, new DOMRect(sp.x, sp.y, 0, 0))
+          continue
+        }
         const frameEl = document.querySelector(`[data-frame-id="${marker.frameId}"]`)
         if (!frameEl) continue
         const contentEl = frameEl.hasAttribute('data-frame-content') ? frameEl : frameEl.querySelector('[data-frame-content]')
@@ -237,14 +269,16 @@ export function AnnotationOverlay({ endpoint, frames }: AnnotationOverlayProps) 
       return
     }
 
-    // Must be inside a frame
+    // Inside a frame → highlight the element
     const frameEl = el.closest('[data-frame-id]')
-    if (!frameEl) {
-      setHighlight(null)
+    if (frameEl) {
+      setHighlight(el.getBoundingClientRect())
       return
     }
 
-    setHighlight(el.getBoundingClientRect())
+    // Empty canvas → show a small dot at cursor for "click to add note"
+    const sz = 8
+    setHighlight(new DOMRect(e.clientX - sz / 2, e.clientY - sz / 2, sz, sz))
   }, [mode])
 
   const handleClick = useCallback((e: React.PointerEvent) => {
@@ -262,29 +296,47 @@ export function AnnotationOverlay({ endpoint, frames }: AnnotationOverlayProps) 
     if (!el) return
 
     const frameEl = el.closest('[data-frame-id]')
-    if (!frameEl) return
 
-    const frameId = frameEl.getAttribute('data-frame-id') ?? ''
-    const frame = frames.find(f => f.id === frameId)
-    const componentName = frame?.component?.displayName ?? frame?.component?.name ?? 'Unknown'
-    const props = frame?.props ?? {}
+    if (frameEl) {
+      // Clicked inside a frame — target the specific element
+      const frameId = frameEl.getAttribute('data-frame-id') ?? ''
+      const frame = frames.find(f => f.id === frameId)
+      const componentName = frame?.component?.displayName ?? frame?.component?.name ?? 'Unknown'
+      const props = frame?.props ?? {}
 
-    const boundary = frameEl.hasAttribute('data-frame-content') ? frameEl : frameEl.querySelector('[data-frame-content]')
-    const selector = boundary ? buildSelector(el, boundary) : el.tagName.toLowerCase()
+      const boundary = frameEl.hasAttribute('data-frame-content') ? frameEl : frameEl.querySelector('[data-frame-content]')
+      const selector = boundary ? buildSelector(el, boundary) : el.tagName.toLowerCase()
 
-    const text = (el.textContent ?? '').trim().slice(0, 100)
+      const text = (el.textContent ?? '').trim().slice(0, 100)
 
-    setTarget({
-      frameId,
-      componentName,
-      props,
-      selector,
-      elementTag: el.tagName.toLowerCase(),
-      elementClasses: el.className?.toString() ?? '',
-      elementText: text,
-      computedStyles: getStyleSubset(el),
-      rect: el.getBoundingClientRect(),
-    })
+      setTarget({
+        frameId,
+        componentName,
+        props,
+        selector,
+        elementTag: el.tagName.toLowerCase(),
+        elementClasses: el.className?.toString() ?? '',
+        elementText: text,
+        computedStyles: getStyleSubset(el),
+        rect: el.getBoundingClientRect(),
+      })
+    } else {
+      // Clicked on empty canvas — canvas-level note
+      // Store canvas-space coords so the marker tracks pan/zoom
+      const cp = screenToCanvas(e.clientX, e.clientY)
+      setTarget({
+        frameId: '',
+        componentName: 'Canvas',
+        props: cp ? { __canvasPoint: cp } : {},
+        selector: '',
+        elementTag: 'canvas',
+        elementClasses: '',
+        elementText: '',
+        computedStyles: {},
+        rect: new DOMRect(e.clientX, e.clientY, 0, 0),
+      })
+    }
+
     setHighlight(null)
     setComment('')
     setMode('commenting')
@@ -293,10 +345,12 @@ export function AnnotationOverlay({ endpoint, frames }: AnnotationOverlayProps) 
   const handleApply = useCallback(async () => {
     if (!target || !comment.trim()) return
 
+    // Strip internal __canvasPoint from props before sending to server
+    const { __canvasPoint: _cp, ...serverProps } = target.props as any
     const body = {
       frameId: target.frameId,
       componentName: target.componentName,
-      props: target.props,
+      props: serverProps,
       selector: target.selector,
       elementTag: target.elementTag,
       elementClasses: target.elementClasses,
@@ -313,11 +367,12 @@ export function AnnotationOverlay({ endpoint, frames }: AnnotationOverlayProps) 
       })
       const annotation = await res.json()
       const serverId = annotation.id as string
+      const canvasPoint = (target.props as any)?.__canvasPoint as { x: number; y: number } | undefined
       if (editingMarkerId !== null) {
         // Update existing marker
         setMarkers(prev => prev.map(m =>
           m.id === editingMarkerId
-            ? { ...m, serverId, frameId: target.frameId, selector: target.selector, comment: comment.trim() }
+            ? { ...m, serverId, frameId: target.frameId, selector: target.selector, comment: comment.trim(), canvasPoint }
             : m
         ))
       } else {
@@ -329,6 +384,7 @@ export function AnnotationOverlay({ endpoint, frames }: AnnotationOverlayProps) 
           frameId: target.frameId,
           selector: target.selector,
           comment: comment.trim(),
+          canvasPoint,
         }])
       }
       setToast('Saved')
@@ -456,7 +512,7 @@ export function AnnotationOverlay({ endpoint, frames }: AnnotationOverlayProps) 
             {/* Header: component·tag + delete icon (when re-editing) */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: S.sm }}>
               <div style={{ fontSize: T.caption, color: N.txtTer, letterSpacing: '0.02em' }}>
-                {target.componentName} &middot; {target.elementTag}
+                {target.frameId ? <>{target.componentName} &middot; {target.elementTag}</> : 'Canvas note'}
               </div>
               {editingMarkerId !== null && (
                 <HoverButton
@@ -477,7 +533,7 @@ export function AnnotationOverlay({ endpoint, frames }: AnnotationOverlayProps) 
               ref={textareaRef}
               value={comment}
               onChange={e => setComment(e.target.value)}
-              placeholder="Describe the change..."
+              placeholder={target.frameId ? 'Describe the change...' : 'Add a note...'}
               style={{
                 width: '100%',
                 minHeight: 72,
@@ -553,6 +609,25 @@ export function AnnotationOverlay({ endpoint, frames }: AnnotationOverlayProps) 
             comment={marker.comment}
             rect={rect}
             onClick={() => {
+              // Canvas-level note — no frame to look up
+              if (marker.canvasPoint) {
+                const sp = canvasToScreen(marker.canvasPoint.x, marker.canvasPoint.y)
+                setTarget({
+                  frameId: '',
+                  componentName: 'Canvas',
+                  props: { __canvasPoint: marker.canvasPoint },
+                  selector: '',
+                  elementTag: 'canvas',
+                  elementClasses: '',
+                  elementText: '',
+                  computedStyles: {},
+                  rect: new DOMRect(sp?.x ?? 0, sp?.y ?? 0, 0, 0),
+                })
+                setComment(marker.comment)
+                setEditingMarkerId(marker.id)
+                setMode('commenting')
+                return
+              }
               const frameEl = document.querySelector(`[data-frame-id="${marker.frameId}"]`)
               if (!frameEl) return
               const contentEl = frameEl.hasAttribute('data-frame-content') ? frameEl : frameEl.querySelector('[data-frame-content]')
