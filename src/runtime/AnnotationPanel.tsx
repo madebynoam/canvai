@@ -18,7 +18,7 @@ interface Annotation {
 
 /* ─── AnnotationBadge ─────────────────────────────────── */
 
-function AnnotationBadge({ count, onClick }: { count: number; onClick: () => void }) {
+function AnnotationBadge({ count, pendingCount, onClick }: { count: number; pendingCount: number; onClick: () => void }) {
   const [hovered, setHovered] = useState(false)
   return (
     <button
@@ -40,6 +40,22 @@ function AnnotationBadge({ count, onClick }: { count: number; onClick: () => voi
         cursor: 'default',
       }}
     >
+      {/* Spinner — visible when agent is processing */}
+      {pendingCount > 0 && (
+        <div
+          style={{
+            width: ICON.sm,
+            height: ICON.sm,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: F.marker,
+            animation: 'canvai-spin 1s linear infinite',
+          }}
+        >
+          <Loader2 size={ICON.sm} strokeWidth={2} />
+        </div>
+      )}
       <div
         style={{
           width: S.lg,
@@ -316,7 +332,7 @@ export function AnnotationPanelWidget({ endpoint }: { endpoint: string }) {
   return (
     <div ref={containerRef} style={{ position: 'relative', fontFamily: FONT }}>
       <style>{`@keyframes canvai-spin { to { transform: rotate(360deg) } }`}</style>
-      <AnnotationBadge count={drafts.length + pending.length} onClick={() => setOpen(o => !o)} />
+      <AnnotationBadge count={drafts.length + pending.length} pendingCount={pending.length} onClick={() => setOpen(o => !o)} />
 
       {/* Dropdown — instant show/hide */}
       {open && (
