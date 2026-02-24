@@ -107,6 +107,13 @@ function scaffold() {
 function update() {
   const cwd = process.cwd()
   console.log('Updating canvai to latest...\n')
+
+  // Remove cached canvai so npm re-resolves from GitHub instead of using the locked SHA
+  const cachedPkg = join(cwd, 'node_modules', 'canvai')
+  if (existsSync(cachedPkg)) {
+    rmSync(cachedPkg, { recursive: true, force: true })
+  }
+
   const install = spawn('npm', ['install', 'github:madebynoam/canvai'], {
     cwd,
     stdio: 'inherit',
