@@ -18,7 +18,8 @@ async function main() {
     if (msg.type() === 'error') console.log('PAGE ERROR:', msg.text())
   })
 
-  await page.goto('http://localhost:5173/', { waitUntil: 'domcontentloaded' })
+  const PORT = process.env.CANVAI_VITE_PORT || '5173'
+  await page.goto(`http://localhost:${PORT}/`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(3000)
 
   // The ProjectPicker is a PickerDropdown with the project name as trigger text.

@@ -11,7 +11,8 @@ async function main() {
   })
   const page = await ctx.newPage()
 
-  await page.goto('http://localhost:5173/', { waitUntil: 'domcontentloaded', timeout: 30000 })
+  const PORT = process.env.CANVAI_VITE_PORT || '5173'
+  await page.goto(`http://localhost:${PORT}/`, { waitUntil: 'domcontentloaded', timeout: 30000 })
   await page.waitForTimeout(4000)
 
   // Switch to pulse project

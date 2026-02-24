@@ -2,7 +2,7 @@ import { chromium } from 'playwright'
 import { join } from 'path'
 
 const OUT = join(import.meta.dirname, '../src/projects/landing-page/screenshots')
-const PORT = process.argv[2] || '5173'
+const PORT = process.env.CANVAI_VITE_PORT || process.argv[2] || '5173'
 
 async function main() {
   const browser = await chromium.launch({ headless: true })

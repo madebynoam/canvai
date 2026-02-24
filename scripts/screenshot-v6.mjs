@@ -2,7 +2,7 @@ import { chromium } from 'playwright'
 import { join } from 'path'
 
 const OUT = join(import.meta.dirname, '../src/projects/landing-page/screenshots')
-const PORT = 5173
+const PORT = process.env.CANVAI_VITE_PORT || '5173'
 
 const V6_FRAMES = [
   'drift', 'lumen', 'meridian', 'threshold', 'flux',
