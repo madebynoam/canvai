@@ -4,15 +4,26 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod/v4'
 
-const HTTP_BASE = 'http://localhost:4748'
+import { readFileSync } from 'fs'
+import { join } from 'path'
+
+/** Re-read .canvai-ports.json on every call so we pick up port changes. */
+function httpBase() {
+  try {
+    const ports = JSON.parse(readFileSync(join(process.cwd(), '.canvai-ports.json'), 'utf8'))
+    return `http://localhost:${ports.http || 4748}`
+  } catch {
+    return 'http://localhost:4748'
+  }
+}
 
 async function httpGet(path) {
-  const res = await fetch(`${HTTP_BASE}${path}`)
+  const res = await fetch(`${httpBase()}${path}`)
   return res.json()
 }
 
 async function httpPost(path) {
-  const res = await fetch(`${HTTP_BASE}${path}`, { method: 'POST' })
+  const res = await fetch(`${httpBase()}${path}`, { method: 'POST' })
   return res.json()
 }
 

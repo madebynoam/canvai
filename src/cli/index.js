@@ -200,6 +200,8 @@ async function startDev() {
   const httpPort = await findFreePort(4748)
   const vitePort = await findFreePort(5173)
 
+  // Write ports BEFORE spawning so Vite's config() can read them
+  writePorts(cwd, httpPort, vitePort, null, null)
   console.log(`[canvai] HTTP server → :${httpPort}  Vite → :${vitePort}`)
 
   // Start Vite dev server on the chosen port
@@ -217,7 +219,7 @@ async function startDev() {
     env: { ...process.env, CANVAI_HTTP_PORT: String(httpPort), CANVAI_VITE_PORT: String(vitePort) },
   })
 
-  // Write ports + PIDs so cleanup kills only THIS project's processes
+  // Update ports file with PIDs for safe cleanup
   writePorts(cwd, httpPort, vitePort, vite.pid, httpSrv.pid)
 
   // Clean up on exit — remove ports file so stale info doesn't linger
