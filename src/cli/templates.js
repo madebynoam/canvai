@@ -130,111 +130,58 @@ These rules are enforced by the agent. Do not remove this file.
 
 ## Design directions (proliferate first)
 
-When a designer first describes a component or feature, do NOT generate one design and ask for feedback. Generate **multiple distinct design directions** — different visual bets, not just different states of the same idea. Three directions minimum.
-
-The designer is not a spec-writer. They are a reactor and curator. Your job is to give them things to react to.
-
-### Layout: one page, one wall
-
-All directions live on a **single manifest page** called "All Directions". Use a \\\`DirectionLabel\\\` component as the first frame in each row. The grid uses N+1 columns (1 label + N state/variation frames per direction):
-
-\`\`\`ts
-{
-  name: 'All Directions',
-  grid: { columns: 6, columnWidth: 960, rowHeight: 800, gap: 40 },
-  frames: [
-    // Row 1: Direction A
-    { id: 'label-a', title: 'Direction A', component: DirectionLabel, props: { letter: 'A', title: 'Minimal', description: '...' } },
-    { id: 'dir-a-default', title: 'Dir A / Default', component: DirA, props: { state: 'default' } },
-    { id: 'dir-a-hover', title: 'Dir A / Hover', component: DirA, props: { state: 'hover' } },
-    // Row 2: Direction B
-    { id: 'label-b', title: 'Direction B', component: DirectionLabel, props: { letter: 'B', title: 'Structured', description: '...' } },
-    // ... B frames
-  ],
-}
-\`\`\`
-
-Create \\\`DirectionLabel\\\` in \\\`components/\\\` — it follows the same token rules as any component. Each direction should make a genuinely different design bet. Let the designer react — "I like A's density with C's color" — then converge.
-
-Once a direction is chosen, generate all meaningful **variations and states** as frames within that direction.
+Generate **3+ distinct design directions** on a single "All Directions" manifest page — different visual bets, not variations of one idea. Use \\\`DirectionLabel\\\` as the first frame per row in an N+1 column grid (1 label + N states). Let the designer react and converge.
 
 ## Component hierarchy
 
-\`\`\`
+\\\`\\\`\\\`
 Tokens (v<N>/tokens.css)     → OKLCH custom properties, all visual values
   ↓
 Components (v<N>/components/) → use ONLY var(--token), can compose each other
   ↓
-Pages (v<N>/pages/)           → import ONLY from ../components/, no raw styled HTML
-\`\`\`
+Pages (v<N>/pages/)           → import ONLY from ../components/
+\\\`\\\`\\\`
 
-**A page file defines exactly one function: the exported page component.** Nothing else. No local sub-components, no local helper components, no inline section functions. If you need \\\`TierLockedGate\\\`, \\\`DashboardSection\\\`, \\\`GroupContact\\\` — they are components. Create them in \\\`components/\\\`, export from \\\`components/index.ts\\\`, import in the page. A page that defines more than one function is wrong.
+A page defines exactly one exported function. Any sub-component belongs in \\\`components/\\\`.
 
 ## Hard constraints
 
-- **All colors in OKLCH.** No hex values. No rgb. No hsl.
-- **All spacing multiples of 4.** 0, 4, 8, 12, 16, 20, 24… Font sizes exempt.
-- **Components use only \\\`var(--token)\\\`.** No hardcoded colors, backgrounds, borders.
-- **Pages define exactly one exported function.** Any named function returning JSX belongs in \\\`components/\\\`, not in the page file. This is not optional — a 1,000-line page file is a bug.
-- **Pages import only from \\\`../components/\\\`.** No inline styled HTML, no local sub-components.
-- **Components must be interactive.** Inputs typeable, buttons clickable, menus openable. No static mockups — the whole point is that everything works.
-- **Iterations named V1, V2, V3.** Sequential, never descriptive. Each iteration should include a \\\`description\\\` — a one-line blurb shown in the iteration picker dropdown (e.g. \\\`description: 'Revised spacing and color'\\\`).
+- **OKLCH only.** No hex, rgb, hsl.
+- **4px spacing grid.** Font sizes exempt.
+- **Components use \\\`var(--token)\\\` only.** No hardcoded visual values.
+- **Pages import only from \\\`../components/\\\`.** No inline styled HTML.
+- **Components must be interactive.** Inputs typeable, buttons clickable, menus openable.
+- **Iterations: V1, V2, V3.** Sequential, never descriptive. Include \\\`description\\\` field.
 
 ## Mandatory pages
 
-Every project must include:
-- **Tokens** — renders color swatches (using \\\`TokenSwatch\\\` from \\\`canvai/runtime\\\`), typography scale, spacing grid from \\\`tokens.css\\\`
-- **Components** — shows all building blocks individually with variations and states
+- **Tokens** — color swatches (\\\`TokenSwatch\\\` from \\\`canvai/runtime\\\`), typography, spacing
+- **Components** — all building blocks with variations and states
 
-## Token swatches (runtime)
-
-Canvai provides \\\`TokenSwatch\\\` and \\\`ColorPicker\\\` from \\\`canvai/runtime\\\` for the Tokens page. The designer clicks a swatch to open an OKLCH color picker, sees a live preview across the canvas, and posts an annotation to change the token value.
+### TokenSwatch
 
 \\\`\\\`\\\`tsx
 import { TokenSwatch } from 'canvai/runtime'
-
-<TokenSwatch
-  color="var(--chrome)"
-  label="chrome"
-  sublabel="oklch(0.952 0.003 80)"
-  oklch={{ l: 0.952, c: 0.003, h: 80 }}
-  tokenPath="--chrome"
-/>
+<TokenSwatch color="var(--chrome)" label="chrome" sublabel="oklch(0.952 0.003 80)"
+  oklch={{ l: 0.952, c: 0.003, h: 80 }} tokenPath="--chrome" />
 \\\`\\\`\\\`
-
-Props:
-- \\\`color\\\` — CSS color string for display
-- \\\`label\\\` — Token name shown next to the swatch
-- \\\`sublabel\\\` — Optional secondary text (e.g. the OKLCH value)
-- \\\`oklch\\\` — If provided, swatch is clickable and opens the color picker (\\\`{ l, c, h }\\\`)
-- \\\`tokenPath\\\` — CSS custom property name for the annotation (e.g. \\\`"--chrome"\\\`)
-
-When the designer clicks Apply, \\\`TokenSwatch\\\` posts an annotation (frame ID is derived automatically from the DOM). The agent updates \\\`tokens.css\\\`. Use \\\`TokenSwatch\\\` for every color token on the Tokens page.
 
 ## Standard frame widths
 
-| Breakpoint | Width |
-|---|---|
-| Desktop | \\\`1440\\\` |
-| Tablet | \\\`768\\\` |
-| Mobile | \\\`390\\\` |
-
-Set per-frame \\\`width\\\` in the manifest or \\\`grid.columnWidth\\\` on the page. Components pages typically use smaller widths (320–640).
+Desktop: \\\`1440\\\` · Tablet: \\\`768\\\` · Mobile: \\\`390\\\`
 
 ## Interactive navigation
 
-If a component has internal navigation (tabs, sidebar nav, segmented sections), handle it with React state inside one component. Do not split navigable sections into separate frames — the point is that it works, not that it looks right in a screenshot.
+Components with internal navigation (tabs, sidebar) use React state in one component. Don't split into separate frames — navigation must work.
 
 ## Before any edit
 
-1. Read \\\`manifest.ts\\\` — is the iteration frozen? If yes, stop.
-2. Check \\\`components/index.ts\\\` — does the component exist? If not, create it first.
-3. When creating a new component — add to \\\`index.ts\\\` AND add a showcase entry to the Components page.
+1. Read \\\`manifest.ts\\\` — frozen? Stop.
+2. Check \\\`components/index.ts\\\` — component exists? If not, create first.
+3. New components: add to barrel AND Components showcase page.
 4. Hierarchy check — pages use components, components use tokens.
 5. Log to \\\`CHANGELOG.md\\\`.
-6. **Commit after each change** — After completing the requested changes, stage and commit project files:
-   \\\`git add src/projects/ && git commit -m 'style: <brief description of change>'\\\`
-   Every change gets its own commit so the designer can rewind with \\\`/canvai-undo\\\`.
+6. **Commit after each change:** \\\`git add src/projects/ && git commit -m 'style: <description>'\\\`
 `
 
 export const tsconfigNodeJson = `{

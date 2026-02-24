@@ -1,14 +1,6 @@
 # Canvai — Repo Development
 
-Canvai is a design studio. A Figma-like infinite canvas where every design is live React code.
-
-## Architecture
-
-Canvai has two pieces:
-- **npm package** — the canvas runtime, Vite plugin, and CLI (`canvai new`, `canvai design`)
-- **Claude Code plugin** — skills, MCP config, and agent instructions (marketplace in `plugin/`, plugin at `plugin/plugins/canvai/`)
-
-Consumer-facing instructions (design workflow, annotation flow, manifest format, component matrix, design language) live in `plugin/plugins/canvai/CLAUDE.md` — not here.
+Canvai is a canvas for Claude Code design — an infinite, zoomable surface where every generation lives as a frame. Two pieces: **npm package** (runtime, Vite plugin, CLI) and **Claude Code plugin** (skills, MCP, agent instructions in `plugin/plugins/canvai/CLAUDE.md`).
 
 ## Project structure
 
@@ -27,7 +19,6 @@ scripts/
   bump-version.sh     ← version bump helper
   smoke-test.sh       ← scaffold smoke test
 plugin/               ← Claude Code plugin marketplace
-  .claude-plugin/     ← marketplace manifest
   plugins/canvai/     ← the plugin (skills, MCP, CLAUDE.md)
 ```
 
@@ -44,182 +35,79 @@ All 5 fields across 4 files must be bumped together. Use `./scripts/bump-version
 
 ### Export contract
 
-If you remove/rename a runtime export, you MUST:
-1. Update the template in `src/cli/templates.js`
-2. Add a migration in `src/cli/migrations/`
-3. Run `npm test` to verify the contract holds
+If you remove/rename a runtime export: update template in `src/cli/templates.js`, add migration in `src/cli/migrations/`, run `npm test`.
 
 ### Scaffolded file changes (CRITICAL)
 
-`src/App.tsx` and other files from `src/cli/templates.js` are **consumer-owned** — they're copied during `canvai new` and live in the consumer's project, not in `node_modules`. Changing a template does NOT update existing consumers. If you change ANY scaffolded template, you MUST:
-1. Update the template in `src/cli/templates.js`
-2. Write a migration in `src/cli/migrations/` to patch existing consumer files
-3. Bump the version via `./scripts/bump-version.sh`
+Files from `src/cli/templates.js` are **consumer-owned** — copied during `canvai new`. Changing a template does NOT update existing consumers. If you change ANY scaffolded template:
+1. Update template in `src/cli/templates.js`
+2. Write migration in `src/cli/migrations/`
+3. Bump version via `./scripts/bump-version.sh`
 
 ### Pre-push checklist
 
-1. `npm test` passes (export contract + migration tests)
-2. `npm run test:smoke` passes (scaffold a fresh project)
-3. All 5 version fields bumped via `./scripts/bump-version.sh`
-4. Breaking export changes have a migration in `src/cli/migrations/`
+1. `npm test` passes
+2. `npm run test:smoke` passes
+3. All 5 version fields bumped
+4. Breaking export changes have a migration
 5. Root `CHANGELOG.md` updated
 
 ### Migration discipline
 
 - Never delete old migration files — consumers could be on any version
-- Every breaking change to any scaffolded file requires a migration
+- Every breaking change to scaffolded files requires a migration
 - Prefer targeted transforms over whole-file replacement
 - Migrations must be idempotent
-- Test migrations with `npm test`
 
 ### Breaking change coverage (CRITICAL)
 
-When changing a type, interface, or data format:
-1. **Trace ALL consumer files** that use it — not just App.tsx but also manifest files, config files, and any agent-generated files
-2. **Migrate every file type**, not just the ones in `migration.files`. The runner auto-discovers `src/projects/*/manifest.ts`
-3. **Write integration tests** that verify migrated files work together (e.g. migrated App.tsx + migrated manifest)
-4. **Use safe optional chaining** (`?.[]`) when accessing properties that may not exist during migration transitions
-5. **Test the migration against a real consumer project** before pushing — don't rely only on unit tests
+1. Trace ALL consumer files that use a changed type/interface
+2. Migrate every file type, not just `migration.files`
+3. Write integration tests verifying migrated files work together
+4. Use safe optional chaining (`?.[]`) during migration transitions
+5. Test against a real consumer project before pushing
 
 ### Update command: stale code trap
 
-`canvai update` runs `npm install` then migrations. But the migration code was loaded at process startup (old version). The new code is on disk but not in memory. The update command handles this by spawning `canvai migrate` as a **new process** after npm install. Never call `runMigrations()` directly inside the update function — it will use stale code.
+`canvai update` runs `npm install` then migrations, but migration code was loaded at startup (old version). The update command spawns `canvai migrate` as a **new process** after npm install. Never call `runMigrations()` directly inside update.
 
 ### Self-healing migrations
 
-The migration runner checks `applies()` on ALL migrations every run, not just ones newer than the marker. This means:
-- A migration that partially ran (stale code, bugs) will be re-applied on next run
-- The marker is only bumped after ALL migrations verify clean (`applies()` returns false)
-- `canvai doctor` is the manual escape hatch — same logic, explicit invocation
-- Every migration's `applies()` must detect ALL broken states, including half-migrated files
-- Recovery tests must simulate the half-migrated scenario and verify full recovery
-
-### Runtime shell aesthetic (Dieter Rams / Jony Ive)
-
-The runtime shell (`src/runtime/` — TopBar, IterationSidebar, ProjectPicker, AnnotationOverlay) follows a **Dieter Rams / Jony Ive** aesthetic. This does NOT apply to designer projects in `src/projects/` — those are the designer's sandbox.
-
-> "Good design is as little design as possible."
-
-**Principles:**
-1. **Honest** — No decoration. Every element earns its place.
-2. **Unobtrusive** — The shell disappears; the designer's work is the hero.
-3. **Thorough** — Every detail matters: spacing, alignment, color, cursor.
-4. **As little as possible** — Remove until it breaks, then add one thing back.
-
-**Palette:**
-
-| Token | Value |
-|---|---|
-| Accent | `#E8590C` |
-| Accent hover | `#CF4F0B` |
-| Accent muted | `rgba(232, 89, 12, 0.15)` |
-| Surface | `#FFFFFF` |
-| Surface subtle | `#F7F7F8` |
-| Border | `#E5E7EB` |
-| Text primary | `#1F2937` |
-| Text secondary | `#6B7280` |
-| Text tertiary | `#9CA3AF` |
-
-**Rules:**
-- One accent color (`#E8590C`). Everything else is grayscale.
-- **4px spacing grid.** Every value (padding, margin, gap, width, height, indent, border-radius) must be a multiple of 4. Font sizes are exempt.
-- Allowed: 0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 48, 64…
-- Border-radius tiers: 4px controls, 8px cards/dropdowns, 12-20px pills.
-- Hover: `rgba(0,0,0,0.03)`. Active: `rgba(0,0,0,0.06)`. No flashy transitions.
-- `cursor: default` for all shell UI. Never `cursor: pointer` — reserve it for designer sandboxes.
-- **`text-wrap: pretty`** on all text elements. No widows (single words on the last line).
-- **Icons: Lucide React** (`lucide-react`). No hand-drawn SVGs. Size tiers: 16px primary actions (menu items, FAB), 14px secondary (close, trash, checks, sidebar toggle), 12px decorative (chevrons in triggers). Always `strokeWidth={1.5}`.
-- **Components must be interactive.** This is a live canvas, not Figma. Text inputs should be typeable, menus should open on click, buttons should have hover/active states. No static mockups — the whole point is that everything works without prototyping.
-
-### Motion language (Rams restraint + Matas physics)
-
-Every transition uses spring physics — no CSS durations, no `ease-in-out`. Objects have mass, momentum, and friction.
-
-> "As little design as possible" — but the little that remains should feel like physics.
-
-**Spring presets:**
-
-| Preset | Tension | Friction | Use for |
-|---|---|---|---|
-| `snappy` | 300 | 20 | Buttons, toggles, micro-feedback |
-| `gentle` | 170 | 18 | Cards, panels, modals |
-| `soft` | 120 | 14 | Tooltips, toasts, page transitions |
-
-**Principles:**
-- **Mass** — Heavier elements move slower. A modal has more mass than a tooltip.
-- **Momentum** — Objects in motion stay in motion. Swipe gestures carry velocity.
-- **Friction** — Everything decelerates naturally. Nothing stops abruptly.
-- **Restraint** — If it doesn't help the user, it doesn't move. No gratuitous animation.
-
-**Rules:**
-- No `transition: 0.3s ease`. Use spring physics (tension/friction/mass) — motion is emergent, not scripted.
-- Reveals: scale from 0.8→1 + translateY with spring overshoot. Opacity fades in parallel.
-- Dismissals: reverse the reveal with slightly higher friction for a controlled exit.
-- Button press: spring squish (scale 0.92) then bounce-back. No duration.
-- Dropdowns: scaleY from transform-origin top. Spring snappy preset.
-- Panels: translateX slide with gentle preset.
-- Toasts: translateY spring up from bottom, auto-dismiss after 2-3s with fade.
-- For prototyping, CSS `cubic-bezier(0.34, 1.56, 0.64, 1)` approximates spring overshoot. Production should use a spring library.
-
-### Dogfooding project (`src/projects/canvai-ui/`)
-
-The `canvai-ui` project renders the actual runtime UI components (TopBar, ProjectPicker, IterationSidebar, etc.) so we can visually test the canvas itself. It imports directly from `../../runtime/`, so existing component changes are reflected instantly via HMR.
-
-When you modify runtime UI components:
-- **Change props/appearance** — automatically reflected, nothing to do
-- **Add a new UI component** — add a preview wrapper + frame to `canvai-ui/manifest.ts`
-- **Remove a UI component** — remove its frame from `canvai-ui/manifest.ts`
-- **Change a component's props interface** — update the corresponding preview wrapper
+The runner checks `applies()` on ALL migrations every run. A partially-applied migration will be re-applied next run. The marker only bumps after all migrations verify clean. `canvai doctor` is the manual escape hatch.
 
 ### Deprecation before removal
 
-When removing a runtime export:
-1. First release a version that logs `console.warn('[canvai] X is deprecated, use Y instead')`
-2. Remove in the next version with a migration
+First release: `console.warn('[canvai] X is deprecated, use Y instead')`. Remove in next version with migration.
 
 ### Migration authoring
 
-Each migration file in `src/cli/migrations/` exports:
-- `version` — semver string (e.g. `'0.0.10'`)
-- `description` — what it does
-- `files` — array of file paths this migration can touch
-- `applies(fileContents)` — returns true if migration is needed
-- `migrate(fileContents)` — returns `{ filepath: newContent }` map
+Each file in `src/cli/migrations/` exports: `version`, `description`, `files`, `applies(fileContents)`, `migrate(fileContents)`. Register in `src/cli/migrations/index.js`, sorted by version.
 
-Register new migrations in `src/cli/migrations/index.js`. Keep them sorted by version.
+## Runtime shell design
+
+The runtime shell (`src/runtime/`) follows a Dieter Rams / Jony Ive aesthetic. OKLCH-native, 4px grid, Lucide icons, spring physics for all motion. For full palette, spring presets, and motion rules, see `RUNTIME-DESIGN.md`.
+
+Key rules: no pure white/black, `cursor: default` for all shell UI, `text-wrap: pretty`, components must be interactive.
+
+### Dogfooding project (`src/projects/canvai-ui/`)
+
+Renders actual runtime UI components for visual testing. Imports from `../../runtime/`. When adding/removing runtime components, update `canvai-ui/manifest.ts`.
 
 ## Commands
 
-- `npm test` — run export contract + migration tests
+- `npm test` — export contract + migration tests
 - `npm run test:smoke` — scaffold smoke test
 - `./scripts/bump-version.sh <version>` — bump all version fields
-- `npx canvai new` — scaffold consumer project files
-- `npx canvai design` — start dev server + annotation MCP
-- `npx canvai update` — update canvai to latest from GitHub
-- `npx canvai doctor` — check and fix project files (self-healing migrations)
+- `npx canvai new | design | update | doctor` — CLI commands
 
 ### Local plugin testing
 
-Plugin skills and MCP changes can't be tested until the plugin is installed. To avoid pushing untested changes:
-
-1. **`/plugin-local`** — Swaps the canvai marketplace from GitHub to the local `plugin/` directory
-2. Edit skills/MCP/CLAUDE.md in `plugin/plugins/canvai/`
-3. In the consumer folder: `claude plugin update canvai@canvai` → restart session → test
-4. **`/plugin-release`** — Swaps the marketplace back to GitHub after pushing
-
-The consumer folder always uses `canvai@canvai` — it doesn't need to know whether the source is local or GitHub.
+1. `/plugin-local` — swaps marketplace to local `plugin/`
+2. Edit skills/MCP in `plugin/plugins/canvai/`
+3. In consumer: `claude plugin update canvai@canvai` → restart → test
+4. `/plugin-release` — swaps back to GitHub
 
 ## Skills
 
-### Plugin skills (consumer-facing, in `plugin/plugins/canvai/skills/`)
-
-- **`/canvai-new <project-name>`** — Create a new design project and start designing
-- **`/canvai-design`** — Start (or restart) the dev server and enter watch mode
-- **`/canvai-share`** — Build and deploy to GitHub Pages for sharing
-- **`/canvai-close`** — Stop all Canvai dev servers and free ports
-- **`/canvai-update`** — Update canvai to the latest version
-
-### Dev skills (repo-local, in `.claude/skills/`)
-
-- **`/plugin-local`** — Swap canvai marketplace to local for testing
-- **`/plugin-release`** — Swap canvai marketplace back to GitHub
+**Plugin (consumer-facing):** `/canvai-new`, `/canvai-design`, `/canvai-share`, `/canvai-close`, `/canvai-update`
+**Dev (repo-local):** `/plugin-local`, `/plugin-release`
