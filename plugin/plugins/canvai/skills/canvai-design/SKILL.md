@@ -9,11 +9,17 @@ Start the Canvai dev server and enter watch mode.
 
 ## Steps
 
-1. **Kill any existing canvai/vite processes** to avoid port conflicts:
+1. **Kill only THIS project's existing servers** (not other canvai instances):
    ```bash
-   pkill -f "canvai design" 2>/dev/null; pkill -f "vite" 2>/dev/null; pkill -f "http-server.js" 2>/dev/null
+   if [ -f .canvai-ports.json ]; then
+     HTTP_PORT=$(node -e "console.log(JSON.parse(require('fs').readFileSync('.canvai-ports.json','utf8')).http)")
+     VITE_PORT=$(node -e "console.log(JSON.parse(require('fs').readFileSync('.canvai-ports.json','utf8')).vite)")
+     lsof -ti :$HTTP_PORT | xargs kill 2>/dev/null
+     lsof -ti :$VITE_PORT | xargs kill 2>/dev/null
+     rm -f .canvai-ports.json
+   fi
    ```
-   It's fine if these fail (nothing was running).
+   This reads the ports file written by `canvai design` and kills only those processes. Other canvai instances on different ports are left alone. It's fine if nothing was running.
 
 2. **Start the dev server** in the background:
    ```bash
@@ -61,7 +67,7 @@ Start the Canvai dev server and enter watch mode.
    1. Parse the JSON comment: `{ name, description, prompt }`
    2. Create the project folder structure: `src/projects/<name>/v1/{tokens.css, components/index.ts, pages/}`
    3. Create `manifest.ts` and `CHANGELOG.md`
-   4. If `prompt` is provided, generate the initial design (tokens, components, pages) following the standard "What happens next" sequence from the `/canvai-new` skill
+   4. If `prompt` is provided, generate the initial design following the "What happens next" sequence from `/canvai-new`. **CRITICAL: generate 3-5 distinct design directions shown side by side on an "All Directions" page.** The whole point of Canvai is seeing many at once — never generate just one design.
    5. Call `resolve_annotation` with the annotation `id`
    6. Call `watch_annotations` again — back to waiting
 

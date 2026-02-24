@@ -9,15 +9,18 @@ Stop all running Canvai processes (Vite dev server, MCP HTTP server).
 
 ## Steps
 
-1. **Kill all canvai-related processes:**
+1. **Kill only THIS project's servers** using the ports file:
    ```bash
-   pkill -f "canvai design" 2>/dev/null; pkill -f "vite" 2>/dev/null; pkill -f "http-server.js" 2>/dev/null
+   if [ -f .canvai-ports.json ]; then
+     HTTP_PORT=$(node -e "console.log(JSON.parse(require('fs').readFileSync('.canvai-ports.json','utf8')).http)")
+     VITE_PORT=$(node -e "console.log(JSON.parse(require('fs').readFileSync('.canvai-ports.json','utf8')).vite)")
+     lsof -ti :$HTTP_PORT | xargs kill 2>/dev/null
+     lsof -ti :$VITE_PORT | xargs kill 2>/dev/null
+     rm -f .canvai-ports.json
+   else
+     echo "No .canvai-ports.json found — no servers to stop for this project."
+   fi
    ```
-   It's fine if these fail (nothing was running).
+   This only kills servers belonging to the current project. Other canvai instances on different ports are left alone.
 
-2. **Free the ports** in case orphaned processes are holding them:
-   ```bash
-   lsof -ti :4748 | xargs kill -9 2>/dev/null; lsof -ti :5173 | xargs kill -9 2>/dev/null
-   ```
-
-3. **Confirm:** "All Canvai servers stopped."
+2. **Confirm:** "Canvai servers stopped for this project."

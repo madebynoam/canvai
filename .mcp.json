@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "canvai-annotations": {
+    "canvai-annotations-dev": {
       "command": "node",
       "args": ["src/mcp/mcp-server.js"]
     }
