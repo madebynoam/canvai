@@ -108,11 +108,23 @@ function update() {
   const cwd = process.cwd()
   console.log('Updating canvai to latest...\n')
 
-  // Remove cached canvai so npm re-resolves from GitHub instead of using the locked SHA
+  // Remove cached canvai so npm re-resolves from GitHub instead of using the locked SHA.
+  // Both node_modules AND the lockfile entry must be cleared — npm uses the lockfile
+  // resolved commit SHA even when node_modules is deleted.
   const cachedPkg = join(cwd, 'node_modules', 'canvai')
   if (existsSync(cachedPkg)) {
     rmSync(cachedPkg, { recursive: true, force: true })
   }
+  try {
+    const lockPath = join(cwd, 'package-lock.json')
+    if (existsSync(lockPath)) {
+      const lock = JSON.parse(readFileSync(lockPath, 'utf8'))
+      let changed = false
+      if (lock.packages?.['node_modules/canvai']) { delete lock.packages['node_modules/canvai']; changed = true }
+      if (lock.dependencies?.canvai) { delete lock.dependencies.canvai; changed = true }
+      if (changed) writeFileSync(lockPath, JSON.stringify(lock, null, 2) + '\n')
+    }
+  } catch {}
 
   const install = spawn('npm', ['install', 'github:madebynoam/canvai'], {
     cwd,
@@ -147,6 +159,12 @@ function update() {
 
 function startDev() {
   const cwd = process.cwd()
+
+  // Clear Vite dep cache so updated canvai code is re-bundled
+  const viteCache = join(cwd, 'node_modules', '.vite')
+  if (existsSync(viteCache)) {
+    rmSync(viteCache, { recursive: true, force: true })
+  }
 
   // Run migrations before starting
   const applied = runMigrations(cwd)
