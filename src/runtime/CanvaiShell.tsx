@@ -385,7 +385,7 @@ export function CanvaiShell({ manifests, annotationEndpoint = 'http://localhost:
         </div>
       </div>
 
-      {import.meta.env.DEV && <AnnotationOverlay endpoint={annotationEndpoint} frames={frames} showToast={showToast} project={projectKey} />}
+      {import.meta.env.DEV && <AnnotationOverlay endpoint={annotationEndpoint} frames={isContextPage ? [...frames, ...contextImages] : frames} showToast={showToast} project={projectKey} />}
       <CommentOverlay endpoint={annotationEndpoint} frames={frames} onCommentCountChange={setCommentCount} />
       {import.meta.env.DEV && (
         <NewIterationDialog
