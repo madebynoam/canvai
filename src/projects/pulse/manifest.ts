@@ -15,6 +15,7 @@ import { DashDark as DashDark2 } from './v2/pages/dash-dark'
 import { DashMinimal as DashMinimal2 } from './v2/pages/dash-minimal'
 import { DashBold } from './v2/pages/dash-bold'
 import { DashCards } from './v2/pages/dash-cards'
+import { DashPlanner } from './v2/pages/dash-planner'
 
 const manifest: ProjectManifest = {
   project: 'pulse',
@@ -67,8 +68,8 @@ const manifest: ProjectManifest = {
           frames: [
             { id: 'v2-dash-bold', title: 'Direction E — Bold Contrast', component: DashBold, width: 1440, height: 900 },
             { id: 'v2-dash-cards', title: 'Direction F — Dark Cards', component: DashCards, width: 1440, height: 900 },
+            { id: 'v2-dash-planner', title: 'Direction G — Planner Style', component: DashPlanner, width: 1440, height: 900 },
             { id: 'v2-dash-light', title: 'Direction A — Light (carried)', component: DashLight2, width: 1440, height: 900 },
-            { id: 'v2-dash-dark', title: 'Direction B — Dark (carried)', component: DashDark2, width: 1440, height: 900 },
           ],
         },
         {
