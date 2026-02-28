@@ -388,23 +388,35 @@ export function Canvas({ children, pageKey, hud, onImagePaste }: CanvasProps) {
 
   // Image paste handler — Cmd+V with image on clipboard
   useEffect(() => {
-    if (!onImagePaste) return
+    if (!onImagePaste) {
+      console.log('[canvai] Paste handler not attached - no onImagePaste callback')
+      return
+    }
+
+    console.log('[canvai] Paste handler attached')
 
     function handlePaste(e: ClipboardEvent) {
+      console.log('[canvai] Paste event received', e.clipboardData?.items.length, 'items')
       if (!e.clipboardData) return
 
       for (const item of e.clipboardData.items) {
+        console.log('[canvai] Clipboard item:', item.type)
         if (item.type.startsWith('image/')) {
           e.preventDefault()
           const blob = item.getAsFile()
-          if (!blob) continue
+          if (!blob) {
+            console.log('[canvai] No blob from clipboard item')
+            continue
+          }
 
+          console.log('[canvai] Reading image blob:', blob.size, 'bytes')
           const reader = new FileReader()
           reader.onload = () => {
             const dataUrl = reader.result as string
             // Generate filename from timestamp and mime type
             const ext = item.type.split('/')[1] || 'png'
             const filename = `context-${Date.now()}.${ext}`
+            console.log('[canvai] Calling onImagePaste:', filename)
             onImagePaste(dataUrl, filename)
           }
           reader.readAsDataURL(blob)

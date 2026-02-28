@@ -151,9 +151,17 @@ export function CanvaiShell({ manifests, annotationEndpoint = 'http://localhost:
   const activeIteration = activeProject?.iterations?.[activeIterationIndex]
   const iterClass = activeIteration ? `iter-${activeIteration.name.toLowerCase()}` : ''
   const iterationName = activeIteration?.name ?? 'v1'
-  const activePage = activeIteration?.pages?.[activePageIndex]
+
+  // Build augmented pages array with Context page (DEV only)
+  const augmentedPages = [
+    ...(activeIteration?.pages ?? []),
+    ...(import.meta.env.DEV && !activeIteration?.pages?.some(p => p.name === 'Context')
+      ? [{ name: 'Context', frames: [] }]
+      : []),
+  ]
+  const activePage = augmentedPages[activePageIndex]
   const isContextPage = activePage?.name === 'Context'
-  const layoutedFrames = activePage ? layoutFrames(activePage) : []
+  const layoutedFrames = activePage && !isContextPage ? layoutFrames(activePage) : []
 
   const { frames, updateFrame, handleResize } = useFrames(layoutedFrames, activePage?.grid)
 
@@ -299,13 +307,7 @@ export function CanvaiShell({ manifests, annotationEndpoint = 'http://localhost:
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
         <IterationSidebar
           iterationName={activeIteration?.name ?? ''}
-          pages={[
-            ...(activeIteration?.pages ?? []),
-            // Always include Context page for inspiration images (DEV only)
-            ...(import.meta.env.DEV && !activeIteration?.pages?.some(p => p.name === 'Context')
-              ? [{ name: 'Context', frames: [] }]
-              : []),
-          ]}
+          pages={augmentedPages}
           activePageIndex={activePageIndex}
           onSelectPage={setActivePageIndex}
           collapsed={!sidebarOpen}
