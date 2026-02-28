@@ -10,7 +10,8 @@ type Mode = 'idle' | 'targeting' | 'commenting'
 
 interface DragState {
   fromFrameId: string
-  fromPoint: { x: number; y: number }
+  fromPoint: { x: number; y: number }  // Center of the frame (for line drawing)
+  startPoint: { x: number; y: number } // Initial mouse position (for click detection)
   currentPoint: { x: number; y: number }
 }
 
@@ -386,6 +387,7 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
           setDragState({
             fromFrameId: frameId,
             fromPoint: center,
+            startPoint: { x: e.clientX, y: e.clientY },
             currentPoint: { x: e.clientX, y: e.clientY },
           })
           setHighlight(null)
@@ -501,8 +503,8 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
     }
 
     // If no valid connection target, check if it was just a click (no significant drag)
-    const dx = e.clientX - dragState.fromPoint.x
-    const dy = e.clientY - dragState.fromPoint.y
+    const dx = e.clientX - dragState.startPoint.x
+    const dy = e.clientY - dragState.startPoint.y
     const dist = Math.sqrt(dx * dx + dy * dy)
 
     if (dist < 10) {
