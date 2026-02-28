@@ -15,7 +15,7 @@ import { CanvasColorPicker } from './CanvasColorPicker'
 import { loadCanvasBg, saveCanvasBg } from './Canvas'
 import { ActionButton } from './Menu'
 import { N, E, S, T, R, FONT } from './tokens'
-import type { ProjectManifest } from './types'
+import type { ProjectManifest, CanvasImageFrame } from './types'
 
 interface CanvaiShellProps {
   manifests: ProjectManifest[]
@@ -111,6 +111,7 @@ export function CanvaiShell({ manifests, annotationEndpoint = 'http://localhost:
   const [iterDialogOpen, setIterDialogOpen] = useState(false)
   const [projectDialogOpen, setProjectDialogOpen] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
+  const [contextImages, setContextImages] = useState<CanvasImageFrame[]>([])
 
   const showToast = useCallback((msg: string) => setToast(msg), [])
 
@@ -149,10 +150,71 @@ export function CanvaiShell({ manifests, annotationEndpoint = 'http://localhost:
 
   const activeIteration = activeProject?.iterations?.[activeIterationIndex]
   const iterClass = activeIteration ? `iter-${activeIteration.name.toLowerCase()}` : ''
+  const iterationName = activeIteration?.name ?? 'v1'
   const activePage = activeIteration?.pages?.[activePageIndex]
+  const isContextPage = activePage?.name === 'Context'
   const layoutedFrames = activePage ? layoutFrames(activePage) : []
 
   const { frames, updateFrame, handleResize } = useFrames(layoutedFrames, activePage?.grid)
+
+  // Load context images when iteration changes
+  useEffect(() => {
+    if (!activeProject?.project) return
+    fetch(`${annotationEndpoint}/context?project=${encodeURIComponent(activeProject.project)}&iteration=${encodeURIComponent(iterationName)}`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.images && Array.isArray(data.images)) {
+          setContextImages(data.images.map((img: { filename: string; path: string }, i: number) => ({
+            type: 'image' as const,
+            id: `context-${img.filename}`,
+            title: img.filename,
+            src: `${annotationEndpoint}/context-image?project=${encodeURIComponent(activeProject.project)}&iteration=${encodeURIComponent(iterationName)}&filename=${encodeURIComponent(img.filename)}`,
+            x: 50 + (i % 4) * 320,
+            y: 50 + Math.floor(i / 4) * 320,
+            width: 300,
+            height: 300,
+          })))
+        }
+      })
+      .catch(() => setContextImages([]))
+  }, [activeProject?.project, iterationName, annotationEndpoint])
+
+  // Handle image paste — save to server and add to context
+  const handleImagePaste = useCallback(async (dataUrl: string, filename: string) => {
+    if (!activeProject?.project) return
+
+    try {
+      const res = await fetch(`${annotationEndpoint}/context`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          project: activeProject.project,
+          iteration: iterationName,
+          dataUrl,
+          filename,
+        }),
+      })
+      const result = await res.json()
+
+      if (result.path) {
+        // Add to local state immediately
+        const newImage: CanvasImageFrame = {
+          type: 'image',
+          id: `context-${result.filename}`,
+          title: result.filename,
+          src: `${annotationEndpoint}/context-image?project=${encodeURIComponent(activeProject.project)}&iteration=${encodeURIComponent(iterationName)}&filename=${encodeURIComponent(result.filename)}`,
+          x: 50 + (contextImages.length % 4) * 320,
+          y: 50 + Math.floor(contextImages.length / 4) * 320,
+          width: 300,
+          height: 300,
+        }
+        setContextImages(prev => [...prev, newImage])
+        showToast('Image added to context')
+      }
+    } catch {
+      showToast('Failed to save image')
+    }
+  }, [activeProject?.project, iterationName, annotationEndpoint, contextImages.length, showToast])
 
   const projectKey = activeProject?.project ?? ''
   const [canvasBg, setCanvasBg] = useState(() => loadCanvasBg(projectKey) ?? N.canvas)
@@ -237,7 +299,13 @@ export function CanvaiShell({ manifests, annotationEndpoint = 'http://localhost:
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
         <IterationSidebar
           iterationName={activeIteration?.name ?? ''}
-          pages={activeIteration?.pages ?? []}
+          pages={[
+            ...(activeIteration?.pages ?? []),
+            // Always include Context page for inspiration images (DEV only)
+            ...(import.meta.env.DEV && !activeIteration?.pages?.some(p => p.name === 'Context')
+              ? [{ name: 'Context', frames: [] }]
+              : []),
+          ]}
           activePageIndex={activePageIndex}
           onSelectPage={setActivePageIndex}
           collapsed={!sidebarOpen}
@@ -256,6 +324,7 @@ export function CanvaiShell({ manifests, annotationEndpoint = 'http://localhost:
           } as React.CSSProperties}>
             <Canvas
               pageKey={`${activeProject?.project ?? ''}-${activeIteration?.name ?? ''}-${activePage?.name ?? ''}`}
+              onImagePaste={handleImagePaste}
               hud={<>
                 <div style={{ position: 'absolute', top: 12, right: 12, zIndex: 5 }}>
                   <CanvasColorPicker activeColor={canvasBg} onSelect={setCanvasBg} />
@@ -265,6 +334,7 @@ export function CanvaiShell({ manifests, annotationEndpoint = 'http://localhost:
                 </div>
               </>}
             >
+              {/* Render component frames */}
               {frames.map(frame => (
                 <Frame
                   key={frame.id}
@@ -277,7 +347,35 @@ export function CanvaiShell({ manifests, annotationEndpoint = 'http://localhost:
                   onMove={(id, newX, newY) => updateFrame(id, { x: newX, y: newY })}
                   onResize={handleResize}
                 >
-                  <frame.component {...(frame.props ?? {})} />
+                  {'component' in frame && <frame.component {...(frame.props ?? {})} />}
+                </Frame>
+              ))}
+              {/* Render context images on Context page */}
+              {isContextPage && contextImages.map(img => (
+                <Frame
+                  key={img.id}
+                  id={img.id}
+                  title={img.title}
+                  x={img.x}
+                  y={img.y}
+                  width={img.width}
+                  height={img.height}
+                  onMove={(id, newX, newY) => {
+                    setContextImages(prev => prev.map(ci =>
+                      ci.id === id ? { ...ci, x: newX, y: newY } : ci
+                    ))
+                  }}
+                >
+                  <img
+                    src={img.src}
+                    alt={img.title}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'contain',
+                      borderRadius: 8,
+                    }}
+                  />
                 </Frame>
               ))}
             </Canvas>

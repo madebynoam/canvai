@@ -661,6 +661,114 @@ const httpServer = createServer(async (req, res) => {
       return
     }
 
+    // ── Context images routes ─────────────────────────────────────────────────
+
+    // POST /context — save a context image from paste
+    if (req.method === 'POST' && url.pathname === '/context') {
+      const data = await parseBody(req)
+      const { project, iteration, dataUrl, filename } = data
+
+      if (!project || !iteration || !dataUrl) {
+        sendJson(res, 400, { error: 'project, iteration, and dataUrl are required' })
+        return
+      }
+
+      // Parse data URL: data:image/png;base64,<data>
+      const match = dataUrl.match(/^data:image\/([^;]+);base64,(.+)$/)
+      if (!match) {
+        sendJson(res, 400, { error: 'Invalid dataUrl format' })
+        return
+      }
+
+      const ext = match[1] === 'jpeg' ? 'jpg' : match[1]
+      const base64Data = match[2]
+      const buffer = Buffer.from(base64Data, 'base64')
+
+      // Build path: src/projects/<project>/<iteration>/context/<filename>
+      const projectDir = join(process.cwd(), 'src', 'projects', project)
+      const contextDir = join(projectDir, iteration, 'context')
+      const finalFilename = filename || `context-${Date.now()}.${ext}`
+      const filepath = join(contextDir, finalFilename)
+
+      // Ensure context directory exists
+      if (!existsSync(contextDir)) {
+        mkdirSync(contextDir, { recursive: true })
+      }
+
+      writeFileSync(filepath, buffer)
+      console.log(`[canvai] Context image saved: ${filepath}`)
+
+      const relativePath = `context/${finalFilename}`
+      sendJson(res, 201, { path: relativePath, filename: finalFilename, absolutePath: filepath })
+      return
+    }
+
+    // GET /context — list context images for a project/iteration
+    if (req.method === 'GET' && url.pathname === '/context') {
+      const project = url.searchParams.get('project')
+      const iteration = url.searchParams.get('iteration')
+
+      if (!project || !iteration) {
+        sendJson(res, 400, { error: 'project and iteration query params are required' })
+        return
+      }
+
+      const contextDir = join(process.cwd(), 'src', 'projects', project, iteration, 'context')
+
+      if (!existsSync(contextDir)) {
+        sendJson(res, 200, { images: [] })
+        return
+      }
+
+      const { readdirSync } = await import('fs')
+      const files = readdirSync(contextDir).filter(f =>
+        /\.(png|jpg|jpeg|gif|webp)$/i.test(f)
+      )
+
+      const images = files.map(filename => ({
+        filename,
+        path: `context/${filename}`,
+        // Build URL for browser to fetch the image
+        url: `/context-image?project=${encodeURIComponent(project)}&iteration=${encodeURIComponent(iteration)}&filename=${encodeURIComponent(filename)}`,
+      }))
+
+      sendJson(res, 200, { images })
+      return
+    }
+
+    // GET /context-image — serve a context image file
+    if (req.method === 'GET' && url.pathname === '/context-image') {
+      const project = url.searchParams.get('project')
+      const iteration = url.searchParams.get('iteration')
+      const filename = url.searchParams.get('filename')
+
+      if (!project || !iteration || !filename) {
+        sendJson(res, 400, { error: 'project, iteration, and filename query params are required' })
+        return
+      }
+
+      const filepath = join(process.cwd(), 'src', 'projects', project, iteration, 'context', filename)
+
+      if (!existsSync(filepath)) {
+        sendJson(res, 404, { error: 'Image not found' })
+        return
+      }
+
+      const imageData = readFileSync(filepath)
+      const ext = filename.split('.').pop()?.toLowerCase()
+      const mimeTypes = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp' }
+      const contentType = mimeTypes[ext] || 'application/octet-stream'
+
+      res.writeHead(200, {
+        'Content-Type': contentType,
+        'Content-Length': imageData.length,
+        'Access-Control-Allow-Origin': '*',
+        'Cache-Control': 'max-age=3600',
+      })
+      res.end(imageData)
+      return
+    }
+
     // ── Screenshot route ────────────────────────────────────────────────────
 
     if (req.method === 'GET' && url.pathname === '/screenshot') {

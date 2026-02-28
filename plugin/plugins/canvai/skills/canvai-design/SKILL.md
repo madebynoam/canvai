@@ -33,7 +33,9 @@ Start the Canvai dev server and enter watch mode.
 
 4. **Drain backlog:** Call `get_pending_annotations` to process any that arrived before the session started. Process each one following the guard protocol.
 
-5. **Enter watch loop:** Call `watch_annotations` in a loop. Each call waits up to 30 seconds for the designer to click "Apply" on an annotation. Three outcomes:
+5. **Check for context images:** Before generating any designs, call `get_context_images({ project, iteration })` to see if the designer has pasted inspiration images. If images exist, analyze them via Vision and incorporate their style into your generations.
+
+6. **Enter watch loop:** Call `watch_annotations` in a loop. Each call waits up to 30 seconds for the designer to click "Apply" on an annotation. Three outcomes:
 
    **Regular annotation arrives** (no `type` field or `type: 'annotation'`) — process it:
    - **Fast file lookup:** Parse `frameId` (e.g. `"v9-shell"`) to get the iteration (`v9`) and component hint. Grep for `componentName` in that iteration's folder. The annotation metadata is a direct map to the file — never use an Explore agent or broad codebase search.
@@ -68,12 +70,18 @@ Start the Canvai dev server and enter watch mode.
 
    **Project request arrives** (annotation has `type: 'project'`) — create a new project:
    1. Parse the JSON comment: `{ name, description, prompt }`
-   2. Create the project folder structure: `src/projects/<name>/v1/{tokens.css, components/index.ts, pages/}`
+   2. Create the project folder structure: `src/projects/<name>/v1/{tokens.css, components/index.ts, pages/, context/}`
    3. Create `manifest.ts` and `CHANGELOG.md`
    4. If `prompt` is provided, generate the initial design following the "What happens next" sequence from `/canvai-new`. **CRITICAL: generate 3-5 distinct design directions shown side by side on an "All Directions" page.** The whole point of Canvai is seeing many at once — never generate just one design.
    5. Call `resolve_annotation` with the annotation `id`
    6. Call `watch_annotations` again — back to waiting
 
+   **Context image annotation arrives** (annotation on a `Context Image` component) — use the image for inspiration:
+   - Call `get_context_images({ project, iteration })` to retrieve all context images
+   - Analyze the images via Vision to understand the design direction
+   - Apply the designer's comment (e.g., "use these colors", "make more like this")
+   - Reference specific visual elements from the context images when generating
+
    **Timeout** (response contains `"timeout": true`) — no annotation arrived. Call `watch_annotations` again to keep waiting. The timeout exists so you stay responsive to designer messages between polls.
 
-6. **Chat while watching:** The designer can send messages at any time — you'll see them between `watch_annotations` calls. Handle the message (answer a question, make a change, kill the server, etc.), then resume the watch loop by calling `watch_annotations` again.
+7. **Chat while watching:** The designer can send messages at any time — you'll see them between `watch_annotations` calls. Handle the message (answer a question, make a change, kill the server, etc.), then resume the watch loop by calling `watch_annotations` again.

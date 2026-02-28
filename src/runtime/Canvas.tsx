@@ -80,9 +80,11 @@ interface CanvasProps {
   children?: React.ReactNode
   pageKey?: string
   hud?: React.ReactNode
+  /** Called when user pastes an image — receives base64 dataUrl and filename */
+  onImagePaste?: (dataUrl: string, filename: string) => void
 }
 
-export function Canvas({ children, pageKey, hud }: CanvasProps) {
+export function Canvas({ children, pageKey, hud, onImagePaste }: CanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
   const [pan, setPan] = useState({ x: 0, y: 0 })
@@ -383,6 +385,38 @@ export function Canvas({ children, pageKey, hud }: CanvasProps) {
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
+
+  // Image paste handler — Cmd+V with image on clipboard
+  useEffect(() => {
+    if (!onImagePaste) return
+
+    function handlePaste(e: ClipboardEvent) {
+      if (!e.clipboardData) return
+
+      for (const item of e.clipboardData.items) {
+        if (item.type.startsWith('image/')) {
+          e.preventDefault()
+          const blob = item.getAsFile()
+          if (!blob) continue
+
+          const reader = new FileReader()
+          reader.onload = () => {
+            const dataUrl = reader.result as string
+            // Generate filename from timestamp and mime type
+            const ext = item.type.split('/')[1] || 'png'
+            const filename = `context-${Date.now()}.${ext}`
+            onImagePaste(dataUrl, filename)
+          }
+          reader.readAsDataURL(blob)
+          return // Only handle the first image
+        }
+      }
+      // text/* types — let normal paste behavior happen
+    }
+
+    window.addEventListener('paste', handlePaste)
+    return () => window.removeEventListener('paste', handlePaste)
+  }, [onImagePaste])
 
   return (
     <div

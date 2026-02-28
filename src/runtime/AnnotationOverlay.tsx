@@ -2,7 +2,8 @@ import { useState, useRef, useCallback, useEffect } from 'react'
 import { SquareMousePointer, Trash2 } from 'lucide-react'
 import { N, A, F, S, R, T, ICON, FONT } from './tokens'
 import { DialogCard, DialogActions, ActionButton } from './Menu'
-import type { CanvasFrame } from './types'
+import type { CanvasFrame, CanvasComponentFrame } from './types'
+import { isCanvasImageFrame } from './types'
 
 type Mode = 'idle' | 'targeting' | 'commenting'
 
@@ -299,8 +300,15 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
       // Clicked inside a frame — target the specific element
       const frameId = frameEl.getAttribute('data-frame-id') ?? ''
       const frame = frames.find(f => f.id === frameId)
-      const componentName = frame?.component?.displayName ?? frame?.component?.name ?? 'Unknown'
-      const props = frame?.props ?? {}
+
+      // Handle image frames differently
+      const isImage = frame && isCanvasImageFrame(frame)
+      const componentName = isImage
+        ? 'Context Image'
+        : (frame as CanvasComponentFrame)?.component?.displayName ?? (frame as CanvasComponentFrame)?.component?.name ?? 'Unknown'
+      const props = isImage
+        ? { src: frame.src }
+        : (frame as CanvasComponentFrame)?.props ?? {}
 
       const boundary = frameEl.hasAttribute('data-frame-content') ? frameEl : frameEl.querySelector('[data-frame-content]')
       const selector = boundary ? buildSelector(el, boundary) : el.tagName.toLowerCase()
@@ -638,11 +646,14 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
                 el = contentEl
               }
               const frame = frames.find(f => f.id === marker.frameId)
-              const componentName = frame?.component?.displayName ?? frame?.component?.name ?? 'Unknown'
+              const isImage = frame && isCanvasImageFrame(frame)
+              const componentName = isImage
+                ? 'Context Image'
+                : (frame as CanvasComponentFrame)?.component?.displayName ?? (frame as CanvasComponentFrame)?.component?.name ?? 'Unknown'
               setTarget({
                 frameId: marker.frameId,
                 componentName,
-                props: frame?.props ?? {},
+                props: isImage ? { src: frame.src } : (frame as CanvasComponentFrame)?.props ?? {},
                 selector: marker.selector,
                 elementTag: el.tagName.toLowerCase(),
                 elementClasses: (el as HTMLElement).className?.toString() ?? '',

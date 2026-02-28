@@ -26,6 +26,7 @@ src/projects/<name>/
     components/
       index.ts          ← barrel export
     pages/
+    context/            ← inspiration images (pasted via Cmd+V)
   v2/                   ← literal copy of v1, then modified
   manifest.ts
   CHANGELOG.md
@@ -107,6 +108,31 @@ Braun / Jony Ive aesthetic. For full palette tables, typography scale, spacing, 
 ### Feature inventory rule
 
 If a designer asks for a feature not in the inventory (see `DESIGN-REFERENCE.md`), say: "That feature doesn't exist in Canvai yet. Would you like to design it as a new component instead?"
+
+## Context images (inspiration)
+
+Designers can paste images (Cmd+V) onto the canvas as visual inspiration. These appear as draggable frames on the Context page and are stored in `v<N>/context/`.
+
+### Using context images in generation
+
+Before generating designs, call `get_context_images` to retrieve inspiration images:
+
+```
+get_context_images({ project: "my-project", iteration: "v1" })
+```
+
+This returns base64 images you can analyze via Vision. Look for:
+- Color palettes and usage patterns
+- Typography styles and hierarchy
+- Layout patterns and spacing
+- UI component styles (buttons, cards, inputs)
+- Overall aesthetic and mood
+
+Reference specific images when generating: "Using the warm tones from context image #1 and the card layout from image #2."
+
+### Annotation on context images
+
+Designers can annotate context images like any other frame. Clicking a context image in targeting mode allows adding comments like "make more like this" or "use these colors."
 
 ## Annotation flow
 

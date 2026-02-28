@@ -49,6 +49,7 @@ Create a new design project inside Canvai and launch the dev environment.
        components/
          index.ts             ← barrel export — add every new component here when you create it
        pages/                 ← empty initially
+       context/               ← inspiration images (designer pastes via Cmd+V)
      manifest.ts
      CHANGELOG.md
    ```
@@ -74,7 +75,9 @@ Create a new design project inside Canvai and launch the dev environment.
 
 After init, the designer describes a component (or attaches a sketch). The agent follows this exact sequence — **order matters**:
 
-1. **Populate tokens** — Write the complete OKLCH token set in `v1/tokens.css`, scoped under `:root, .iter-v1`. Derive colors from the OKLCH palette defined in CLAUDE.md. Every visual value (color, background, border, shadow) must be a CSS custom property. No hex values.
+0. **Check for context images** — Call `get_context_images({ project, iteration: 'v1' })` to see if the designer pasted any inspiration images. If present, analyze them via Vision and incorporate their style into the token choices and design generation.
+
+1. **Populate tokens** — Write the complete OKLCH token set in `v1/tokens.css`, scoped under `:root, .iter-v1`. Derive colors from the OKLCH palette defined in CLAUDE.md. If context images are present, extract colors from them. Every visual value (color, background, border, shadow) must be a CSS custom property. No hex values.
 2. **Identify variations** — content scenarios, types, sizes (these become rows in the matrix)
 3. **Identify states** — interaction phases, conditions (these become columns in the matrix)
 4. **Create components** — build each component in `v1/components/`. Components use ONLY `var(--token)` for visual values — no hardcoded colors, sizes, or spacing. Export every component from `v1/components/index.ts`.

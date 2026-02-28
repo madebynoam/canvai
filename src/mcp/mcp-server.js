@@ -4,7 +4,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod/v4'
 
-import { readFileSync } from 'fs'
+import { readFileSync, existsSync, readdirSync } from 'fs'
 import { join } from 'path'
 
 /** Re-read .canvai-ports.json on every call so we pick up port changes. */
@@ -198,6 +198,74 @@ mcp.registerTool(
     } catch (err) {
       return {
         content: [{ type: 'text', text: `Error fetching annotations: ${err.message}. Is canvai design running?` }],
+        isError: true,
+      }
+    }
+  }
+)
+
+// get_context_images — retrieve all context/inspiration images for Vision analysis
+mcp.registerTool(
+  'get_context_images',
+  {
+    title: 'Get Context Images',
+    description:
+      'Retrieve all context/inspiration images for a project iteration. Returns base64-encoded images that you can analyze via Vision to understand the design direction. Call this before generating designs to incorporate inspiration.',
+    inputSchema: {
+      project: z.string().describe('The project name'),
+      iteration: z.string().optional().describe('The iteration name (e.g. "v1"). Defaults to "v1".'),
+    },
+  },
+  async ({ project, iteration = 'v1' }) => {
+    try {
+      const contextDir = join(process.cwd(), 'src', 'projects', project, iteration, 'context')
+
+      if (!existsSync(contextDir)) {
+        return {
+          content: [{ type: 'text', text: 'No context images found. The designer has not added any inspiration images yet.' }],
+        }
+      }
+
+      const files = readdirSync(contextDir).filter(f =>
+        /\.(png|jpg|jpeg|gif|webp)$/i.test(f)
+      )
+
+      if (files.length === 0) {
+        return {
+          content: [{ type: 'text', text: 'No context images found. The designer has not added any inspiration images yet.' }],
+        }
+      }
+
+      // Read each image and convert to base64
+      const images = files.map(filename => {
+        const filepath = join(contextDir, filename)
+        const data = readFileSync(filepath)
+        const ext = filename.split('.').pop()?.toLowerCase()
+        const mimeTypes = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp' }
+        const mimeType = mimeTypes[ext] || 'image/png'
+        const base64 = data.toString('base64')
+        return {
+          filename,
+          mimeType,
+          dataUrl: `data:${mimeType};base64,${base64}`,
+        }
+      })
+
+      // Return as image content blocks for Vision
+      const content = [
+        { type: 'text', text: `Found ${images.length} context image${images.length > 1 ? 's' : ''} for inspiration:` },
+        ...images.map(img => ({
+          type: 'image',
+          data: img.dataUrl.split(',')[1],
+          mimeType: img.mimeType,
+        })),
+        { type: 'text', text: `\n\nAnalyze these images to understand the design direction. Look for:\n- Color palettes and color usage\n- Typography styles and hierarchy\n- Layout patterns and spacing\n- UI component styles (buttons, cards, inputs)\n- Overall aesthetic and mood\n\nUse these insights to influence your design generation.` },
+      ]
+
+      return { content }
+    } catch (err) {
+      return {
+        content: [{ type: 'text', text: `Error reading context images: ${err.message}` }],
         isError: true,
       }
     }
