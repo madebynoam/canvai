@@ -52,6 +52,9 @@ import { Verso } from './v7/pages/verso'
 import { Module } from './v7/pages/module'
 import { Proof } from './v7/pages/proof'
 import { Cipher } from './v7/pages/cipher'
+import { Narrative } from './v7/pages/narrative'
+import { Statement } from './v7/pages/statement'
+import { Vision } from './v7/pages/vision'
 import type { ProjectManifest } from '../../runtime/types'
 
 const manifest: ProjectManifest = {
@@ -432,6 +435,15 @@ const manifest: ProjectManifest = {
     {
       name: 'V7',
       pages: [
+        {
+          name: 'Context Inspired',
+          grid: { columns: 3, columnWidth: 1440, rowHeight: 2400, gap: 40 },
+          frames: [
+            { id: 'v7-narrative', title: 'Narrative — Grid Editorial, Blue Verticals', component: Narrative, width: 1440, height: 2400 },
+            { id: 'v7-statement', title: 'Statement — Minimal Typography, Warm', component: Statement, width: 1440, height: 2400 },
+            { id: 'v7-vision', title: 'Vision — Real Imagery, Bright Future', component: Vision, width: 1440, height: 2400 },
+          ],
+        },
         {
           name: 'Rams × Brockmann',
           grid: { columns: 5, columnWidth: 1440, rowHeight: 2400, gap: 40 },
