@@ -141,7 +141,7 @@ export function IterationPills({ items, activeIndex, onSelect }: IterationPillsP
           width: needsSlide ? VIEWPORT_W : 'auto',
           overflow: 'hidden',
           borderRadius: R.pill,
-          backgroundColor: N.chromeSub,
+          backgroundColor: N.card,
           padding: PAD,
           touchAction: 'none',
           userSelect: 'none',
@@ -180,10 +180,10 @@ export function IterationPills({ items, activeIndex, onSelect }: IterationPillsP
                 flexShrink: 0,
                 border: 'none', cursor: 'default',
                 padding: `${S.xs}px ${S.sm}px`, borderRadius: R.pill,
-                fontSize: T.pill, fontWeight: isActive ? 600 : 400,
+                fontSize: T.ui, fontWeight: isActive ? 600 : 400,
                 fontFamily: FONT,
                 backgroundColor: !canDrag && isActive ? N.card : 'transparent',
-                color: isActive ? N.txtPri : N.txtFaint,
+                color: isActive ? N.txtPri : N.txtMuted,
                 boxShadow: !canDrag && isActive ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
                 whiteSpace: 'nowrap', textAlign: 'center',
                 userSelect: 'none',
@@ -207,7 +207,7 @@ export function IterationPills({ items, activeIndex, onSelect }: IterationPillsP
 
       {needsSlide && (
         <span style={{
-          fontSize: T.label, color: N.txtFaint,
+          fontSize: T.ui, color: N.txtMuted,
           fontVariantNumeric: 'tabular-nums',
           userSelect: 'none',
         }}>{active + 1}/{items.length}</span>

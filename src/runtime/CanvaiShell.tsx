@@ -15,7 +15,7 @@ import { ZoomControl } from './ZoomControl'
 import { CanvasColorPicker } from './CanvasColorPicker'
 import { loadCanvasBg, saveCanvasBg } from './Canvas'
 import { ActionButton } from './Menu'
-import { N, D, E, S, T, R, FONT } from './tokens'
+import { N, D, E, S, T, R, FONT, DIM } from './tokens'
 import type { ProjectManifest, CanvasImageFrame } from './types'
 
 interface CanvaiShellProps {
@@ -119,7 +119,7 @@ function Toast({ message, onDone }: { message: string; onDone: () => void }) {
         background: N.txtPri,
         color: D.text,
         borderRadius: R.pill,
-        fontSize: T.title,
+        fontSize: T.ui,
         fontWeight: 500,
         fontFamily: FONT,
         boxShadow: `0 2px ${S.md}px rgba(0, 0, 0, 0.12)`,
@@ -161,7 +161,7 @@ const ContextImageContent = memo(function ContextImageContent({
           width: '100%',
           height: '100%',
           objectFit: 'contain',
-          borderRadius: 8,
+          borderRadius: R.ui, cornerShape: 'squircle',
         }}
       />
       {hovered && (
@@ -180,7 +180,7 @@ const ContextImageContent = memo(function ContextImageContent({
             right: 8,
             width: 24,
             height: 24,
-            borderRadius: 6,
+            borderRadius: R.ui, cornerShape: 'squircle',
             border: 'none',
             background: 'oklch(0.22 0.005 240 / 0.8)',
             color: D.text,
@@ -419,12 +419,12 @@ export function CanvaiShell({ manifests, annotationEndpoint = 'http://localhost:
           padding: S.xxl,
           background: N.card,
           border: `1px solid ${N.border}`,
-          borderRadius: R.panel,
+          borderRadius: R.ui, cornerShape: 'squircle',
           maxWidth: 400,
           textAlign: 'center',
         }}>
           <h2 style={{
-            fontSize: T.title,
+            fontSize: T.ui,
             fontWeight: 600,
             color: N.txtPri,
             margin: 0,
@@ -433,7 +433,7 @@ export function CanvaiShell({ manifests, annotationEndpoint = 'http://localhost:
             Start a new project
           </h2>
           <p style={{
-            fontSize: T.body,
+            fontSize: T.ui,
             color: N.txtSec,
             margin: 0,
             lineHeight: 1.5,
@@ -487,8 +487,7 @@ export function CanvaiShell({ manifests, annotationEndpoint = 'http://localhost:
           <div style={{
             width: '100%',
             height: '100%',
-            borderRadius: 32,
-            cornerShape: 'squircle',
+            borderRadius: R.ui, cornerShape: 'squircle',
             backgroundColor: canvasBg,
             boxShadow: E.shadow,
             overflow: 'hidden',

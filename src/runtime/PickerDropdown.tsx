@@ -46,13 +46,13 @@ export function PickerDropdown<T>({
           padding: `${S.xs}px ${S.sm}px`,
           background: triggerHovered ? 'rgba(0, 0, 0, 0.04)' : 'transparent',
           border: 'none',
-          borderRadius: R.control,
+          borderRadius: R.ui, cornerShape: 'squircle',
           fontFamily: FONT,
         }}
       >
         {triggerPrefix}
         {renderTriggerLabel(active)}
-        <ChevronsUpDown size={ICON.sm} strokeWidth={1.5} color={N.txtTer} style={{ flexShrink: 0 }} />
+        <ChevronsUpDown size={ICON.sm} strokeWidth={1.5} color={N.txtSec} style={{ flexShrink: 0 }} />
       </button>
 
       {/* Dropdown — instant show/hide per Emil Kowalski's principles */}

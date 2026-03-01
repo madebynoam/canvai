@@ -81,12 +81,12 @@ function FormatTab({ label, active, onClick }: {
       style={{
         border: 'none', cursor: 'default',
         padding: `${S.xs}px ${S.sm}px`,
-        borderRadius: R.control,
-        backgroundColor: active ? N.chromeSub : hovered ? 'rgba(0,0,0,0.03)' : 'transparent',
-        fontSize: T.pill, fontWeight: active ? 600 : 400,
+        borderRadius: R.ui, cornerShape: 'squircle',
+        backgroundColor: active ? N.card : hovered ? 'rgba(0,0,0,0.03)' : 'transparent',
+        fontSize: T.ui, fontWeight: active ? 600 : 400,
         fontFamily: 'SF Mono, Monaco, Inconsolata, monospace',
-        color: active ? N.txtPri : N.txtTer,
-        textTransform: 'uppercase',
+        color: active ? N.txtPri : N.txtSec,
+        
         letterSpacing: '0.04em',
       }}
     >
@@ -111,8 +111,8 @@ function NumericInput({ label, value, onChange, step = 1, min = 0, max = 360 }: 
   return (
     <label style={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1 }}>
       <span style={{
-        fontSize: T.label, color: N.txtFaint, fontWeight: 600,
-        textTransform: 'uppercase', letterSpacing: '0.08em',
+        fontSize: T.ui, color: N.txtMuted, fontWeight: 600,
+         
       }}>{label}</span>
       <input
         type="text"
@@ -132,10 +132,10 @@ function NumericInput({ label, value, onChange, step = 1, min = 0, max = 360 }: 
           width: '100%',
           padding: `${S.xs}px ${S.sm}px`,
           border: `1px solid ${focused ? A.accent : N.border}`,
-          borderRadius: R.control,
+          borderRadius: R.ui, cornerShape: 'squircle',
           backgroundColor: N.canvas,
           color: N.txtPri,
-          fontSize: T.body,
+          fontSize: T.ui,
           fontFamily: 'SF Mono, Monaco, Inconsolata, monospace',
           fontVariantNumeric: 'tabular-nums',
           outline: 'none',
@@ -156,8 +156,8 @@ function HexInput({ value, onChange }: {
   return (
     <label style={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1 }}>
       <span style={{
-        fontSize: T.label, color: N.txtFaint, fontWeight: 600,
-        textTransform: 'uppercase', letterSpacing: '0.08em',
+        fontSize: T.ui, color: N.txtMuted, fontWeight: 600,
+         
       }}>Hex</span>
       <input
         type="text"
@@ -175,10 +175,10 @@ function HexInput({ value, onChange }: {
           width: '100%',
           padding: `${S.xs}px ${S.sm}px`,
           border: `1px solid ${focused ? A.accent : N.border}`,
-          borderRadius: R.control,
+          borderRadius: R.ui, cornerShape: 'squircle',
           backgroundColor: N.canvas,
           color: N.txtPri,
-          fontSize: T.body,
+          fontSize: T.ui,
           fontFamily: 'SF Mono, Monaco, Inconsolata, monospace',
           outline: 'none',
         }}
@@ -266,7 +266,7 @@ export function ColorPicker({ l: initL, c: initC, h: initH, onChange, onApply, o
     <div style={{
       width: 280,
       background: N.card,
-      borderRadius: R.card,
+      borderRadius: R.ui, cornerShape: 'squircle',
       padding: S.lg,
       boxShadow: `0 ${S.xs}px ${S.xxl}px rgba(0,0,0,0.08), 0 1px ${S.xs}px rgba(0,0,0,0.04)`,
       border: `1px solid ${N.border}`,
@@ -281,7 +281,7 @@ export function ColorPicker({ l: initL, c: initC, h: initH, onChange, onApply, o
           onPointerDown={e => areaRef.current && startDrag(e, handleAreaPointer, areaRef.current)}
           style={{
             width: AREA_W, height: AREA_H,
-            borderRadius: R.control,
+            borderRadius: R.ui, cornerShape: 'squircle',
             cursor: 'default',
             display: 'block',
           }}
@@ -328,20 +328,20 @@ export function ColorPicker({ l: initL, c: initC, h: initH, onChange, onApply, o
       <div style={{ display: 'flex', alignItems: 'center', gap: S.sm, marginBottom: S.md }}>
         <div style={{
           width: S.xxl, height: S.xxl,
-          borderRadius: R.control,
+          borderRadius: R.ui, cornerShape: 'squircle',
           backgroundColor: previewHex,
           border: `1px solid ${N.border}`,
           flexShrink: 0,
         }} />
         <span style={{
-          fontSize: T.pill, color: N.txtTer,
+          fontSize: T.ui, color: N.txtSec,
           fontFamily: 'SF Mono, Monaco, Inconsolata, monospace',
         }}>
           {previewHex}
         </span>
         {!inGamut && (
           <span style={{
-            fontSize: T.label, color: A.accent, fontWeight: 500,
+            fontSize: T.ui, color: A.accent, fontWeight: 500,
             marginLeft: 'auto',
           }}>
             out of sRGB
@@ -392,13 +392,13 @@ export function ColorPicker({ l: initL, c: initC, h: initH, onChange, onApply, o
       {/* OKLCH output (always visible) */}
       {format !== 'oklch' && (
         <div style={{
-          fontSize: T.pill, color: N.txtTer,
+          fontSize: T.ui, color: N.txtSec,
           fontFamily: 'SF Mono, Monaco, Inconsolata, monospace',
           marginBottom: S.md,
           padding: `${S.xs}px ${S.sm}px`,
           backgroundColor: N.canvas,
-          borderRadius: R.control,
-          border: `1px solid ${N.borderSoft}`,
+          borderRadius: R.ui, cornerShape: 'squircle',
+          border: `1px solid ${N.border}`,
         }}>
           oklch({l.toFixed(3)} {c.toFixed(3)} {Math.round(h)})
         </div>
@@ -415,7 +415,7 @@ export function ColorPicker({ l: initL, c: initC, h: initH, onChange, onApply, o
               width: S.xxl, height: S.xxl, border: 'none',
               background: discardHover ? 'rgba(0,0,0,0.06)' : 'transparent',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              borderRadius: R.control, color: N.txtTer, cursor: 'default',
+              borderRadius: R.ui, cornerShape: 'squircle', color: N.txtSec, cursor: 'default',
             }}
             title="Discard change"
           >
@@ -431,8 +431,8 @@ export function ColorPicker({ l: initL, c: initC, h: initH, onChange, onApply, o
             padding: `${S.sm}px ${S.md}px`,
             background: cancelHover ? 'rgba(0,0,0,0.03)' : 'transparent',
             color: N.txtSec,
-            border: `1px solid ${N.border}`, borderRadius: R.card,
-            fontSize: T.body, fontWeight: 500, fontFamily: FONT, cursor: 'default',
+            border: `1px solid ${N.border}`, borderRadius: R.ui, cornerShape: 'squircle',
+            fontSize: T.ui, fontWeight: 500, fontFamily: FONT, cursor: 'default',
           }}
         >
           Cancel
@@ -445,8 +445,8 @@ export function ColorPicker({ l: initL, c: initC, h: initH, onChange, onApply, o
             padding: `${S.sm}px ${S.md}px`,
             background: applyHover ? A.hover : A.accent,
             color: D.text,
-            border: 'none', borderRadius: R.card,
-            fontSize: T.body, fontWeight: 500, fontFamily: FONT, cursor: 'default',
+            border: 'none', borderRadius: R.ui, cornerShape: 'squircle',
+            fontSize: T.ui, fontWeight: 500, fontFamily: FONT, cursor: 'default',
           }}
         >
           Apply

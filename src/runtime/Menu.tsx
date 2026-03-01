@@ -77,7 +77,7 @@ export function MenuPanel({
 }: MenuPanelProps) {
   const panelStyle: CSSProperties = {
     background: N.card,
-    borderRadius: R.card,
+    borderRadius: R.ui, cornerShape: 'squircle',
     border: `1px solid ${N.border}`,
     boxShadow: PANEL_SHADOW,
     padding: S.xs,
@@ -183,7 +183,7 @@ export function MenuRow({
     width: '100%',
     boxSizing: 'border-box',
     border: 'none',
-    borderRadius: R.control,
+    borderRadius: R.ui, cornerShape: 'squircle',
     backgroundColor: bg,
     fontFamily: FONT,
     textAlign: 'left',
@@ -291,7 +291,7 @@ export function DialogCard({ title, width = 480, children, style }: DialogCardPr
     <div
       style={{
         background: N.card,
-        borderRadius: R.card,
+        borderRadius: R.ui, cornerShape: 'squircle',
         border: `1px solid ${N.border}`,
         boxShadow: PANEL_SHADOW,
         padding: S.xxl,
@@ -302,7 +302,7 @@ export function DialogCard({ title, width = 480, children, style }: DialogCardPr
     >
       {title && (
         <div style={{
-          fontSize: T.title,
+          fontSize: T.ui,
           fontWeight: 600,
           color: N.txtPri,
           marginBottom: S.lg,
@@ -348,7 +348,7 @@ export function ActionButton({ variant, disabled, onClick, children }: ActionBut
     ? (disabled ? A.muted : hovered ? A.hover : A.accent)
     : (hovered ? 'rgba(0, 0, 0, 0.03)' : 'transparent')
   const color = isPrimary
-    ? (disabled ? N.txtTer : D.text)
+    ? (disabled ? N.txtSec : D.text)
     : N.txtSec
 
   return (
@@ -361,9 +361,9 @@ export function ActionButton({ variant, disabled, onClick, children }: ActionBut
         background: bg,
         color,
         border: isPrimary ? 'none' : `1px solid ${N.border}`,
-        borderRadius: R.card,
+        borderRadius: R.ui, cornerShape: 'squircle',
         cursor: 'default',
-        fontSize: T.body,
+        fontSize: T.ui,
         fontWeight: 500,
         fontFamily: FONT,
         display: 'flex',

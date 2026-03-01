@@ -11,15 +11,13 @@ interface IterationSidebarProps {
   collapsed: boolean
 }
 
-/* Section header — uppercase, faint, spaced */
+/* Section header — aligned with row text */
 function SectionHeader({ children }: { children: React.ReactNode }) {
   return (
     <div style={{
-      padding: `0 ${S.lg}px`, marginBottom: S.xs,
-      fontSize: T.label, fontWeight: 600, color: N.txtFaint,
-      textTransform: 'uppercase', letterSpacing: '0.08em',
-      textWrap: 'pretty',
-    } as React.CSSProperties}>
+      padding: `0 ${S.md}px`, marginBottom: S.xs,
+      fontSize: T.ui, fontWeight: 500, color: N.txtMuted,
+    }}>
       {children}
     </div>
   )
@@ -41,16 +39,17 @@ function SidebarRow({ children, icon, active, onClick }: {
       onMouseLeave={() => setHovered(false)}
       style={{
         display: 'flex', alignItems: 'center', gap: S.sm,
-        width: `calc(100% - ${S.lg}px)`,
+        width: `calc(100% - ${S.md}px)`,
+        height: DIM.row,
         border: 'none',
-        padding: `${S.xs}px ${S.sm}px`,
-        margin: `0 ${S.sm}px`,
-        borderRadius: R.control,
-        backgroundColor: active ? N.chromeSub : hovered ? 'rgba(0,0,0,0.03)' : 'transparent',
+        padding: `0 ${S.sm}px`,
+        margin: `0 ${S.xs}px`,
+        borderRadius: R.ui, cornerShape: 'squircle',
+        backgroundColor: active ? N.active : hovered ? 'rgba(0,0,0,0.03)' : 'transparent',
         fontFamily: FONT, textAlign: 'left',
-        fontSize: T.body,
+        fontSize: T.ui,
         fontWeight: 400,
-        color: active ? N.txtPri : N.txtSec,
+        color: N.txtPri,
         cursor: 'default',
       }}
     >
@@ -79,9 +78,9 @@ export function IterationSidebar({ iterationName, pages, activePageIndex, onSele
   })
 
   const iconForSystem = (name: string) => {
-    if (name === 'Tokens') return <Palette size={ICON.sm} strokeWidth={1.5} style={{ color: N.txtFaint, flexShrink: 0 }} />
-    if (name === 'Components') return <Layers size={ICON.sm} strokeWidth={1.5} style={{ color: N.txtFaint, flexShrink: 0 }} />
-    if (name === 'Context') return <Image size={ICON.sm} strokeWidth={1.5} style={{ color: N.txtFaint, flexShrink: 0 }} />
+    if (name === 'Tokens') return <Palette size={ICON.sm} strokeWidth={1.5} style={{ color: N.txtMuted, flexShrink: 0 }} />
+    if (name === 'Components') return <Layers size={ICON.sm} strokeWidth={1.5} style={{ color: N.txtMuted, flexShrink: 0 }} />
+    if (name === 'Context') return <Image size={ICON.sm} strokeWidth={1.5} style={{ color: N.txtMuted, flexShrink: 0 }} />
     return null
   }
 
@@ -115,7 +114,7 @@ export function IterationSidebar({ iterationName, pages, activePageIndex, onSele
 
       {/* Divider */}
       {systemPages.length > 0 && iterPages.length > 0 && (
-        <div style={{ height: 1, backgroundColor: N.borderSoft, margin: `0 ${S.lg}px` }} />
+        <div style={{ height: 1, backgroundColor: N.border, margin: `0 ${S.md}px` }} />
       )}
 
       {/* Iteration pages section */}
@@ -138,7 +137,7 @@ export function IterationSidebar({ iterationName, pages, activePageIndex, onSele
       <div style={{ flex: 1 }} />
 
       {/* Info button */}
-      <div style={{ padding: `0 ${S.lg}px`, paddingBottom: S.xs }}>
+      <div style={{ padding: `0 ${S.md}px`, paddingBottom: S.xs }}>
         <InfoButton />
       </div>
     </div>

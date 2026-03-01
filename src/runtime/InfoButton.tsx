@@ -31,7 +31,7 @@ export function InfoButton() {
           height: 28,
           borderRadius: '50%',
           border: 'none',
-          background: triggerHover ? 'rgba(0,0,0,0.06)' : N.chromeSub,
+          background: triggerHover ? 'rgba(0,0,0,0.06)' : N.card,
           cursor: 'default',
           padding: 0,
           display: 'flex',
@@ -39,7 +39,7 @@ export function InfoButton() {
           justifyContent: 'center',
         }}
       >
-        <SlidersHorizontal size={ICON.md} strokeWidth={1.5} color={N.txtTer} />
+        <SlidersHorizontal size={ICON.md} strokeWidth={1.5} color={N.txtSec} />
       </button>
       {open && rect && (
         <MenuPanel
@@ -51,7 +51,7 @@ export function InfoButton() {
           {/* Version — static, not interactive */}
           <div style={{
             padding: `${S.xs}px ${S.sm}px`,
-            fontSize: T.caption, color: N.txtTer,
+            fontSize: T.ui, color: N.txtSec,
             fontFamily: FONT,
             userSelect: 'none',
           }}>
@@ -62,12 +62,12 @@ export function InfoButton() {
             style={{
               gap: S.sm,
               padding: `${S.xs}px ${S.sm}px`,
-              fontSize: T.body,
+              fontSize: T.ui,
               color: N.txtSec,
             }}
           >
             <span style={{ flex: 1 }}>GitHub</span>
-            <ExternalLink size={ICON.sm} strokeWidth={1.5} color={N.txtTer} />
+            <ExternalLink size={ICON.sm} strokeWidth={1.5} color={N.txtSec} />
           </MenuRow>
         </MenuPanel>
       )}

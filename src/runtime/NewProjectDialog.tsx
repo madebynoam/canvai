@@ -13,9 +13,9 @@ const inputStyle: React.CSSProperties = {
   background: N.canvas,
   color: N.txtPri,
   border: `1px solid ${N.border}`,
-  borderRadius: R.card,
+  borderRadius: R.ui, cornerShape: 'squircle',
   padding: S.md,
-  fontSize: T.title,
+  fontSize: T.ui,
   lineHeight: 1.5,
   outline: 'none',
   fontFamily: 'inherit',
@@ -56,7 +56,7 @@ export function NewProjectDialog({ open, onClose, onSubmit }: NewProjectDialogPr
         <DialogCard title="New project" width={520}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: S.md }}>
             <div>
-              <label style={{ display: 'block', fontSize: T.caption, color: N.txtSec, marginBottom: S.xs, fontWeight: 500 }}>
+              <label style={{ display: 'block', fontSize: T.ui, color: N.txtSec, marginBottom: S.xs, fontWeight: 500 }}>
                 Project name
               </label>
               <input
@@ -68,7 +68,7 @@ export function NewProjectDialog({ open, onClose, onSubmit }: NewProjectDialogPr
               />
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: T.caption, color: N.txtSec, marginBottom: S.xs, fontWeight: 500 }}>
+              <label style={{ display: 'block', fontSize: T.ui, color: N.txtSec, marginBottom: S.xs, fontWeight: 500 }}>
                 Description
               </label>
               <textarea
@@ -80,7 +80,7 @@ export function NewProjectDialog({ open, onClose, onSubmit }: NewProjectDialogPr
               />
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: T.caption, color: N.txtSec, marginBottom: S.xs, fontWeight: 500 }}>
+              <label style={{ display: 'block', fontSize: T.ui, color: N.txtSec, marginBottom: S.xs, fontWeight: 500 }}>
                 First component
               </label>
               <textarea

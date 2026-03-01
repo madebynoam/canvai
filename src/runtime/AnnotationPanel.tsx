@@ -31,12 +31,12 @@ function AnnotationBadge({ count, pendingCount, onClick }: { count: number; pend
         gap: S.sm,
         padding: `${S.xs}px ${S.sm}px`,
         border: 'none',
-        borderRadius: R.control,
+        borderRadius: R.ui, cornerShape: 'squircle',
         background: hovered ? 'rgba(0, 0, 0, 0.04)' : 'transparent',
         fontFamily: FONT,
-        fontSize: T.caption,
+        fontSize: T.ui,
         fontWeight: 500,
-        color: count > 0 ? A.accent : N.txtTer,
+        color: count > 0 ? A.accent : N.txtSec,
         cursor: 'default',
       }}
     >
@@ -61,18 +61,18 @@ function AnnotationBadge({ count, pendingCount, onClick }: { count: number; pend
           width: S.lg,
           height: S.lg,
           borderRadius: '50%',
-          backgroundColor: count > 0 ? A.accent : N.txtFaint,
+          backgroundColor: count > 0 ? A.accent : N.txtMuted,
           color: D.text,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontSize: T.label,
+          fontSize: T.ui,
           fontWeight: 600,
         }}
       >
         {count}
       </div>
-      <span style={{ fontSize: T.caption, color: count > 0 ? A.accent : N.txtTer }}>
+      <span style={{ fontSize: T.ui, color: count > 0 ? A.accent : N.txtSec }}>
         annotations
       </span>
     </button>
@@ -104,7 +104,7 @@ function AnnotationRow({
         alignItems: 'flex-start',
         gap: S.sm,
         padding: `${S.sm}px ${S.sm}px`,
-        borderRadius: R.control,
+        borderRadius: R.ui, cornerShape: 'squircle',
         backgroundColor: hovered && !isResolved ? 'rgba(0,0,0,0.03)' : 'transparent',
         opacity: isResolved ? 0.4 : 1,
         cursor: 'default',
@@ -116,12 +116,12 @@ function AnnotationRow({
           width: S.lg,
           height: S.lg,
           borderRadius: '50%',
-          backgroundColor: isResolved ? N.txtFaint : F.marker,
+          backgroundColor: isResolved ? N.txtMuted : F.marker,
           color: D.text,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontSize: T.label,
+          fontSize: T.ui,
           fontWeight: 600,
           flexShrink: 0,
           marginTop: 2,
@@ -133,7 +133,7 @@ function AnnotationRow({
       {/* Content */}
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{
-          fontSize: T.body,
+          fontSize: T.ui,
           color: N.txtPri,
           fontWeight: 500,
           whiteSpace: 'nowrap',
@@ -142,7 +142,7 @@ function AnnotationRow({
         }}>
           {annotation.comment}
         </div>
-        <div style={{ fontSize: T.label, color: N.txtTer, marginTop: 2 }}>
+        <div style={{ fontSize: T.ui, color: N.txtSec, marginTop: 2 }}>
           {annotation.type === 'iteration' ? 'Iteration request' : annotation.type === 'project' ? 'Project request' : <>{annotation.componentName} &middot; {annotation.elementTag}</>}
         </div>
       </div>
@@ -162,8 +162,8 @@ function AnnotationRow({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: N.txtTer,
-                borderRadius: R.control,
+                color: N.txtSec,
+                borderRadius: R.ui, cornerShape: 'squircle',
                 cursor: 'default',
               }}
             >
@@ -183,7 +183,7 @@ function AnnotationRow({
                 alignItems: 'center',
                 justifyContent: 'center',
                 color: D.text,
-                borderRadius: R.control,
+                borderRadius: R.ui, cornerShape: 'squircle',
                 cursor: 'default',
               }}
             >
@@ -206,7 +206,7 @@ function PendingRow({ annotation }: { annotation: Annotation }) {
         alignItems: 'flex-start',
         gap: S.sm,
         padding: `${S.sm}px ${S.sm}px`,
-        borderRadius: R.control,
+        borderRadius: R.ui, cornerShape: 'squircle',
         opacity: 0.6,
         cursor: 'default',
       }}
@@ -231,7 +231,7 @@ function PendingRow({ annotation }: { annotation: Annotation }) {
       {/* Content */}
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{
-          fontSize: T.body,
+          fontSize: T.ui,
           color: N.txtSec,
           fontWeight: 500,
           whiteSpace: 'nowrap',
@@ -240,7 +240,7 @@ function PendingRow({ annotation }: { annotation: Annotation }) {
         }}>
           {annotation.comment}
         </div>
-        <div style={{ fontSize: T.label, color: N.txtTer, marginTop: 2 }}>
+        <div style={{ fontSize: T.ui, color: N.txtSec, marginTop: 2 }}>
           {annotation.type === 'iteration' ? 'Creating iteration\u2026' : annotation.type === 'project' ? 'Creating project\u2026' : 'Applying\u2026'}
         </div>
       </div>
@@ -343,9 +343,9 @@ export function AnnotationPanelWidget({ endpoint }: { endpoint: string }) {
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: `${S.sm}px ${S.md}px`,
-          borderBottom: `1px solid ${N.borderSoft}`,
+          borderBottom: `1px solid ${N.border}`,
         }}>
-          <span style={{ fontSize: T.body, fontWeight: 600, color: N.txtPri }}>
+          <span style={{ fontSize: T.ui, fontWeight: 600, color: N.txtPri }}>
             Annotations
           </span>
         </div>
@@ -356,8 +356,8 @@ export function AnnotationPanelWidget({ endpoint }: { endpoint: string }) {
             <div style={{
               padding: `${S.xl}px ${S.md}px`,
               textAlign: 'center',
-              fontSize: T.caption,
-              color: N.txtTer,
+              fontSize: T.ui,
+              color: N.txtSec,
               textWrap: 'pretty',
             }}>
               No annotations yet. Use the annotation tool to mark up elements.
@@ -381,12 +381,12 @@ export function AnnotationPanelWidget({ endpoint }: { endpoint: string }) {
           {resolved.length > 0 && (
             <>
               <div style={{
-                fontSize: T.label,
-                color: N.txtTer,
+                fontSize: T.ui,
+                color: N.txtSec,
                 fontWeight: 500,
                 padding: `${S.sm}px ${S.sm}px`,
                 marginTop: drafts.length > 0 ? S.xs : 0,
-                textTransform: 'uppercase',
+                
                 letterSpacing: 0.5,
               }}>
                 Resolved
@@ -408,7 +408,7 @@ export function AnnotationPanelWidget({ endpoint }: { endpoint: string }) {
         {drafts.length > 0 && (
           <div style={{
             padding: `${S.sm}px ${S.sm}px`,
-            borderTop: `1px solid ${N.borderSoft}`,
+            borderTop: `1px solid ${N.border}`,
           }}>
             <button
               onClick={handleApplyAll}
@@ -420,11 +420,11 @@ export function AnnotationPanelWidget({ endpoint }: { endpoint: string }) {
                 gap: S.sm,
                 padding: `${S.sm}px ${S.md}px`,
                 border: 'none',
-                borderRadius: R.card,
+                borderRadius: R.ui, cornerShape: 'squircle',
                 background: A.accent,
                 color: D.text,
                 fontFamily: FONT,
-                fontSize: T.body,
+                fontSize: T.ui,
                 fontWeight: 600,
                 cursor: 'default',
               }}

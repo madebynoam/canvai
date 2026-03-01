@@ -69,7 +69,7 @@ export function TokenSwatch({ color, label, sublabel, oklch, tokenPath }: TokenS
           display: 'flex', alignItems: 'center', gap: S.sm, fontFamily: FONT,
           padding: `${S.xs}px ${S.sm}px`,
           margin: `0 -${S.sm}px`,
-          borderRadius: R.control,
+          borderRadius: R.ui, cornerShape: 'squircle',
           backgroundColor: interactive && hovered ? 'rgba(0,0,0,0.03)' : 'transparent',
           cursor: 'default',
         }}
@@ -78,7 +78,7 @@ export function TokenSwatch({ color, label, sublabel, oklch, tokenPath }: TokenS
           <div style={{
             width: 32,
             height: 32,
-            borderRadius: R.card,
+            borderRadius: R.ui, cornerShape: 'squircle',
             backgroundColor: displayColor,
             border: `1px solid ${N.border}`,
           }} />
@@ -94,8 +94,8 @@ export function TokenSwatch({ color, label, sublabel, oklch, tokenPath }: TokenS
           )}
         </div>
         <div>
-          <div style={{ fontSize: T.body, fontWeight: 500, color: N.txtPri }}>{label}</div>
-          {sublabel && <div style={{ fontSize: T.pill, color: N.txtTer }}>{sublabel}</div>}
+          <div style={{ fontSize: T.ui, fontWeight: 500, color: N.txtPri }}>{label}</div>
+          {sublabel && <div style={{ fontSize: T.ui, color: N.txtSec }}>{sublabel}</div>}
         </div>
       </div>
 

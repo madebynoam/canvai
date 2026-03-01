@@ -58,7 +58,7 @@ function MarkerDot({ id, comment, rect, onClick, progress }: {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontSize: T.label,
+          fontSize: T.ui,
           fontWeight: 700,
           fontFamily: FONT,
           boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08), 0 1px 2px rgba(0,0,0,0.15), 0 0 0 0.5px rgba(0,0,0,0.06)',
@@ -75,7 +75,7 @@ function MarkerDot({ id, comment, rect, onClick, progress }: {
           fontSize: 11,
           fontFamily: FONT,
           padding: '4px 8px',
-          borderRadius: 6,
+          borderRadius: R.ui, cornerShape: 'squircle',
           whiteSpace: 'nowrap',
           boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
         }}>
@@ -766,7 +766,7 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
             width: highlight.width + 4,
             height: highlight.height + 4,
             border: `2px solid ${F.marker}`,
-            borderRadius: R.control,
+            borderRadius: R.ui, cornerShape: 'squircle',
             pointerEvents: 'none',
             zIndex: 99999,
           }}
@@ -895,7 +895,7 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
           <DialogCard width={cardWidth} style={{ position: 'fixed', top, left, zIndex: 99999, padding: S.lg }}>
             {/* Header: component·tag + delete icon (when re-editing) */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: S.sm }}>
-              <div style={{ fontSize: T.caption, color: N.txtTer, letterSpacing: '0.02em' }}>
+              <div style={{ fontSize: T.ui, color: N.txtSec, letterSpacing: '0.02em' }}>
                 {target.elementTag === 'connection'
                   ? <>Combine: {((target.props as any).titles as string[] | undefined)?.join(' + ') ?? `${(target.props as any).fromTitle?.split('/').pop()} + ${(target.props as any).toTitle?.split('/').pop()}`}</>
                   : target.frameId
@@ -910,7 +910,7 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
                   baseStyle={{
                     width: S.xxl, height: S.xxl, border: 'none', background: 'transparent',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    borderRadius: R.control, color: N.txtTer,
+                    borderRadius: R.ui, cornerShape: 'squircle', color: N.txtSec,
                   }}
                 >
                   <Trash2 size={ICON.md} strokeWidth={1.5} />
@@ -934,9 +934,9 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
                 background: N.canvas,
                 color: N.txtPri,
                 border: `1px solid ${N.border}`,
-                borderRadius: R.card,
+                borderRadius: R.ui, cornerShape: 'squircle',
                 padding: S.md,
-                fontSize: T.title,
+                fontSize: T.ui,
                 lineHeight: 1.5,
                 resize: 'vertical',
                 outline: 'none',

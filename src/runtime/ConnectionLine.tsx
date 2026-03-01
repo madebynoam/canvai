@@ -71,9 +71,9 @@ export function ConnectionLine({
     ? F.marker
     : hovered
       ? F.marker
-      : N.txtTer
+      : N.txtSec
   const strokeOpacity = provisional ? 0.6 : hovered ? 1 : 0.8
-  const fillColor = provisional ? F.marker : hovered ? F.marker : N.txtTer
+  const fillColor = provisional ? F.marker : hovered ? F.marker : N.txtSec
 
   return (
     <g

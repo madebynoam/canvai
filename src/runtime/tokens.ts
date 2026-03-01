@@ -1,52 +1,56 @@
 /* ══════════════════════════════════════════════════════
-   OKLCH Token System — V7 Rams / Modulor
+   OKLCH Token System — V7 Linear/Notion Minimal
 
-   Proportions inspired by:
-   - Dieter Rams (Snow White) — minimal but substantial
-   - Le Corbusier (Modulor) — human-scale, golden ratio
-
-   Base unit: 8px. Everything derives from 8 × n.
-   Touch targets: 44px minimum (Apple HIG).
-   Cool gray only (h=240), no pure white/black.
+   Rules:
+   - ONE text size (12px), hierarchy via weight/color
+   - THREE grays only: chrome, canvas, card
+   - ONE radius (6px) for most, pill for full-round
+   - Sentence case, no uppercase headers
    ══════════════════════════════════════════════════════ */
 
 function oklch(l: number, c: number, h: number): string {
   return `oklch(${l} ${c} ${h})`
 }
 
-/* Neutrals — cool gray (h=240) */
+/* Neutrals */
 export const N = {
-  chrome:     oklch(0.980, 0.002, 240),  // shell surface (off-white)
-  chromeSub:  oklch(0.950, 0.004, 240),  // active rows, hover
-  canvas:     oklch(0.965, 0.003, 240),  // canvas background
-  card:       oklch(0.985, 0.002, 240),  // cards, dropdowns
-  border:     oklch(0.890, 0.004, 240),  // borders
-  borderSoft: oklch(0.920, 0.003, 240),  // soft borders
+  chrome:     oklch(0.980, 0.002, 240),  // shell chrome (topbar, sidebar)
+  canvas:     oklch(0.950, 0.003, 240),  // canvas background
+  card:       oklch(0.995, 0.001, 240),  // cards, dropdowns (elevated)
+  active:     oklch(0.935, 0.004, 240),  // active rows (darker than chrome)
+  border:     oklch(0.900, 0.003, 240),  // borders
   txtPri:     oklch(0.200, 0.005, 240),  // primary text
-  txtSec:     oklch(0.400, 0.004, 240),  // secondary text
-  txtTer:     oklch(0.550, 0.003, 240),  // tertiary text
-  txtFaint:   oklch(0.680, 0.002, 240),  // faint text
+  txtSec:     oklch(0.450, 0.003, 240),  // secondary text
+  txtMuted:   oklch(0.600, 0.002, 240),  // muted labels
 }
 
-/* Accent — cool charcoal */
+/* Accent — cool charcoal (h=240) */
 export const A = {
-  accent:  oklch(0.320, 0.005, 240),
-  hover:   oklch(0.420, 0.004, 240),
-  muted:   oklch(0.910, 0.003, 240),
-  strong:  oklch(0.240, 0.005, 240),
-  border:  oklch(0.700, 0.004, 240),
+  accent:  oklch(0.320, 0.005, 240),  // accent
+  hover:   oklch(0.420, 0.004, 240),  // hover state
+  muted:   oklch(0.910, 0.003, 240),  // muted background
+  strong:  oklch(0.240, 0.005, 240),  // strong accent
+  border:  oklch(0.700, 0.004, 240),  // accent border
+}
+
+/* Canvas elevation — inset from chrome, subtle shadow */
+export const E = {
+  insetTop: 1,
+  inset:  12,
+  radius: 0,   // no rounding on large surfaces
+  shadow: `0 1px 3px rgba(0,0,0,0.04), 0 0 0 1px ${oklch(0.905, 0.003, 240)}`,
 }
 
 /* Functional */
 export const F = {
-  comment:  oklch(0.280, 0.005, 240),
-  resolved: oklch(0.700, 0.003, 240),
-  success:  oklch(0.55, 0.14, 155),
-  danger:   oklch(0.52, 0.20, 28),
-  marker:   oklch(0.55, 0.18, 250),
+  comment:  oklch(0.280, 0.005, 240),  // comment badge (cool)
+  resolved: oklch(0.700, 0.003, 240),  // resolved state (cool)
+  success:  oklch(0.55, 0.14, 155),    // green (keep)
+  danger:   oklch(0.52, 0.20, 28),     // red (keep)
+  marker:   oklch(0.55, 0.18, 250),    // blue marker (keep)
 }
 
-/* Watch mode */
+/* Watch mode — green indicator */
 export const W = {
   bg:   oklch(0.92, 0.04, 155),
   dot:  oklch(0.52, 0.14, 155),
@@ -54,65 +58,46 @@ export const W = {
   text: oklch(0.40, 0.12, 155),
 }
 
-/* On-dark text */
+/* On-dark text — off-white for dark backgrounds */
 export const D = {
-  text:    oklch(0.950, 0.002, 240),
-  textSec: oklch(0.800, 0.003, 240),
+  text:   oklch(0.950, 0.002, 240),  // light text on dark (not pure white)
+  textSec: oklch(0.800, 0.003, 240), // secondary on dark
 }
 
-/* ─── Spacing: 8px Base Unit ──────────────────────────
-   Simple multiples of 8. No complex ratios.
-   Generous, breathable, human-scale.
-   ───────────────────────────────────────────────────── */
+/* Shell spacing — 4px grid (every value a multiple of 4) */
 export const S = {
-  xs:   4,   // hairline gaps, borders
-  sm:   8,   // tight gaps, icon padding
-  md:  12,   // standard gaps, row padding
-  lg:  16,   // comfortable gaps, section padding
-  xl:  24,   // major spacing, panel padding
-  xxl: 32,   // large spacing, between sections
+  xs:  4,   // row padding-block, control border-radius
+  sm:  8,   // gaps, row padding-inline (active), icon inset
+  md:  12,  // topbar padding, sidebar block-padding, section gap
+  lg:  16,  // section header inline-padding, divider margin, section margin
+  xl:  20,  // major section spacing
+  xxl: 24,  // panel gaps
 }
 
-/* ─── Shell Dimensions ────────────────────────────────
-   Rams: controls substantial but not dominant.
-   The canvas (work surface) is the hero.
-   ───────────────────────────────────────────────────── */
-export const DIM = {
-  topbar:   44,   // comfortable height (Apple HIG minimum)
-  sidebar: 180,   // generous for page names
-  row:      32,   // comfortable click target
-  control:  28,   // icon button size
-}
-
-/* Canvas elevation */
-export const E = {
-  insetTop: 0,
-  inset:   12,    // visible but not chunky
-  radius:  12,    // soft corners
-  shadow: `0 1px 3px rgba(0,0,0,0.04), 0 0 0 1px ${oklch(0.905, 0.003, 240)}`,
-}
-
-/* Radii — generous, modern */
+/* Shell radii — ONE radius for UI consistency */
 export const R = {
-  control:  6,   // buttons, active rows
-  card:     8,   // cards, dropdowns
-  panel:   12,   // canvas, modals
-  pill:    20,   // toast pills
+  ui:   6,    // all UI: rows, buttons, inputs, cards, menus
+  pill: 99,   // full-round pills
 }
 
-/* Typography — clear hierarchy */
+/* Shell dimensions */
+export const DIM = {
+  topbar:  44,   // topbar height
+  sidebar: 200,  // sidebar width (wider for content)
+  row:     36,   // sidebar row height (more breathing room)
+  control: 28,   // icon button size
+}
+
+/* Shell typography — ONE size, hierarchy via weight/color */
 export const T = {
-  label:   10,   // section headers, badges (was 9, too small)
-  caption: 11,   // captions, meta
-  body:    13,   // primary shell text (was 12, bump for readability)
-  title:   14,   // emphasis, pickers
+  ui: 12,   // THE text size for everything
 }
 
-/* Icon sizes */
+/* Shell icon sizes — tiered per CLAUDE.md */
 export const ICON = {
-  sm:  14,   // secondary icons (was 12)
-  md:  16,   // standard icons (was 14)
-  lg:  18,   // primary actions (was 16)
+  sm:  12,  // decorative: chevrons, sidebar icons
+  md:  14,  // secondary: close, trash, checks, sidebar toggle
+  lg:  16,  // primary: menu items, topbar actions, FAB
 }
 
 export const FONT = '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif'

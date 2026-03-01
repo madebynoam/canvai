@@ -50,7 +50,7 @@ export function TopBar({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        minHeight: DIM.topbar,
+        height: DIM.topbar,
         padding: `0 ${S.md}px`,
         backgroundColor: N.chrome,
         fontFamily: FONT,
@@ -69,8 +69,9 @@ export function TopBar({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: sidebarOpen ? N.txtPri : N.txtTer,
-            borderRadius: R.control,
+            color: sidebarOpen ? N.txtPri : N.txtSec,
+            borderRadius: R.ui, cornerShape: 'squircle',
+            cursor: 'default',
           }}
           title={sidebarOpen ? 'Hide sidebar' : 'Show sidebar'}
         >
@@ -85,31 +86,31 @@ export function TopBar({
 
         {iterations.length > 0 && (
           <>
-            <span style={{ fontSize: T.body, color: N.border, userSelect: 'none' }}>/</span>
+            <span style={{ fontSize: T.ui, color: N.border, userSelect: 'none' }}>/</span>
             <PickerDropdown
               items={reversedIterations}
               activeIndex={reversedActiveIndex}
               onSelect={(i) => onSelectIteration(iterations.length - 1 - i)}
               width={280}
               renderTriggerLabel={(item) => (
-                <span style={{ fontSize: T.title, fontWeight: 500, color: N.txtPri }}>
+                <span style={{ fontSize: T.ui, fontWeight: 400, color: N.txtPri }}>
                   {item.name}
                 </span>
               )}
               renderRow={(item) => (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                   <span style={{
-                    fontSize: T.body,
-                    fontWeight: 500,
+                    fontSize: T.ui,
+                    fontWeight: 400,
                     color: N.txtPri,
                   }}>
                     {item.name}
                   </span>
                   {item.description && (
                     <span style={{
-                      fontSize: T.caption,
+                      fontSize: T.ui,
                       fontWeight: 400,
-                      color: N.txtTer,
+                      color: N.txtSec,
                       display: '-webkit-box',
                       WebkitLineClamp: 2,
                       WebkitBoxOrient: 'vertical',
@@ -124,8 +125,8 @@ export function TopBar({
               footer={import.meta.env.DEV && onNewIteration ? (
                 <MenuRow
                   onClick={onNewIteration}
-                  icon={<Plus size={ICON.md} strokeWidth={1.5} color={N.txtTer} />}
-                  style={{ padding: `${S.sm}px ${S.sm}px`, fontSize: T.body, color: N.txtSec }}
+                  icon={<Plus size={ICON.md} strokeWidth={1.5} color={N.txtSec} />}
+                  style={{ padding: `${S.sm}px ${S.sm}px`, fontSize: T.ui, color: N.txtSec }}
                 >
                   New Iteration
                 </MenuRow>
@@ -149,21 +150,21 @@ export function TopBar({
               style={{
                 minWidth: S.lg,
                 height: S.lg,
-                borderRadius: R.card,
-                backgroundColor: N.chromeSub,
+                borderRadius: R.ui, cornerShape: 'squircle',
+                backgroundColor: N.card,
                 border: `1px solid ${N.border}`,
-                color: N.txtTer,
+                color: N.txtSec,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: T.label,
+                fontSize: T.ui,
                 fontWeight: 600,
                 padding: `0 ${S.xs}px`,
               }}
             >
               {commentCount}
             </div>
-            <span style={{ fontSize: T.caption, color: N.txtTer }}>comments</span>
+            <span style={{ fontSize: T.ui, color: N.txtSec }}>comments</span>
           </div>
         )}
 

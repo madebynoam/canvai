@@ -25,7 +25,7 @@ function ZoomButton({ children, onClick, title }: {
         alignItems: 'center',
         justifyContent: 'center',
         color: N.txtSec,
-        borderRadius: R.control,
+        borderRadius: R.ui, cornerShape: 'squircle',
         cursor: 'default',
         padding: 0,
       }}
@@ -46,7 +46,7 @@ export function ZoomControl() {
       gap: 0,
       background: N.chrome,
       border: `1px solid ${N.border}`,
-      borderRadius: R.card,
+      borderRadius: R.ui, cornerShape: 'squircle',
       padding: 2,
       fontFamily: FONT,
       boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.03)',
@@ -58,7 +58,7 @@ export function ZoomControl() {
       <div style={{
         minWidth: 36,
         textAlign: 'center',
-        fontSize: T.caption,
+        fontSize: T.ui,
         fontWeight: 500,
         color: N.txtPri,
         fontVariantNumeric: 'tabular-nums',
