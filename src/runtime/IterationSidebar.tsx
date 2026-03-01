@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Palette, Layers, Image } from 'lucide-react'
-import { N, S, R, T, ICON, FONT } from './tokens'
+import { N, S, R, T, ICON, FONT, DIM } from './tokens'
 import { InfoButton } from './InfoButton'
 
 interface IterationSidebarProps {
@@ -87,7 +87,7 @@ export function IterationSidebar({ iterationName, pages, activePageIndex, onSele
 
   return (
     <div style={{
-      width: collapsed ? 0 : 160,
+      width: collapsed ? 0 : DIM.sidebar,
       backgroundColor: N.chrome,
       padding: `${S.md}px 0`,
       display: 'flex',

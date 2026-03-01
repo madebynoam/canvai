@@ -3,7 +3,7 @@ import { PickerDropdown } from './PickerDropdown'
 import { AnnotationPanelWidget } from './AnnotationPanel'
 import { PanelLeft, Plus } from 'lucide-react'
 import { MenuRow } from './Menu'
-import { N, S, R, T, ICON, FONT } from './tokens'
+import { N, S, R, T, ICON, FONT, DIM } from './tokens'
 import type { IterationManifest } from './types'
 
 interface TopBarProps {
@@ -50,7 +50,7 @@ export function TopBar({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        minHeight: 40,
+        minHeight: DIM.topbar,
         padding: `0 ${S.md}px`,
         backgroundColor: N.chrome,
         fontFamily: FONT,
@@ -62,8 +62,8 @@ export function TopBar({
         <button
           onClick={onToggleSidebar}
           style={{
-            width: S.xxl,
-            height: S.xxl,
+            width: DIM.control,
+            height: DIM.control,
             border: 'none',
             background: 'transparent',
             display: 'flex',

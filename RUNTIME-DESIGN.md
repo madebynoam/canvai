@@ -11,6 +11,17 @@ Loaded on demand when working on `src/runtime/` components. Not needed for engin
 3. **Thorough** — Every detail matters: spacing, alignment, color, cursor.
 4. **As little as possible** — Remove until it breaks, then add one thing back.
 
+## Proportions (Rams / Modulor inspired)
+
+Shell dimensions derived from human-scale design:
+- **TopBar**: 44px (Apple HIG minimum touch target)
+- **Sidebar**: 180px (generous for page names)
+- **Row height**: 32px (comfortable click target)
+- **Control**: 28px (icon buttons)
+- **Canvas inset**: 12px
+
+**Base unit: 8px.** Spacing multiples: 4, 8, 12, 16, 24, 32.
+
 ## Palette (OKLCH-native, no hex in runtime)
 
 All grays use **h=240** (cool blue-gray) for visual consistency.
@@ -20,24 +31,18 @@ All grays use **h=240** (cool blue-gray) for visual consistency.
 | Chrome | `oklch(0.980 0.002 240)` | Shell surface (off-white) |
 | Chrome subtle | `oklch(0.950 0.004 240)` | Active rows, controls |
 | Canvas | `oklch(0.965 0.003 240)` | Canvas background |
-| Card | `oklch(0.985 0.002 240)` | Cards, dropdowns |
-| Border | `oklch(0.890 0.004 240)` | Borders |
-| Border soft | `oklch(0.920 0.003 240)` | Soft borders |
 | Text primary | `oklch(0.200 0.005 240)` | Primary text (off-black) |
 | Text secondary | `oklch(0.400 0.004 240)` | Secondary text |
-| Text tertiary | `oklch(0.550 0.003 240)` | Tertiary text |
 | On-dark | `oklch(0.950 0.002 240)` | Text on dark surfaces |
-| Accent | `oklch(0.320 0.005 240)` | Accent |
 
 **Rules:**
 - **No pure white or pure black.** All values off the extremes.
 - **h=240 for all grays.** Cool, consistent, professional.
-- 4px spacing grid. Allowed: 0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 48, 64…
-- Border-radius tiers: 4px controls, 8px cards/dropdowns, 12-20px pills.
+- Border-radius tiers: 6px controls, 8px cards, 12px panels, 20px pills.
 - Hover: `rgba(0,0,0,0.03)`. Active: `rgba(0,0,0,0.06)`.
-- `cursor: default` for all shell UI. Never `cursor: pointer`.
-- `text-wrap: pretty` on all text. No widows.
-- Icons: Lucide React, `strokeWidth={1.5}`. Sizes: 16px primary, 14px secondary, 12px decorative.
+- `cursor: default` for all shell UI.
+- Typography: 10px labels, 11px captions, 13px body, 14px titles.
+- Icons: Lucide React, `strokeWidth={1.5}`. Sizes: 14/16/18px.
 
 ## Motion language (Rams restraint + Matas physics)
 
