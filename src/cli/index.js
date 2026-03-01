@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { spawn, execSync } from 'child_process'
-import { existsSync, mkdirSync, readFileSync, writeFileSync, rmSync } from 'fs'
+import { existsSync, mkdirSync, readFileSync, writeFileSync, rmSync, readdirSync, statSync, cpSync } from 'fs'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
 import { createServer } from 'net'
@@ -181,6 +181,161 @@ async function screenshotCanvas() {
   }
 }
 
+async function createIteration() {
+  const args = process.argv.slice(3)
+  const cwd = process.cwd()
+
+  // Find project
+  let project = null
+  const projectIdx = args.indexOf('--project')
+  if (projectIdx !== -1 && args[projectIdx + 1]) {
+    project = args[projectIdx + 1]
+  }
+
+  // Auto-detect if single project
+  if (!project) {
+    const projectsDir = join(cwd, 'src', 'projects')
+    if (existsSync(projectsDir)) {
+      const dirs = readdirSync(projectsDir).filter(f => {
+        const p = join(projectsDir, f)
+        try {
+          return existsSync(p) && statSync(p).isDirectory() && !f.startsWith('.')
+        } catch { return false }
+      })
+      if (dirs.length === 1) project = dirs[0]
+      else if (dirs.length > 1) {
+        console.error(JSON.stringify({ error: 'Multiple projects. Use --project <name>', projects: dirs }))
+        process.exit(1)
+      }
+    }
+  }
+
+  if (!project) {
+    console.error(JSON.stringify({ error: 'No project found' }))
+    process.exit(1)
+  }
+
+  const projectDir = join(cwd, 'src', 'projects', project)
+  const manifestPath = join(projectDir, 'manifest.ts')
+
+  if (!existsSync(manifestPath)) {
+    console.error(JSON.stringify({ error: `No manifest.ts in ${project}` }))
+    process.exit(1)
+  }
+
+  // Read manifest to find iterations
+  let manifestContent = readFileSync(manifestPath, 'utf8')
+
+  // Parse iterations by finding top-level iteration blocks
+  // Iterations have pattern: { name: 'V1', frozen?: bool, pages: [...] }
+  // We look for "name: 'VN'" followed by either "frozen:" or "pages:" (not "grid:")
+  const iterationPattern = /\{\s*name:\s*['"]([^'"]+)['"]\s*,\s*(frozen:\s*(true|false)\s*,\s*)?pages:/g
+  const iterations = []
+  let match
+  while ((match = iterationPattern.exec(manifestContent)) !== null) {
+    iterations.push({
+      name: match[1],
+      frozen: match[3] === 'true',
+    })
+  }
+
+  if (iterations.length === 0) {
+    console.error(JSON.stringify({ error: 'Could not parse iterations from manifest' }))
+    process.exit(1)
+  }
+
+  // Find active iteration (last one with frozen: false or no frozen field)
+  let activeName = ''
+  for (const iter of iterations) {
+    if (!iter.frozen) {
+      activeName = iter.name
+    }
+  }
+
+  if (!activeName) {
+    console.error(JSON.stringify({ error: 'No active (unfrozen) iteration found' }))
+    process.exit(1)
+  }
+
+  // Determine new iteration name (v1 → v2, V1 → V2)
+  const numMatch = activeName.match(/(\d+)/)
+  if (!numMatch) {
+    console.error(JSON.stringify({ error: `Cannot parse iteration number from ${activeName}` }))
+    process.exit(1)
+  }
+  const num = parseInt(numMatch[1], 10)
+  const newName = activeName.replace(/\d+/, String(num + 1))
+  const activeDir = join(projectDir, activeName.toLowerCase())
+  const newDir = join(projectDir, newName.toLowerCase())
+
+  if (existsSync(newDir)) {
+    console.error(JSON.stringify({ error: `${newName} already exists` }))
+    process.exit(1)
+  }
+
+  // 1. Freeze active iteration in manifest
+  // Find the iteration block and add frozen: true
+  const frozenPattern = new RegExp(`(name:\\s*['"]${activeName}['"][^}]*?)(\n\\s*frozen:\\s*false)?(\n\\s*pages:)`, 'i')
+  if (manifestContent.match(frozenPattern)) {
+    manifestContent = manifestContent.replace(frozenPattern, '$1\n      frozen: true,$3')
+  } else {
+    // No frozen field, add it
+    const addFrozenPattern = new RegExp(`(name:\\s*['"]${activeName}['"])`, 'i')
+    manifestContent = manifestContent.replace(addFrozenPattern, '$1,\n      frozen: true')
+  }
+
+  // 2. Copy folder
+  cpSync(activeDir, newDir, { recursive: true })
+
+  // 3. Rename CSS scope in tokens.css
+  const tokensPath = join(newDir, 'tokens.css')
+  if (existsSync(tokensPath)) {
+    let tokens = readFileSync(tokensPath, 'utf8')
+    const oldScope = `.iter-${activeName.toLowerCase()}`
+    const newScope = `.iter-${newName.toLowerCase()}`
+    tokens = tokens.replace(new RegExp(oldScope.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), newScope)
+    writeFileSync(tokensPath, tokens)
+  }
+
+  // 4. Add new iteration to manifest (copy structure from active, change name, remove frozen)
+  // Find where iterations array ends and add new iteration
+  const newIterBlock = `
+    {
+      name: '${newName}',
+      frozen: false,
+      pages: [], // Agent will populate
+    },`
+
+  // Insert before the closing ] of iterations array
+  manifestContent = manifestContent.replace(
+    /(iterations:\s*\[[\s\S]*?)(\n\s*\])/,
+    `$1${newIterBlock}$2`
+  )
+
+  // 5. Add import for new tokens.css at top
+  const tokenImport = `import './${newName.toLowerCase()}/tokens.css'\n`
+  if (!manifestContent.includes(tokenImport)) {
+    // Add after last tokens.css import or at top
+    const lastTokenImport = manifestContent.lastIndexOf("/tokens.css'")
+    if (lastTokenImport !== -1) {
+      const insertPos = manifestContent.indexOf('\n', lastTokenImport) + 1
+      manifestContent = manifestContent.slice(0, insertPos) + tokenImport + manifestContent.slice(insertPos)
+    } else {
+      manifestContent = tokenImport + manifestContent
+    }
+  }
+
+  writeFileSync(manifestPath, manifestContent)
+
+  console.log(JSON.stringify({
+    success: true,
+    project,
+    frozenIteration: activeName,
+    newIteration: newName,
+    path: newDir,
+  }))
+}
+
 async function contextImages() {
   const args = process.argv.slice(3)
 
@@ -201,10 +356,10 @@ async function contextImages() {
   if (!project) {
     const projectsDir = join(process.cwd(), 'src', 'projects')
     if (existsSync(projectsDir)) {
-      const { readdirSync } = await import('fs')
       const projects = readdirSync(projectsDir).filter(f => {
-        const stat = require('fs').statSync(join(projectsDir, f))
-        return stat.isDirectory() && !f.startsWith('.')
+        try {
+          return statSync(join(projectsDir, f)).isDirectory() && !f.startsWith('.')
+        } catch { return false }
       })
       if (projects.length === 1) {
         project = projects[0]
@@ -227,7 +382,6 @@ async function contextImages() {
     return
   }
 
-  const { readdirSync } = await import('fs')
   const files = readdirSync(contextDir).filter(f =>
     /\.(png|jpg|jpeg|gif|webp)$/i.test(f)
   )
@@ -506,6 +660,9 @@ switch (command) {
   case 'context':
     contextImages()
     break
+  case 'iterate':
+    createIteration()
+    break
 
   default:
     console.log('Canvai — design studio on an infinite canvas\n')
@@ -523,6 +680,7 @@ switch (command) {
     console.log('  canvai list                 List all annotations')
     console.log('  canvai screenshot [--frame <id>] [--delay <ms>]')
     console.log('  canvai context [--project <name>] [--iteration <v>]')
+    console.log('  canvai iterate [--project <name>]  Create new iteration (freeze + copy)')
     console.log('')
     console.log('  canvai help                 Show this message')
     process.exit(command === 'help' ? 0 : 1)
