@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { N, A, F, S, R, T, ICON, FONT } from './tokens'
+import { N, A, F, D, S, R, T, ICON, FONT } from './tokens'
 import { Wand2, Crosshair, Loader2 } from 'lucide-react'
 import { useMenu, MenuPanel } from './Menu'
 
@@ -62,7 +62,7 @@ function AnnotationBadge({ count, pendingCount, onClick }: { count: number; pend
           height: S.lg,
           borderRadius: '50%',
           backgroundColor: count > 0 ? A.accent : N.txtFaint,
-          color: 'oklch(1 0 0)',
+          color: D.text,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -117,7 +117,7 @@ function AnnotationRow({
           height: S.lg,
           borderRadius: '50%',
           backgroundColor: isResolved ? N.txtFaint : F.marker,
-          color: 'oklch(1 0 0)',
+          color: D.text,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -182,7 +182,7 @@ function AnnotationRow({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: 'oklch(1 0 0)',
+                color: D.text,
                 borderRadius: R.control,
                 cursor: 'default',
               }}
@@ -422,7 +422,7 @@ export function AnnotationPanelWidget({ endpoint }: { endpoint: string }) {
                 border: 'none',
                 borderRadius: R.card,
                 background: A.accent,
-                color: 'oklch(1 0 0)',
+                color: D.text,
                 fontFamily: FONT,
                 fontSize: T.body,
                 fontWeight: 600,

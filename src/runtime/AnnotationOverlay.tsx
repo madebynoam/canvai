@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { SquareMousePointer, Trash2 } from 'lucide-react'
-import { N, A, F, S, R, T, ICON, FONT } from './tokens'
+import { N, A, F, D, S, R, T, ICON, FONT } from './tokens'
 import { DialogCard, DialogActions, ActionButton } from './Menu'
 import type { CanvasFrame, CanvasComponentFrame, Connection } from './types'
 import { isCanvasImageFrame } from './types'
@@ -54,7 +54,7 @@ function MarkerDot({ id, comment, rect, onClick, progress }: {
           height: S.lg,
           borderRadius: '50%',
           background: F.marker,
-          color: 'oklch(1 0 0)',
+          color: D.text,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -70,8 +70,8 @@ function MarkerDot({ id, comment, rect, onClick, progress }: {
       </div>
       {progress && (
         <div style={{
-          background: 'oklch(0.15 0 0 / 0.9)',
-          color: 'oklch(0.9 0 0)',
+          background: 'oklch(0.18 0.005 240 / 0.9)',
+          color: D.text,
           fontSize: 11,
           fontFamily: FONT,
           padding: '4px 8px',
@@ -975,7 +975,7 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
               background: buttonState === 'pressed'
                 ? A.strong
                 : buttonState === 'hover' ? A.hover : A.accent,
-              color: 'oklch(1 0 0)',
+              color: D.text,
               border: 'none',
               display: 'flex',
               alignItems: 'center',

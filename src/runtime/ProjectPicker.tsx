@@ -1,7 +1,7 @@
 import { PickerDropdown } from './PickerDropdown'
 import { MenuRow } from './Menu'
 import { Plus } from 'lucide-react'
-import { A, N, S, T, ICON } from './tokens'
+import { A, N, D, S, T, ICON } from './tokens'
 
 interface ProjectPickerProps {
   projects: { project: string }[]
@@ -35,7 +35,7 @@ export function ProjectPicker({ projects, activeIndex, onSelect, forceOpen = fal
             height: S.xl,
             borderRadius: '50%',
             backgroundColor: A.accent,
-            color: 'oklch(1 0 0)',
+            color: D.text,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -60,7 +60,7 @@ export function ProjectPicker({ projects, activeIndex, onSelect, forceOpen = fal
               height: S.xl,
               borderRadius: '50%',
               backgroundColor: isActive ? A.accent : N.border,
-              color: isActive ? 'oklch(1 0 0)' : N.txtSec,
+              color: isActive ? D.text : N.txtSec,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',

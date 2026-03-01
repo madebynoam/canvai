@@ -8,11 +8,11 @@ interface CanvasColorPreset {
 }
 
 const presets: CanvasColorPreset[] = [
-  { name: 'Default', value: 'oklch(0.972 0.001 197)' },
-  { name: 'Warm', value: 'oklch(0.965 0.008 80)' },
+  { name: 'Default', value: 'oklch(0.965 0.003 240)' },
+  { name: 'Cool', value: 'oklch(0.955 0.005 240)' },
   { name: 'Neutral', value: 'oklch(0.940 0.000 0)' },
-  { name: 'Dark', value: 'oklch(0.200 0.005 80)' },
-  { name: 'Midnight', value: 'oklch(0.150 0.010 260)' },
+  { name: 'Dark', value: 'oklch(0.220 0.005 240)' },
+  { name: 'Midnight', value: 'oklch(0.150 0.008 250)' },
 ]
 
 function ColorDot({ preset, isActive, onSelect }: {

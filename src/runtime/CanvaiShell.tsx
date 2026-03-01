@@ -15,7 +15,7 @@ import { ZoomControl } from './ZoomControl'
 import { CanvasColorPicker } from './CanvasColorPicker'
 import { loadCanvasBg, saveCanvasBg } from './Canvas'
 import { ActionButton } from './Menu'
-import { N, E, S, T, R, FONT } from './tokens'
+import { N, D, E, S, T, R, FONT } from './tokens'
 import type { ProjectManifest, CanvasImageFrame } from './types'
 
 interface CanvaiShellProps {
@@ -117,7 +117,7 @@ function Toast({ message, onDone }: { message: string; onDone: () => void }) {
         zIndex: 99999,
         padding: `${S.sm}px ${S.xxl}px`,
         background: N.txtPri,
-        color: 'oklch(1 0 0)',
+        color: D.text,
         borderRadius: R.pill,
         fontSize: T.title,
         fontWeight: 500,
@@ -182,8 +182,8 @@ const ContextImageContent = memo(function ContextImageContent({
             height: 24,
             borderRadius: 6,
             border: 'none',
-            background: 'oklch(0.20 0 0 / 0.8)',
-            color: 'oklch(0.95 0 0)',
+            background: 'oklch(0.22 0.005 240 / 0.8)',
+            color: D.text,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',

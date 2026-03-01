@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { MessageSquare, X, Check, Send, MoreHorizontal, Pencil, Trash2, Copy, Github } from 'lucide-react'
-import { N, A, F, S, R, T, ICON, FONT } from './tokens'
+import { N, A, F, D, S, R, T, ICON, FONT } from './tokens'
 import { MenuPanel, MenuRow } from './Menu'
 import type { CanvasFrame } from './types'
 import type { CommentThread, CommentMessage, CommentAuthor, CommentPin } from './comment-types'
@@ -80,7 +80,7 @@ function Avatar({ name, size = 28 }: { name: string; size?: number }) {
   return (
     <div style={{
       width: size, height: size, borderRadius: '50%', flexShrink: 0,
-      backgroundColor: F.marker, color: 'oklch(1 0 0)',
+      backgroundColor: F.marker, color: D.text,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       fontSize: size * 0.4, fontWeight: 600, fontFamily: FONT,
       boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08)',
@@ -287,7 +287,7 @@ function AvatarPin({ pin, onClick }: {
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08), 0 1px 2px rgba(0,0,0,0.12)',
         }}>
-          <Check size={ICON.md} strokeWidth={2} color="oklch(1 0 0)" />
+          <Check size={ICON.md} strokeWidth={2} color={D.text} />
         </div>
       ) : (
         <div style={{ position: 'relative' }}>
@@ -297,7 +297,7 @@ function AvatarPin({ pin, onClick }: {
             <div style={{
               position: 'absolute', top: -4, right: -8,
               minWidth: S.lg, height: S.lg, borderRadius: R.card,
-              backgroundColor: A.accent, color: 'oklch(1 0 0)',
+              backgroundColor: A.accent, color: D.text,
               fontSize: 9, fontWeight: 700, fontFamily: FONT,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               padding: `0 ${S.xs}px`, border: `2px solid rgba(0,0,0,0)`,
@@ -411,7 +411,7 @@ function AuthCard({ onClose, onSuccess }: {
             onClick={startDeviceFlow}
             style={{
               width: '100%', padding: `${S.sm}px ${S.lg}px`, borderRadius: R.card, border: 'none',
-              backgroundColor: N.txtPri, color: 'oklch(1 0 0)',
+              backgroundColor: N.txtPri, color: D.text,
               fontSize: T.title, fontWeight: 500, fontFamily: FONT, cursor: 'default',
             }}
           >
@@ -1160,7 +1160,7 @@ export function CommentOverlay({ endpoint, frames, repo: repoProp, onCommentCoun
                 style={{
                   padding: `${S.sm}px ${S.md}px`, borderRadius: R.card, border: 'none',
                   backgroundColor: commentText.trim() && !posting ? A.accent : A.muted,
-                  color: commentText.trim() && !posting ? 'oklch(1 0 0)' : N.txtTer,
+                  color: commentText.trim() && !posting ? D.text : N.txtTer,
                   fontSize: T.body, fontWeight: 500, fontFamily: FONT, cursor: 'default',
                 }}
               >
@@ -1295,7 +1295,7 @@ export function CommentOverlay({ endpoint, frames, repo: repoProp, onCommentCoun
                   style={{
                     width: 28, height: 28, borderRadius: '50%', border: 'none',
                     backgroundColor: replyText.trim() ? A.accent : N.chromeSub,
-                    color: replyText.trim() ? 'oklch(1 0 0)' : N.txtTer,
+                    color: replyText.trim() ? D.text : N.txtTer,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     cursor: 'default',
                   }}
@@ -1329,7 +1329,7 @@ export function CommentOverlay({ endpoint, frames, repo: repoProp, onCommentCoun
               style={{
                 width: 40, height: 40, borderRadius: '50%',
                 background: buttonState === 'pressed' ? A.strong : buttonState === 'hover' ? A.hover : A.accent,
-                color: 'oklch(1 0 0)',
+                color: D.text,
                 border: 'none',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 boxShadow: buttonState === 'pressed'
@@ -1346,10 +1346,10 @@ export function CommentOverlay({ endpoint, frames, repo: repoProp, onCommentCoun
               <div style={{
                 position: 'absolute', top: -4, left: -4,
                 minWidth: S.lg, height: S.lg, borderRadius: R.card,
-                backgroundColor: N.txtPri, color: 'oklch(1 0 0)',
+                backgroundColor: N.txtPri, color: D.text,
                 fontSize: 9, fontWeight: 700, fontFamily: FONT,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                padding: `0 ${S.xs}px`, border: `2px solid oklch(1 0 0)`,
+                padding: `0 ${S.xs}px`, border: `2px solid ${D.text}`,
                 pointerEvents: 'none',
               }}>
                 {threads.filter(t => t.status === 'open').length}
@@ -1360,10 +1360,10 @@ export function CommentOverlay({ endpoint, frames, repo: repoProp, onCommentCoun
               <div style={{
                 position: 'absolute', bottom: -2, right: -2,
                 width: S.lg, height: S.lg, borderRadius: '50%',
-                border: '2px solid oklch(1 0 0)',
+                border: `2px solid ${D.text}`,
                 backgroundColor: F.marker,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 8, fontWeight: 700, color: 'oklch(1 0 0)',
+                fontSize: 8, fontWeight: 700, color: D.text,
                 fontFamily: FONT,
               }}>
                 {user.login.charAt(0).toUpperCase()}
@@ -1397,7 +1397,7 @@ export function CommentOverlay({ endpoint, frames, repo: repoProp, onCommentCoun
             zIndex: 99999,
             padding: `${S.sm}px ${S.xxl}px`,
             background: N.txtPri,
-            color: 'oklch(1 0 0)',
+            color: D.text,
             borderRadius: R.pill,
             fontSize: T.title,
             fontWeight: 500,

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, type CSSProperties, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
-import { N, A, S, R, T, ICON, FONT } from './tokens'
+import { N, A, D, S, R, T, ICON, FONT } from './tokens'
 
 /* ─── useMenu hook ───────────────────────────────────── */
 
@@ -348,7 +348,7 @@ export function ActionButton({ variant, disabled, onClick, children }: ActionBut
     ? (disabled ? A.muted : hovered ? A.hover : A.accent)
     : (hovered ? 'rgba(0, 0, 0, 0.03)' : 'transparent')
   const color = isPrimary
-    ? (disabled ? N.txtTer : 'oklch(1 0 0)')
+    ? (disabled ? N.txtTer : D.text)
     : N.txtSec
 
   return (

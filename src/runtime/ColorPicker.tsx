@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { N, A, S, R, T, ICON, FONT } from './tokens'
+import { N, A, D, S, R, T, ICON, FONT } from './tokens'
 import {
   oklchToDisplayHex, hexToOklch, oklchToHsl, hslToOklch,
   oklchToSrgb, clampSrgb, isInGamut,
@@ -292,7 +292,7 @@ export function ColorPicker({ l: initL, c: initC, h: initH, onChange, onApply, o
           left: crossX - 6, top: crossY - 6,
           width: 12, height: 12,
           borderRadius: '50%',
-          border: '2px solid oklch(1 0 0)',
+          border: `2px solid ${D.text}`,
           boxShadow: '0 0 0 1px rgba(0,0,0,0.3)',
           pointerEvents: 'none',
         }} />
@@ -318,7 +318,7 @@ export function ColorPicker({ l: initL, c: initC, h: initH, onChange, onApply, o
           left: hueX - 6, top: -2,
           width: 12, height: HUE_H + 4,
           borderRadius: HUE_H / 2,
-          border: '2px solid oklch(1 0 0)',
+          border: `2px solid ${D.text}`,
           boxShadow: '0 0 0 1px rgba(0,0,0,0.2)',
           pointerEvents: 'none',
         }} />
@@ -444,7 +444,7 @@ export function ColorPicker({ l: initL, c: initC, h: initH, onChange, onApply, o
           style={{
             padding: `${S.sm}px ${S.md}px`,
             background: applyHover ? A.hover : A.accent,
-            color: 'oklch(1 0 0)',
+            color: D.text,
             border: 'none', borderRadius: R.card,
             fontSize: T.body, fontWeight: 500, fontFamily: FONT, cursor: 'default',
           }}

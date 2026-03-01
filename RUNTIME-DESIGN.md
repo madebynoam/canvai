@@ -13,22 +13,25 @@ Loaded on demand when working on `src/runtime/` components. Not needed for engin
 
 ## Palette (OKLCH-native, no hex in runtime)
 
+All grays use **h=240** (cool blue-gray) for visual consistency.
+
 | Token | OKLCH | Use |
 |---|---|---|
-| Chrome | `oklch(0.985 0 90)` | Shell surface |
-| Chrome subtle | `oklch(0.955 0.003 80)` | Active rows, controls |
-| Canvas | `oklch(0.972 0.001 197)` | Canvas background |
-| Card | `oklch(0.993 0.003 80)` | Cards, dropdowns |
-| Border | `oklch(0.895 0.005 80)` | Borders |
-| Text primary | `oklch(0.180 0.005 80)` | Primary text |
-| Text secondary | `oklch(0.380 0.005 80)` | Secondary text |
-| Text tertiary | `oklch(0.540 0.005 80)` | Tertiary text |
-| On-dark | `oklch(0.97 0.003 80)` | Text/icons on dark surfaces |
-| Accent | `oklch(0.300 0.005 80)` | Accent (h=80, low chroma) |
+| Chrome | `oklch(0.980 0.002 240)` | Shell surface (off-white) |
+| Chrome subtle | `oklch(0.950 0.004 240)` | Active rows, controls |
+| Canvas | `oklch(0.965 0.003 240)` | Canvas background |
+| Card | `oklch(0.985 0.002 240)` | Cards, dropdowns |
+| Border | `oklch(0.890 0.004 240)` | Borders |
+| Border soft | `oklch(0.920 0.003 240)` | Soft borders |
+| Text primary | `oklch(0.200 0.005 240)` | Primary text (off-black) |
+| Text secondary | `oklch(0.400 0.004 240)` | Secondary text |
+| Text tertiary | `oklch(0.550 0.003 240)` | Tertiary text |
+| On-dark | `oklch(0.950 0.002 240)` | Text on dark surfaces |
+| Accent | `oklch(0.320 0.005 240)` | Accent |
 
 **Rules:**
-- No pure white or pure black. Always off-values from palette. Shadows (`rgba(0,0,0,0.04)`) exempt.
-- One accent system (charcoal h=80). Everything else is grayscale.
+- **No pure white or pure black.** All values off the extremes.
+- **h=240 for all grays.** Cool, consistent, professional.
 - 4px spacing grid. Allowed: 0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 48, 64…
 - Border-radius tiers: 4px controls, 8px cards/dropdowns, 12-20px pills.
 - Hover: `rgba(0,0,0,0.03)`. Active: `rgba(0,0,0,0.06)`.
