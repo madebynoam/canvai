@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Palette, Layers, Image } from 'lucide-react'
+import { Palette, Layers } from 'lucide-react'
 import { N, S, R, T, ICON, FONT, DIM } from './tokens'
 import { InfoButton } from './InfoButton'
 
@@ -80,7 +80,7 @@ export function IterationSidebar({ iterationName, pages, activePageIndex, onSele
   const iconForSystem = (name: string) => {
     if (name === 'Tokens') return <Palette size={ICON.sm} strokeWidth={1.5} style={{ color: N.txtMuted, flexShrink: 0 }} />
     if (name === 'Components') return <Layers size={ICON.sm} strokeWidth={1.5} style={{ color: N.txtMuted, flexShrink: 0 }} />
-    if (name === 'Context') return <Image size={ICON.sm} strokeWidth={1.5} style={{ color: N.txtMuted, flexShrink: 0 }} />
+    if (name === 'Context') return null
     return null
   }
 

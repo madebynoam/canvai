@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "canvai-annotations": {
+      "command": "node",
+      "args": [
+        "node_modules/canvai/src/mcp/mcp-server.js"
+      ]
+    }
+  }
+}
