@@ -557,6 +557,19 @@ function writePorts(cwd, httpPort, vitePort, vitePid, httpPid) {
 async function startDev() {
   const cwd = process.cwd()
 
+  // Kill any existing servers from previous sessions (prevents orphans)
+  const portsFile = join(cwd, '.canvai-ports.json')
+  if (existsSync(portsFile)) {
+    try {
+      const ports = JSON.parse(readFileSync(portsFile, 'utf8'))
+      for (const pid of [ports.vitePid, ports.httpPid].filter(Boolean)) {
+        try { process.kill(pid, 'SIGTERM') } catch {}
+      }
+      rmSync(portsFile, { force: true })
+      console.log('[canvai] Cleaned up previous servers')
+    } catch {}
+  }
+
   // Clear Vite dep cache so updated canvai code is re-bundled
   const viteCache = join(cwd, 'node_modules', '.vite')
   if (existsSync(viteCache)) {
@@ -569,7 +582,7 @@ async function startDev() {
     console.log(`Applied ${applied} migration${applied === 1 ? '' : 's'}.\n`)
   }
 
-  // Find free ports — never kill existing servers
+  // Find free ports (cleanup above should free the preferred ones)
   const httpPort = await findFreePort(4748)
   const vitePort = await findFreePort(5173)
 
