@@ -30,6 +30,15 @@ import { DarkNaming } from './v2/pages/dark-naming'
 import { DarkPolish } from './v2/pages/dark-polish'
 import { DarkMaster } from './v2/pages/dark-master'
 
+// V2 - Minimal Style
+import { MinimalVision } from './v2/pages/minimal-vision'
+import { MinimalJobs } from './v2/pages/minimal-jobs'
+import { MinimalName } from './v2/pages/minimal-name'
+import { MinimalTimeline } from './v2/pages/minimal-timeline'
+import { MinimalShip } from './v2/pages/minimal-ship'
+import { MinimalPolish } from './v2/pages/minimal-polish'
+import { MinimalMaster } from './v2/pages/minimal-master'
+
 import type { ProjectManifest } from '../../runtime/types'
 
 const manifest: ProjectManifest = {
@@ -85,6 +94,19 @@ const manifest: ProjectManifest = {
             { id: 'dark-naming', title: 'Naming', component: DarkNaming, width: 800, height: 600 },
             { id: 'dark-polish', title: 'Polish', component: DarkPolish, width: 800, height: 600 },
             { id: 'dark-master', title: 'Master', component: DarkMaster, width: 800, height: 600 },
+          ],
+        },
+        {
+          name: 'Minimal Style',
+          grid: { columns: 4, columnWidth: 800, rowHeight: 600, gap: 32 },
+          frames: [
+            { id: 'minimal-vision', title: 'Vision', component: MinimalVision, width: 800, height: 600 },
+            { id: 'minimal-jobs', title: 'Jobs', component: MinimalJobs, width: 800, height: 600 },
+            { id: 'minimal-name', title: 'Name', component: MinimalName, width: 800, height: 600 },
+            { id: 'minimal-timeline', title: 'Timeline', component: MinimalTimeline, width: 800, height: 600 },
+            { id: 'minimal-ship', title: 'Ship vs Cut', component: MinimalShip, width: 800, height: 600 },
+            { id: 'minimal-polish', title: 'Polish', component: MinimalPolish, width: 800, height: 600 },
+            { id: 'minimal-master', title: 'Master', component: MinimalMaster, width: 800, height: 600 },
           ],
         },
       ],
