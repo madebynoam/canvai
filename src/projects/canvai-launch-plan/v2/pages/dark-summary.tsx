@@ -1,49 +1,56 @@
 /**
  * Dark Style — Vision
- * Dramatic, cinematic, bold
+ * Minimal editorial, dark variant
  */
 
 const C = {
-  bg: '#0D0D0D',
+  bg: '#0A0A0A',
   text: '#FAFAFA',
-  textSec: '#A1A1A1',
-  textMuted: '#6B6B6B',
-  accent: '#C4956A',
+  textSec: '#888888',
+  textMuted: '#555555',
 }
 
 export function DarkSummary() {
   return (
-    <div style={{ width: '100%', height: '100%', backgroundColor: C.bg, fontFamily: 'Inter, -apple-system, sans-serif', position: 'relative', overflow: 'hidden' }}>
-      {/* Background Image */}
-      <img
-        src="https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=1200&q=80"
-        alt="Desert dunes"
-        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.4 }}
-      />
+    <div style={{ width: '100%', height: '100%', backgroundColor: C.bg, fontFamily: 'Inter, -apple-system, sans-serif', display: 'flex' }}>
+      {/* Left: Full-bleed image - architectural concrete */}
+      <div style={{ flex: 1 }}>
+        <img
+          src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80"
+          alt="Concrete architecture"
+          style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.9 }}
+        />
+      </div>
 
-      {/* Content */}
-      <div style={{ position: 'relative', zIndex: 1, padding: 64, height: '100%', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ fontSize: 11, color: C.accent, textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 24 }}>
-          Vision
+      {/* Right: Content with generous whitespace */}
+      <div style={{ flex: 1, padding: '80px 64px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+        <div>
+          <div style={{ fontSize: 10, color: C.textMuted, textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 48 }}>
+            Modaio
+          </div>
+
+          <h1 style={{ fontSize: 42, fontWeight: 300, color: C.text, margin: 0, lineHeight: 1.15, maxWidth: 320 }}>
+            See every direction at once.
+          </h1>
         </div>
 
-        <h1 style={{ fontSize: 48, fontWeight: 300, color: C.text, margin: 0, lineHeight: 1.2, maxWidth: 500 }}>
-          See every direction — at once.
-        </h1>
+        <div>
+          <p style={{ fontSize: 14, color: C.textSec, lineHeight: 1.8, maxWidth: 280, marginBottom: 40 }}>
+            An infinite canvas for design exploration. Generate real React components. Compare directions side-by-side. Ship what works.
+          </p>
 
-        <div style={{ flex: 1 }} />
-
-        <div style={{ display: 'flex', gap: 48 }}>
-          {[
-            { value: '∞', label: 'Infinite canvas' },
-            { value: 'N', label: 'Directions' },
-            { value: '0', label: 'Mockups needed' },
-          ].map((m, i) => (
-            <div key={i}>
-              <div style={{ fontSize: 32, fontWeight: 300, color: C.text }}>{m.value}</div>
-              <div style={{ fontSize: 11, color: C.textMuted, textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: 4 }}>{m.label}</div>
-            </div>
-          ))}
+          <div style={{ display: 'flex', gap: 40 }}>
+            {[
+              { value: '∞', label: 'Canvas' },
+              { value: 'N', label: 'Directions' },
+              { value: '1', label: 'Click' },
+            ].map((m, i) => (
+              <div key={i}>
+                <div style={{ fontSize: 24, fontWeight: 300, color: C.text }}>{m.value}</div>
+                <div style={{ fontSize: 9, color: C.textMuted, textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: 4 }}>{m.label}</div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>

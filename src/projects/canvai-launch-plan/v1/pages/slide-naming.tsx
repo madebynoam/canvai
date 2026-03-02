@@ -13,10 +13,10 @@ const C = {
 
 export function SlideNaming() {
   const names = [
-    { name: 'Pano', meaning: 'Panoramic — see everything at once', domain: 'pano.dev', available: true },
-    { name: 'Verse', meaning: 'Every direction is a verse', domain: 'verse.dev', available: false },
-    { name: 'Muse', meaning: 'Creative inspiration', domain: 'muse.ai', available: false },
-    { name: 'Drift', meaning: 'Explore directions', domain: 'drift.com', available: false },
+    { name: 'Maq', meaning: 'Short, punchy — from maquette', domain: 'maq.dev', available: true },
+    { name: 'Maqe', meaning: 'Sounds like "make" — evokes creation', domain: 'maqe.dev', available: true },
+    { name: 'Modo', meaning: 'From modello — Italian for model', domain: 'modo.dev', available: true },
+    { name: 'Modai', meaning: 'Modello + design — "moh-dye"', domain: 'modai.dev', available: true },
   ]
 
   return (
@@ -42,11 +42,11 @@ export function SlideNaming() {
       <div style={{ borderTop: `1px solid ${C.textMuted}40`, paddingTop: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
         <div>
           <div style={{ fontSize: 11, color: C.green, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Recommendation</div>
-          <div style={{ fontSize: 32, color: C.text, fontWeight: 400 }}>Pano</div>
+          <div style={{ fontSize: 32, color: C.text, fontWeight: 400 }}>Maq</div>
         </div>
         <div style={{ fontSize: 14, color: C.textSec, textAlign: 'right' }}>
-          Short. Clear. Available.<br />
-          "See the whole picture."
+          Short. Clear. Memorable.<br />
+          "Test before you build."
         </div>
       </div>
     </div>

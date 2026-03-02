@@ -1,64 +1,77 @@
 /**
  * Light Style — Polish
- * Warm, organic, hopeful
+ * Minimal editorial
  */
 
 const C = {
-  bg: '#F5F3EF',
-  card: '#FFFFFF',
+  bg: '#FFFFFF',
   text: '#1A1A1A',
-  textSec: '#5C5C5C',
-  textMuted: '#8C8C8C',
-  accent: '#7C8C6A',
-  yellow: '#B8A44C',
+  textSec: '#6B6B6B',
+  textMuted: '#999999',
+  border: '#E5E5E5',
 }
 
 export function LightPolish() {
-  const items = [
-    { task: 'Instant scaffold (<5s)', priority: 'must' },
-    { task: 'Multiple directions shown', priority: 'must' },
-    { task: 'Click → marker instantly', priority: 'must' },
-    { task: 'Share button in topbar', priority: 'must' },
-    { task: 'URL copied immediately', priority: 'must' },
-    { task: 'Pan/zoom 60fps', priority: 'must' },
-    { task: 'Error has retry', priority: 'should' },
-    { task: 'Consistent radii', priority: 'should' },
+  const must = [
+    'Instant scaffold (<5s)',
+    'Multiple directions shown',
+    'Click → marker instantly',
+    'Share button in topbar',
+    'URL copied immediately',
+    'Pan/zoom 60fps',
   ]
 
-  const priorityColor = (p: string) => p === 'must' ? C.accent : C.yellow
+  const should = [
+    'Error has retry',
+    'Consistent radii',
+  ]
 
   return (
-    <div style={{ width: '100%', height: '100%', backgroundColor: C.bg, fontFamily: 'Inter, -apple-system, sans-serif', padding: 48, display: 'flex', gap: 32 }}>
-      {/* Left */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-        <div style={{ fontSize: 11, color: C.textMuted, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 16 }}>
+    <div style={{ width: '100%', height: '100%', backgroundColor: C.bg, fontFamily: 'Inter, -apple-system, sans-serif', display: 'flex' }}>
+      {/* Left: Content */}
+      <div style={{ flex: 1, padding: '80px 64px', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ fontSize: 10, color: C.textMuted, textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 24 }}>
           Polish
         </div>
 
-        <h1 style={{ fontSize: 36, fontWeight: 300, color: C.text, margin: 0, lineHeight: 1.3, marginBottom: 24 }}>
+        <h1 style={{ fontSize: 36, fontWeight: 300, color: C.text, margin: 0, lineHeight: 1.2, marginBottom: 48 }}>
           What makes it "wow".
         </h1>
 
-        <div style={{ display: 'flex', gap: 16, marginBottom: 24, fontSize: 11 }}>
-          <span style={{ color: C.accent }}>● Must</span>
-          <span style={{ color: C.yellow }}>● Should</span>
+        <div style={{ marginBottom: 32 }}>
+          <div style={{ fontSize: 10, color: C.text, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 16 }}>Must</div>
+          {must.map((item, i) => (
+            <div key={i} style={{
+              fontSize: 14,
+              color: C.text,
+              padding: '12px 0',
+              borderBottom: `1px solid ${C.border}`,
+            }}>
+              {item}
+            </div>
+          ))}
         </div>
 
-        <div style={{ backgroundColor: C.card, borderRadius: 12, padding: 20, flex: 1 }}>
-          {items.map((item, i) => (
-            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: i < items.length - 1 ? `1px solid ${C.bg}` : 'none' }}>
-              <span style={{ fontSize: 13, color: C.text }}>{item.task}</span>
-              <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: priorityColor(item.priority) }} />
+        <div>
+          <div style={{ fontSize: 10, color: C.textMuted, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 16 }}>Should</div>
+          {should.map((item, i) => (
+            <div key={i} style={{
+              fontSize: 14,
+              color: C.textSec,
+              padding: '12px 0',
+              borderBottom: `1px solid ${C.border}`,
+            }}>
+              {item}
             </div>
           ))}
         </div>
       </div>
 
-      {/* Right: Image */}
-      <div style={{ width: 280, borderRadius: 12, overflow: 'hidden' }}>
+      {/* Right: Image - material samples */}
+      <div style={{ width: '45%' }}>
         <img
-          src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=600&q=80"
-          alt="Team collaboration"
+          src="https://images.unsplash.com/photo-1494438639946-1ebd1d20bf85?w=800&q=80"
+          alt="Material textures"
           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
         />
       </div>
