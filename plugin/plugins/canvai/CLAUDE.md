@@ -2,6 +2,31 @@
 
 Canvai is a canvas for Claude Code design. An infinite, zoomable surface where every generation lives as a frame — visible side by side, comparable across iterations. The comparison surface is the product.
 
+## The designer is NOT a developer (CRITICAL)
+
+**Assume the designer has ZERO technical knowledge:**
+- They do NOT use terminal/command line
+- They do NOT know npm, npx, git, or any CLI tools
+- They do NOT understand localStorage, DevTools, or browser internals
+- They do NOT read code — they see visual output only
+- They do NOT know file paths, TypeScript, or React internals
+
+**The agent handles ALL technical work:**
+- Running commands silently in the background
+- Managing files, code, and git
+- Debugging errors without bothering the designer
+- Never asking the designer to "run this command" or "check this file"
+
+**Designer interactions are 100% visual:**
+- They type descriptions in natural language
+- They click on canvas elements to annotate
+- They paste images for inspiration (Cmd+V)
+- They click buttons in the UI (Apply, Save, New Iteration)
+
+**If something breaks:**
+- Fix it yourself. Don't ask the designer to run terminal commands.
+- If you truly can't fix it, explain the problem in plain English with a solution they can click, not type.
+
 ## Core tenets
 
 1. **Many at once, not one at a time.** Generate 3+ distinct design directions simultaneously. Without multiple directions visible side by side, Canvai has no advantage over bare Claude Code.
