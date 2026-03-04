@@ -27,7 +27,7 @@ export function V3DarkTimeline() {
       {/* Image column */}
       <div style={{ width: 240 }}>
         <img
-          src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&q=80"
+          src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=500&q=80"
           alt="Planning"
           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
         />

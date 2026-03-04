@@ -2,6 +2,13 @@
 
 ## 2026-03-02
 
+### V3 - Dark Editorial Page Added
+- Created 9 new dark editorial slides with architectural imagery
+- Bold serif typography (Georgia) with olive green accent (#8b9a3b)
+- Unsplash images: modern architecture, workspaces, building details
+- All slides maintain 16:9 format (960×540) with full content
+- Added as "Dark Editorial" page in V3 iteration
+
 ### V3 - Minimal Style with Full Launch Content (16:9)
 - All slides updated to 16:9 aspect ratio (960×540)
 - Created V3 iteration with clean minimal aesthetic AND full substantive content

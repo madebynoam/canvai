@@ -43,6 +43,13 @@ import { Components as V10Components } from './v10/pages/components'
 import { Shell as V10Shell } from './v10/pages/shell'
 import { FlowStep1_SignIn as V10FlowStep1, FlowStep2_Compose as V10FlowStep2, FlowStep3_Thread as V10FlowStep3, FlowStep4_Pins as V10FlowStep4, FlowStep5_Promote as V10FlowStep5, FlowStep6_DeepLink as V10FlowStep6, FlowStep7_Resolve as V10FlowStep7 } from './v10/pages/comments'
 import { AnnotationPanelInteractive as V10AnnotationPanelInteractive, AnnotationPanelEmpty as V10AnnotationPanelEmpty, AnnotationPanelResolved as V10AnnotationPanelResolved } from './v10/pages/annotation-panel'
+import './v11/tokens.css'
+import { Tokens as V11Tokens } from './v11/pages/tokens'
+import { Components as V11Components } from './v11/pages/components'
+import { Shell as V11Shell } from './v11/pages/shell'
+import { FlowStep1_SignIn as V11FlowStep1, FlowStep2_Compose as V11FlowStep2, FlowStep3_Thread as V11FlowStep3, FlowStep4_Pins as V11FlowStep4, FlowStep5_Promote as V11FlowStep5, FlowStep6_DeepLink as V11FlowStep6, FlowStep7_Resolve as V11FlowStep7 } from './v11/pages/comments'
+import { AnnotationPanelInteractive as V11AnnotationPanelInteractive, AnnotationPanelEmpty as V11AnnotationPanelEmpty, AnnotationPanelResolved as V11AnnotationPanelResolved } from './v11/pages/annotation-panel'
+import { DesignSystem } from './v11/pages/design-system'
 import type { ProjectManifest } from '../../runtime/types'
 
 const manifest: ProjectManifest = {
@@ -350,7 +357,7 @@ const manifest: ProjectManifest = {
     },
     {
       name: 'V10',
-      frozen: false,
+      frozen: true,
       pages: [
         {
           name: 'Tokens',
@@ -393,6 +400,63 @@ const manifest: ProjectManifest = {
             { id: 'v10-annot-interactive', title: 'Annotation Panel — Interactive', component: V10AnnotationPanelInteractive },
             { id: 'v10-annot-empty', title: 'Annotation Panel — Empty State', component: V10AnnotationPanelEmpty },
             { id: 'v10-annot-resolved', title: 'Annotation Panel — All Resolved', component: V10AnnotationPanelResolved },
+          ],
+        },
+      ],
+    },
+    {
+      name: 'V11',
+      description: 'Design System organized per Design Systems Checklist',
+      frozen: false,
+      pages: [
+        {
+          name: 'Design System',
+          grid: { columns: 1, columnWidth: 800, rowHeight: 2800, gap: 40 },
+          frames: [
+            { id: 'v11-ds', title: 'Design System — Checklist', component: DesignSystem },
+          ],
+        },
+        {
+          name: 'Tokens',
+          grid: { columns: 1, columnWidth: 560, rowHeight: 1600, gap: 40 },
+          frames: [
+            { id: 'v11-tokens', title: 'OKLCH Token System', component: V11Tokens },
+          ],
+        },
+        {
+          name: 'Components',
+          grid: { columns: 1, columnWidth: 640, rowHeight: 5600, gap: 40 },
+          frames: [
+            { id: 'v11-components', title: 'Runtime Components', component: V11Components },
+          ],
+        },
+        {
+          name: 'Shell',
+          grid: { columns: 1, columnWidth: 900, rowHeight: 600, gap: 40 },
+          frames: [
+            { id: 'v11-shell', title: 'Live App Shell', component: V11Shell },
+          ],
+        },
+        {
+          name: 'GitHub Comments Flow',
+          grid: { columns: 2, columnWidth: 560, rowHeight: 440, gap: 40 },
+          frames: [
+            { id: 'v11-step1-signin', title: 'Step 1 — Sign In', component: V11FlowStep1 },
+            { id: 'v11-step2-compose', title: 'Step 2 — Target & Compose', component: V11FlowStep2 },
+            { id: 'v11-step3-thread', title: 'Step 3 — Thread', component: V11FlowStep3 },
+            { id: 'v11-step4-pins', title: 'Step 4 — Pins', component: V11FlowStep4 },
+            { id: 'v11-step5-promote', title: 'Step 5 — Promote to Annotation', component: V11FlowStep5 },
+            { id: 'v11-step6-deeplink', title: 'Step 6 — Copy Link → Deep Link', component: V11FlowStep6 },
+            { id: 'v11-step7-resolve', title: 'Step 7 — Resolve', component: V11FlowStep7 },
+          ],
+        },
+        {
+          name: 'Annotation Panel',
+          grid: { columns: 1, columnWidth: 480, rowHeight: 600, gap: 40 },
+          frames: [
+            { id: 'v11-annot-interactive', title: 'Annotation Panel — Interactive', component: V11AnnotationPanelInteractive },
+            { id: 'v11-annot-empty', title: 'Annotation Panel — Empty State', component: V11AnnotationPanelEmpty },
+            { id: 'v11-annot-resolved', title: 'Annotation Panel — All Resolved', component: V11AnnotationPanelResolved },
           ],
         },
       ],
