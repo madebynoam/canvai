@@ -10,9 +10,10 @@ import { AnnotationOverlay } from './AnnotationOverlay'
 import { CommentOverlay } from './CommentOverlay'
 import { NewIterationDialog } from './NewIterationDialog'
 import { NewProjectDialog } from './NewProjectDialog'
+import { TourOverlay, isTourCompleted } from './TourOverlay'
 import { useNavMemory } from './useNavMemory'
 import { ZoomControl } from './ZoomControl'
-import { CanvasColorPicker } from './CanvasColorPicker'
+import { CanvasColorPicker, DEFAULT_CANVAS_COLOR } from './CanvasColorPicker'
 import { loadCanvasBg, saveCanvasBg } from './Canvas'
 import { ActionButton } from './Menu'
 import { N, D, E, S, T, R, FONT, DIM } from './tokens'
@@ -62,7 +63,12 @@ function parseUrl(manifests: ProjectManifest[]): { projectIdx: number; iteration
     const pageName = decodeURIComponent(parts[2])
     const iteration = project.iterations?.[iterationIdx]
     const idx = iteration?.pages?.findIndex(p => p.name.toLowerCase() === pageName.toLowerCase()) ?? -1
-    if (idx >= 0) pageIdx = idx
+    if (idx >= 0) {
+      pageIdx = idx
+    } else if (import.meta.env.DEV && pageName.toLowerCase() === 'context') {
+      // Context is a virtual DEV-only page, appended after manifest pages
+      pageIdx = iteration?.pages?.length ?? 0
+    }
   }
 
   return { projectIdx, iterationIdx, pageIdx }
@@ -219,6 +225,9 @@ export function CanvaiShell({ manifests, annotationEndpoint = 'http://localhost:
   const [projectDialogOpen, setProjectDialogOpen] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
   const [contextImages, setContextImages] = useState<CanvasImageFrame[]>([])
+  const [showTour, setShowTour] = useState(() => !isTourCompleted())
+  // Pending prompt request from agent (when /canvai-new is called without a prompt)
+  const [promptRequest, setPromptRequest] = useState<{ id: string; projectName: string } | null>(null)
 
   const showToast = useCallback((msg: string) => setToast(msg), [])
 
@@ -250,6 +259,58 @@ export function CanvaiShell({ manifests, annotationEndpoint = 'http://localhost:
       showToast('Failed to submit')
     }
   }, [annotationEndpoint, showToast, activeProject])
+
+  // Handle prompt request submission (from agent's /canvai-new without prompt)
+  const handlePromptRequestSubmit = useCallback(async (payload: { name: string; description: string; prompt: string }) => {
+    if (!promptRequest) return
+
+    try {
+      // Create the actual project annotation with the prompt
+      await fetch(`${annotationEndpoint}/annotations`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'project', comment: JSON.stringify(payload) }),
+      })
+      // Resolve the original prompt-request annotation
+      await fetch(`${annotationEndpoint}/annotations/${promptRequest.id}/resolve`, { method: 'POST' })
+      showToast('Project submitted')
+    } catch {
+      showToast('Failed to submit')
+    } finally {
+      setPromptRequest(null)
+    }
+  }, [annotationEndpoint, showToast, promptRequest])
+
+  // SSE listener for prompt-requested events (from agent's /canvai-new without prompt)
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const source = new EventSource(`${annotationEndpoint}/annotations/events`)
+    source.onmessage = async (e) => {
+      try {
+        const data = JSON.parse(e.data)
+        if (data.type === 'prompt-requested' && data.id) {
+          // Fetch the annotation to get the project name
+          const res = await fetch(`${annotationEndpoint}/annotations`)
+          const annotations = await res.json()
+          const annotation = annotations.find((a: { id: string }) => String(a.id) === String(data.id))
+          if (annotation) {
+            // Parse project name from comment (it's JSON: { name: "project-name" })
+            let projectName = ''
+            try {
+              const parsed = JSON.parse(annotation.comment)
+              projectName = parsed.name || ''
+            } catch {
+              projectName = annotation.comment || ''
+            }
+            setPromptRequest({ id: String(data.id), projectName })
+          }
+        }
+      } catch { /* ignore parse errors */ }
+    }
+    return () => source.close()
+  }, [annotationEndpoint])
+
   const { iterationIndex: activeIterationIndex, pageIndex: activePageIndex, setIteration: setActiveIterationIndex, setPage: setActivePageIndex } = useNavMemory(
     activeProject?.project ?? '',
     activeProject?.iterations ?? [],
@@ -395,8 +456,8 @@ export function CanvaiShell({ manifests, annotationEndpoint = 'http://localhost:
   }, [activeProject?.project, iterationName, annotationEndpoint, showToast])
 
   const projectKey = activeProject?.project ?? ''
-  const [canvasBg, setCanvasBg] = useState(() => loadCanvasBg(projectKey) ?? N.canvas)
-  useEffect(() => { setCanvasBg(loadCanvasBg(projectKey) ?? N.canvas) }, [projectKey])
+  const [canvasBg, setCanvasBg] = useState(() => loadCanvasBg(projectKey) ?? DEFAULT_CANVAS_COLOR)
+  useEffect(() => { setCanvasBg(loadCanvasBg(projectKey) ?? DEFAULT_CANVAS_COLOR) }, [projectKey])
   useEffect(() => { saveCanvasBg(projectKey, canvasBg) }, [projectKey, canvasBg])
 
   // Empty state — no projects yet
@@ -553,7 +614,8 @@ export function CanvaiShell({ manifests, annotationEndpoint = 'http://localhost:
       </div>
 
       {import.meta.env.DEV && <AnnotationOverlay endpoint={annotationEndpoint} frames={isContextPage ? [...frames, ...contextImages] : frames} showToast={showToast} project={projectKey} />}
-      <CommentOverlay endpoint={annotationEndpoint} frames={frames} onCommentCountChange={setCommentCount} />
+      {/* Comment overlay hidden for now */}
+      {/* <CommentOverlay endpoint={annotationEndpoint} frames={frames} onCommentCountChange={setCommentCount} /> */}
       {import.meta.env.DEV && (
         <NewIterationDialog
           open={iterDialogOpen}
@@ -567,6 +629,21 @@ export function CanvaiShell({ manifests, annotationEndpoint = 'http://localhost:
           onClose={() => setProjectDialogOpen(false)}
           onSubmit={handleNewProject}
         />
+      )}
+
+      {/* Prompt request dialog (from agent's /canvai-new without prompt) */}
+      {promptRequest && (
+        <NewProjectDialog
+          open={true}
+          onClose={() => setPromptRequest(null)}
+          onSubmit={handlePromptRequestSubmit}
+          defaultName={promptRequest.projectName}
+        />
+      )}
+
+      {/* First-use onboarding tour */}
+      {showTour && manifests.length > 0 && (
+        <TourOverlay onComplete={() => setShowTour(false)} />
       )}
 
       {toast && <Toast message={toast} onDone={() => setToast(null)} />}

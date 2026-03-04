@@ -9,7 +9,22 @@ Create a new design project inside Canvai and launch the dev environment.
 
 ## Steps
 
-1. **Parse the project name** from the user's command (e.g. `/canvai-new button`). If no name is provided, ask for one.
+1. **Parse the command.** The format is `/canvai-new <project-name> [description]`.
+   - If both name AND description are provided: proceed to step 2
+   - If only name is provided (no description/prompt):
+     1. Complete steps 2-6 (git init, gitignore, npm install, scaffold, MCP)
+     2. Create the project folder structure (step 7)
+     3. Launch the dev server (step 9)
+     4. Send a `prompt-request` annotation to request a prompt from the UI:
+        ```bash
+        curl -X POST http://localhost:4748/annotations \
+          -H 'Content-Type: application/json' \
+          -d '{"type":"prompt-request","comment":"{\"name\":\"<project-name>\"}"}'
+        ```
+     5. Wait for the designer's prompt using `npx canvai watch` — the response will be a `type: 'project'` annotation with the designer's prompt
+     6. Parse the prompt from the annotation's `comment` field (it's JSON: `{ name, description, prompt }`)
+     7. Continue with the **What happens next** sequence using the designer's prompt
+   - If no name provided: ask for one
 
 2. **Initialize git** — check for a `.git` directory in the current folder.
    - If missing: run `git init`

@@ -7,20 +7,25 @@ interface CanvasColorPreset {
   value: string
 }
 
+// Cool grays from light to dark (subtle blue hue for a modern feel)
 const presets: CanvasColorPreset[] = [
-  { name: 'Default', value: 'oklch(0.965 0.003 240)' },
-  { name: 'Cool', value: 'oklch(0.955 0.005 240)' },
-  { name: 'Neutral', value: 'oklch(0.940 0.000 0)' },
-  { name: 'Dark', value: 'oklch(0.220 0.005 240)' },
-  { name: 'Midnight', value: 'oklch(0.150 0.008 250)' },
+  { name: 'White', value: 'oklch(0.985 0.003 250)' },
+  { name: 'Light', value: 'oklch(0.94 0.006 250)' },
+  { name: 'Soft', value: 'oklch(0.86 0.008 250)' },
+  { name: 'Neutral', value: 'oklch(0.75 0.008 250)' },  // Default (middle)
+  { name: 'Muted', value: 'oklch(0.55 0.010 250)' },
+  { name: 'Dim', value: 'oklch(0.35 0.010 250)' },
+  { name: 'Dark', value: 'oklch(0.18 0.008 250)' },
 ]
+
+export const DEFAULT_CANVAS_COLOR = 'oklch(0.75 0.008 250)'
 
 function ColorDot({ preset, isActive, onSelect }: {
   preset: CanvasColorPreset
   isActive: boolean
   onSelect: () => void
 }) {
-  const isDark = preset.name === 'Dark' || preset.name === 'Midnight'
+  const isDark = preset.name === 'Dark' || preset.name === 'Dim' || preset.name === 'Muted'
 
   return (
     <button

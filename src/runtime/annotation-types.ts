@@ -1,6 +1,6 @@
 export interface CanvaiAnnotation {
   id: string
-  type?: 'annotation' | 'iteration' | 'project'
+  type?: 'annotation' | 'iteration' | 'project' | 'prompt-request'
   project?: string
   frameId: string
   componentName: string
@@ -13,4 +13,6 @@ export interface CanvaiAnnotation {
   comment: string
   timestamp: number
   status: 'draft' | 'pending' | 'resolved'
+  /** Mode for annotation: 'refine' = edit specific element, 'ideate' = generate 3+ different frames */
+  mode?: 'refine' | 'ideate'
 }

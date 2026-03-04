@@ -2,6 +2,7 @@ import { useRef, useEffect, useState } from 'react'
 import { SlidersHorizontal, ExternalLink } from 'lucide-react'
 import { N, S, T, ICON, FONT } from './tokens'
 import { useMenu, MenuPanel, MenuRow } from './Menu'
+import { resetTourCompleted } from './TourOverlay'
 
 const GITHUB_URL = 'https://github.com/madebynoam/canvai'
 
@@ -57,6 +58,19 @@ export function InfoButton() {
           }}>
             v{typeof __CANVAI_VERSION__ !== 'undefined' ? __CANVAI_VERSION__ : '0.0.0'}
           </div>
+          <MenuRow
+            onClick={() => {
+              resetTourCompleted()
+              window.location.reload()
+            }}
+            style={{
+              padding: `${S.xs}px ${S.sm}px`,
+              fontSize: T.ui,
+              color: N.txtSec,
+            }}
+          >
+            Relaunch tour
+          </MenuRow>
           <MenuRow
             href={GITHUB_URL}
             style={{

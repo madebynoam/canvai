@@ -36,6 +36,44 @@ interface AnnotationOverlayProps {
   project?: string
 }
 
+/* ── Mode toggle (Refine / Ideate) — compact, secondary to actions ── */
+function ModeToggle({ value, onChange }: {
+  value: 'refine' | 'ideate'
+  onChange: (mode: 'refine' | 'ideate') => void
+}) {
+  const options = ['refine', 'ideate'] as const
+
+  return (
+    <div style={{
+      display: 'flex',
+      gap: 2,
+    }}>
+      {options.map(m => {
+        const active = value === m
+        return (
+          <button
+            key={m}
+            onClick={() => onChange(m)}
+            style={{
+              border: 'none',
+              cursor: 'default',
+              padding: `2px 6px`,
+              borderRadius: 4,
+              background: active ? 'oklch(0.92 0.005 250)' : 'transparent',
+              fontSize: 11,
+              fontWeight: active ? 500 : 400,
+              fontFamily: FONT,
+              color: active ? N.txtPri : N.txtTer,
+            }}
+          >
+            {m === 'refine' ? 'Refine' : 'Ideate'}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
 /* ── Marker dot ── */
 function MarkerDot({ id, comment, rect, onClick, progress }: {
   id: number
@@ -195,6 +233,7 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
   const [highlight, setHighlight] = useState<DOMRect | null>(null)
   const [target, setTarget] = useState<TargetInfo | null>(null)
   const [comment, setComment] = useState('')
+  const [annotationMode, setAnnotationMode] = useState<'refine' | 'ideate'>('refine')
   const [buttonState, setButtonState] = useState<'idle' | 'hover' | 'pressed'>('idle')
   const [markers, setMarkers] = useState<AnnotationMarker[]>([])
   const [markerRects, setMarkerRects] = useState<Map<number, DOMRect>>(new Map())
@@ -618,6 +657,7 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
       elementText: target.elementText,
       computedStyles: target.computedStyles,
       comment: comment.trim(),
+      mode: annotationMode,
     }
 
     try {
@@ -666,7 +706,7 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
     setTarget(null)
     setComment('')
     setEditingMarkerId(null)
-  }, [target, comment, endpoint, editingMarkerId, toast, project])
+  }, [target, comment, endpoint, editingMarkerId, toast, project, annotationMode])
 
   const handleCancel = useCallback(() => {
     // If canceling a new connection, remove it
@@ -944,6 +984,8 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
               }}
             />
             <DialogActions>
+              <ModeToggle value={annotationMode} onChange={setAnnotationMode} />
+              <div style={{ flex: 1 }} />
               <ActionButton variant="ghost" onClick={handleCancel}>Cancel</ActionButton>
               <ActionButton variant="primary" disabled={!comment.trim()} onClick={handleApply}>Save</ActionButton>
             </DialogActions>
@@ -955,6 +997,7 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
       {/* FAB */}
       {mode === 'idle' && (
         <div
+          data-tour-id="annotation-fab"
           style={{
             position: 'fixed',
             bottom: S.lg + S.md,

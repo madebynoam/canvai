@@ -85,16 +85,19 @@ export function IterationSidebar({ iterationName, pages, activePageIndex, onSele
   }
 
   return (
-    <div style={{
-      width: collapsed ? 0 : DIM.sidebar,
-      backgroundColor: N.chrome,
-      padding: `${S.md}px 0`,
-      display: 'flex',
-      flexDirection: 'column',
-      overflow: 'hidden',
-      flexShrink: 0,
-      fontFamily: FONT,
-    }}>
+    <div
+      data-tour-id="sidebar"
+      style={{
+        width: collapsed ? 0 : DIM.sidebar,
+        backgroundColor: N.chrome,
+        padding: `${S.md}px 0`,
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+        flexShrink: 0,
+        fontFamily: FONT,
+      }}
+    >
       {/* System section */}
       {systemPages.length > 0 && (
         <div style={{ marginBottom: S.lg }}>

@@ -105,7 +105,7 @@ loadAnnotations()
 
 function addAnnotation(data) {
   const id = String(nextId++)
-  const isImmediate = data.type === 'iteration' || data.type === 'project'
+  const isImmediate = data.type === 'iteration' || data.type === 'project' || data.type === 'prompt-request'
   const annotation = {
     id,
     type: isImmediate ? data.type : 'annotation',
@@ -121,18 +121,22 @@ function addAnnotation(data) {
     comment: data.comment ?? '',
     timestamp: Date.now(),
     status: isImmediate ? 'pending' : 'draft',
+    mode: data.mode ?? 'refine',
   }
   annotations.set(id, annotation)
   persistAnnotations()
 
-  // Immediate annotations (iteration, project) skip draft — immediately unblock a waiter
+  // Immediate annotations (iteration, project, prompt-request) skip draft — immediately unblock a waiter
   if (isImmediate) {
     if (waiters.length > 0) {
       const waiter = waiters.shift()
       waiter.resolve(annotation)
     }
     // Notify SSE clients
-    const sseType = data.type === 'project' ? 'project-pending' : 'iteration-pending'
+    let sseType
+    if (data.type === 'project') sseType = 'project-pending'
+    else if (data.type === 'prompt-request') sseType = 'prompt-requested'
+    else sseType = 'iteration-pending'
     for (const client of sseClients) {
       client.write(`data: ${JSON.stringify({ type: sseType, id })}\n\n`)
     }

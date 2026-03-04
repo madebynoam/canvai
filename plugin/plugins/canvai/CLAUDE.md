@@ -143,6 +143,36 @@ draft → pending → resolved
 
 Drafts created on Save, visible in TopBar dropdown. "Apply" promotes to pending — only then does the agent receive them. Immediate annotations (`type: 'iteration'`, `type: 'project'`) skip draft stage.
 
+### Annotation mode (`mode` field)
+
+Every annotation has a `mode` field: `'refine'` or `'ideate'`.
+
+**Refine mode** (default):
+- Edit the specific element the designer targeted
+- Make the requested change to existing code
+- Result: updated component/token
+
+**Ideate mode**:
+- Generate **3+ genuinely different frames** exploring the designer's request
+- "Genuinely different" means different in **layout, hierarchy, interaction, or density** — NOT just color or font variations
+- Each frame should be a distinct design bet, not a tweak of the same idea
+- Result: multiple new frames on the canvas
+
+**First generation always implies ideate behavior:**
+- When a designer describes a component for the first time (no existing frames)
+- When `type: 'project'` is received (new project)
+- When `type: 'iteration'` includes design prompts
+
+**Examples of "genuinely different":**
+- Dashboard: card-based vs. table-based vs. sidebar+main layout
+- Button group: horizontal pills vs. segmented control vs. icon toggle
+- Navigation: top bar vs. sidebar vs. bottom sheet
+
+**Not "genuinely different":**
+- Same layout with different accent colors
+- Same component with minor spacing tweaks
+- Same hierarchy with different font weights
+
 ### Processing annotations
 
 1. Read `frameId`, `componentName`, `selector`, `comment`, `computedStyles`

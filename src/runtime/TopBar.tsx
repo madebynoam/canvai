@@ -85,7 +85,7 @@ export function TopBar({
         />
 
         {iterations.length > 0 && (
-          <>
+          <div data-tour-id="iteration-picker" style={{ display: 'flex', alignItems: 'center', gap: S.xs }}>
             <span style={{ fontSize: T.ui, color: N.border, userSelect: 'none' }}>/</span>
             <PickerDropdown
               items={reversedIterations}
@@ -132,7 +132,7 @@ export function TopBar({
                 </MenuRow>
               ) : undefined}
             />
-          </>
+          </div>
         )}
       </div>
 

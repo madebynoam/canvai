@@ -50,6 +50,8 @@ import { Shell as V11Shell } from './v11/pages/shell'
 import { FlowStep1_SignIn as V11FlowStep1, FlowStep2_Compose as V11FlowStep2, FlowStep3_Thread as V11FlowStep3, FlowStep4_Pins as V11FlowStep4, FlowStep5_Promote as V11FlowStep5, FlowStep6_DeepLink as V11FlowStep6, FlowStep7_Resolve as V11FlowStep7 } from './v11/pages/comments'
 import { AnnotationPanelInteractive as V11AnnotationPanelInteractive, AnnotationPanelEmpty as V11AnnotationPanelEmpty, AnnotationPanelResolved as V11AnnotationPanelResolved } from './v11/pages/annotation-panel'
 import { DesignSystem } from './v11/pages/design-system'
+import { DSSpecimen } from './v11/pages/ds-specimen'
+import { DSMatrix } from './v11/pages/ds-matrix'
 import type { ProjectManifest } from '../../runtime/types'
 
 const manifest: ProjectManifest = {
@@ -411,9 +413,11 @@ const manifest: ProjectManifest = {
       pages: [
         {
           name: 'Design System',
-          grid: { columns: 1, columnWidth: 800, rowHeight: 2800, gap: 40 },
+          grid: { columns: 3, columnWidth: 900, rowHeight: 2400, gap: 40 },
           frames: [
-            { id: 'v11-ds', title: 'Design System — Checklist', component: DesignSystem },
+            { id: 'v11-ds-catalog', title: 'Direction 1 — Catalog', component: DesignSystem },
+            { id: 'v11-ds-specimen', title: 'Direction 2 — Specimen', component: DSSpecimen },
+            { id: 'v11-ds-matrix', title: 'Direction 3 — Matrix (Dark)', component: DSMatrix },
           ],
         },
         {

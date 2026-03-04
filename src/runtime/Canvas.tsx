@@ -455,6 +455,7 @@ export function Canvas({ children, pageKey, hud, onImagePaste }: CanvasProps) {
   return (
     <div
       ref={containerRef}
+      data-tour-id="canvas"
       style={{
         width: '100%',
         height: '100%',
