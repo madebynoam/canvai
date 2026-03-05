@@ -73,6 +73,8 @@ export interface IterationManifest {
   description?: string
   frozen?: boolean
   pages: PageManifest[]
+  /** ID of the picked frame in this iteration (for visual treatment) */
+  pickedFrameId?: string
 }
 
 /** A project manifest — exported from src/projects/<name>/manifest.ts */

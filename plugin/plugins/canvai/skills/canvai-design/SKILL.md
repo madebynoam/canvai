@@ -97,6 +97,24 @@ Start the Canvai dev server and enter watch mode.
    7. Run `npx canvai resolve <id>`
    8. Run `npx canvai watch` again — back to waiting
 
+   **Pick request arrives** (JSON has `type: 'pick'`) — promote the picked direction to a new iteration:
+   1. Read the `frameId` and `comment` from the annotation
+   2. Run `npx canvai progress <id> "Picking direction..."`
+   3. Find the frame's source file (component or page) from the frameId
+   4. Create a new iteration that:
+      - Copies the picked direction as the starting point
+      - Builds out all states (loading, error, empty, success, etc.)
+      - Names it appropriately (e.g., "V3 — Picked Direction")
+   5. Update the **previous iteration's manifest** entry:
+      - Set `pickedFrameId` to the chosen frame's ID (this fades other frames)
+      - Set `frozen: true`
+   6. Add the new iteration to manifest with `frozen: false`
+   7. Run `npx canvai progress <id> "Taking screenshot..."`
+   8. Run `npx canvai screenshot` to verify the result
+   9. Run `npx canvai resolve <id>` (auto-commits)
+   10. Log to `CHANGELOG.md`
+   - Run `npx canvai watch` again — back to waiting
+
    **Context image annotation arrives** (annotation on a `Context Image` component) — use the image for inspiration:
    - Run `npx canvai context --project <name> --iteration <v>` to get image paths
    - Read the images with the Read tool to analyze via Vision

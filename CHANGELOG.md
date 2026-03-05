@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.0.45 — Pick a Direction
+
+- Added "Pick" mode to annotation toggle — designers can now designate a frame as the "winner" from multiple directions
+- Three-way toggle in annotation dialog: Refine | Ideate | Pick
+- Pick mode uses green accent color (matches Share button "Shared" state)
+- Pick option only shows when targeting frames (hidden for connections and canvas notes)
+- AnnotationPanel shows Trophy icon and "Picked this direction" for pick annotations
+- Added `pickedFrameId` field to IterationManifest type
+- Frame component supports `faded` prop — picked frame renders normally, others show 40% opacity and 50% saturation
+- Agent creates new iteration from picked direction with all states built out
+- Updated canvai-design skill with "Pick request arrives" documentation
+
 ## 0.0.44 — Paste Anywhere
 
 - Images can now be pasted on any page, not just Context

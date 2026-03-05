@@ -592,21 +592,26 @@ export function CanvaiShell({ manifests, annotationEndpoint = 'http://localhost:
               </>}
             >
               {/* Render component frames */}
-              {frames.map(frame => (
-                <Frame
-                  key={frame.id}
-                  id={frame.id}
-                  title={frame.title}
-                  x={frame.x}
-                  y={frame.y}
-                  width={frame.width}
-                  height={frame.height}
-                  onMove={(id, newX, newY) => updateFrame(id, { x: newX, y: newY })}
-                  onResize={handleResize}
-                >
-                  {'component' in frame && <frame.component {...(frame.props ?? {})} />}
-                </Frame>
-              ))}
+              {frames.map(frame => {
+                const pickedFrameId = activeIteration?.pickedFrameId
+                const isFaded = pickedFrameId ? frame.id !== pickedFrameId : false
+                return (
+                  <Frame
+                    key={frame.id}
+                    id={frame.id}
+                    title={frame.title}
+                    x={frame.x}
+                    y={frame.y}
+                    width={frame.width}
+                    height={frame.height}
+                    onMove={(id, newX, newY) => updateFrame(id, { x: newX, y: newY })}
+                    onResize={handleResize}
+                    faded={isFaded}
+                  >
+                    {'component' in frame && <frame.component {...(frame.props ?? {})} />}
+                  </Frame>
+                )
+              })}
               {/* Render pasted images on current page */}
               {currentPageImages.map(img => (
                 <Frame

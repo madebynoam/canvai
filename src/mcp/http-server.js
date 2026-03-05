@@ -105,7 +105,7 @@ loadAnnotations()
 
 function addAnnotation(data) {
   const id = String(nextId++)
-  const isImmediate = data.type === 'iteration' || data.type === 'project' || data.type === 'prompt-request' || data.type === 'share'
+  const isImmediate = data.type === 'iteration' || data.type === 'project' || data.type === 'prompt-request' || data.type === 'share' || data.type === 'pick'
   const annotation = {
     id,
     type: isImmediate ? data.type : 'annotation',
@@ -137,6 +137,7 @@ function addAnnotation(data) {
     if (data.type === 'project') sseType = 'project-pending'
     else if (data.type === 'prompt-request') sseType = 'prompt-requested'
     else if (data.type === 'share') sseType = 'share-pending'
+    else if (data.type === 'pick') sseType = 'pick-pending'
     else sseType = 'iteration-pending'
     for (const client of sseClients) {
       client.write(`data: ${JSON.stringify({ type: sseType, id })}\n\n`)

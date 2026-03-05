@@ -36,12 +36,20 @@ interface AnnotationOverlayProps {
   project?: string
 }
 
-/* ── Mode toggle (Refine / Ideate) — compact, secondary to actions ── */
-function ModeToggle({ value, onChange }: {
-  value: 'refine' | 'ideate'
-  onChange: (mode: 'refine' | 'ideate') => void
+/* ── Mode toggle (Refine / Ideate / Pick) — compact, secondary to actions ── */
+type AnnotationMode = 'refine' | 'ideate' | 'pick'
+
+function ModeToggle({ value, onChange, showPick = true }: {
+  value: AnnotationMode
+  onChange: (mode: AnnotationMode) => void
+  showPick?: boolean
 }) {
-  const options = ['refine', 'ideate'] as const
+  const options: AnnotationMode[] = showPick
+    ? ['refine', 'ideate', 'pick']
+    : ['refine', 'ideate']
+
+  // Green accent for Pick mode (matches Share button "Shared" state)
+  const pickActiveColor = 'oklch(0.55 0.14 155)'
 
   return (
     <div style={{
@@ -50,6 +58,7 @@ function ModeToggle({ value, onChange }: {
     }}>
       {options.map(m => {
         const active = value === m
+        const isPick = m === 'pick'
         return (
           <button
             key={m}
@@ -59,14 +68,18 @@ function ModeToggle({ value, onChange }: {
               cursor: 'default',
               padding: `2px 6px`,
               borderRadius: 4,
-              background: active ? 'oklch(0.92 0.005 250)' : 'transparent',
+              background: active
+                ? (isPick ? pickActiveColor : 'oklch(0.92 0.005 250)')
+                : 'transparent',
               fontSize: 11,
               fontWeight: active ? 500 : 400,
               fontFamily: FONT,
-              color: active ? N.txtPri : N.txtTer,
+              color: active
+                ? (isPick ? '#fff' : N.txtPri)
+                : N.txtTer,
             }}
           >
-            {m === 'refine' ? 'Refine' : 'Ideate'}
+            {m === 'refine' ? 'Refine' : m === 'ideate' ? 'Ideate' : 'Pick'}
           </button>
         )
       })}
@@ -233,7 +246,7 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
   const [highlight, setHighlight] = useState<DOMRect | null>(null)
   const [target, setTarget] = useState<TargetInfo | null>(null)
   const [comment, setComment] = useState('')
-  const [annotationMode, setAnnotationMode] = useState<'refine' | 'ideate'>('refine')
+  const [annotationMode, setAnnotationMode] = useState<AnnotationMode>('refine')
   const [buttonState, setButtonState] = useState<'idle' | 'hover' | 'pressed'>('idle')
   const [markers, setMarkers] = useState<AnnotationMarker[]>([])
   const [markerRects, setMarkerRects] = useState<Map<number, DOMRect>>(new Map())
@@ -647,7 +660,7 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
 
     const body = {
       project,
-      type: isConnection ? 'connection' : undefined,
+      type: isConnection ? 'connection' : annotationMode === 'pick' ? 'pick' : undefined,
       frameId: target.frameId,
       componentName: target.componentName,
       props: serverProps,
@@ -984,7 +997,11 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
               }}
             />
             <DialogActions>
-              <ModeToggle value={annotationMode} onChange={setAnnotationMode} />
+              <ModeToggle
+                value={annotationMode}
+                onChange={setAnnotationMode}
+                showPick={!!target.frameId && target.elementTag !== 'connection' && target.elementTag !== 'canvas'}
+              />
               <div style={{ flex: 1 }} />
               <ActionButton variant="ghost" onClick={handleCancel}>Cancel</ActionButton>
               <ActionButton variant="primary" disabled={!comment.trim()} onClick={handleApply}>Save</ActionButton>

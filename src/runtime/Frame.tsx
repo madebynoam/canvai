@@ -12,9 +12,11 @@ interface FrameProps {
   children: ReactNode
   onMove?: (id: string, x: number, y: number) => void
   onResize?: (id: string, height: number) => void
+  /** True when another frame in iteration is picked — shows this frame faded */
+  faded?: boolean
 }
 
-export function Frame({ id, title, x, y, width, height, children, onMove, onResize }: FrameProps) {
+export function Frame({ id, title, x, y, width, height, children, onMove, onResize, faded }: FrameProps) {
   const { zoom } = useCanvas()
   const frameRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
@@ -85,6 +87,9 @@ export function Frame({ id, title, x, y, width, height, children, onMove, onResi
         left: x,
         top: y,
         width,
+        opacity: faded ? 0.4 : 1,
+        filter: faded ? 'saturate(0.5)' : undefined,
+        transition: 'opacity 0.2s ease-out, filter 0.2s ease-out',
       }}
     >
       <div

@@ -1,13 +1,13 @@
 import { useState, useEffect, useCallback } from 'react'
 import { N, A, F, D, S, R, T, ICON, FONT } from './tokens'
-import { Wand2, Crosshair, Loader2 } from 'lucide-react'
+import { Wand2, Crosshair, Loader2, Trophy } from 'lucide-react'
 import { useMenu, MenuPanel } from './Menu'
 
 /* ─── Types ───────────────────────────────────────────── */
 
 interface Annotation {
   id: string
-  type?: 'annotation' | 'iteration' | 'project'
+  type?: 'annotation' | 'iteration' | 'project' | 'pick'
   comment: string
   componentName: string
   elementTag: string
@@ -112,13 +112,13 @@ function AnnotationRow({
         cursor: 'default',
       }}
     >
-      {/* Marker dot — smaller font for better fit */}
+      {/* Marker dot or Trophy icon for pick */}
       <div
         style={{
           width: S.lg,
           height: S.lg,
           borderRadius: '50%',
-          backgroundColor: isResolved ? N.txtMuted : F.marker,
+          backgroundColor: isResolved ? N.txtMuted : (annotation.type === 'pick' ? 'oklch(0.55 0.14 155)' : F.marker),
           color: D.text,
           display: 'flex',
           alignItems: 'center',
@@ -129,7 +129,7 @@ function AnnotationRow({
           marginTop: 2,
         }}
       >
-        {displayIndex}
+        {annotation.type === 'pick' ? <Trophy size={10} strokeWidth={2} /> : displayIndex}
       </div>
 
       {/* Content */}
@@ -145,14 +145,14 @@ function AnnotationRow({
           {annotation.comment}
         </div>
         <div style={{ fontSize: T.ui, color: N.txtSec, marginTop: 2 }}>
-          {annotation.type === 'iteration' ? 'Iteration request' : annotation.type === 'project' ? 'Project request' : <>{annotation.componentName} &middot; {annotation.elementTag}</>}
+          {annotation.type === 'iteration' ? 'Iteration request' : annotation.type === 'project' ? 'Project request' : annotation.type === 'pick' ? 'Picked this direction' : <>{annotation.componentName} &middot; {annotation.elementTag}</>}
         </div>
       </div>
 
       {/* Actions — show on hover */}
       {hovered && !isResolved && (
         <div style={{ display: 'flex', alignItems: 'center', gap: S.xs, flexShrink: 0, marginTop: 2 }}>
-          {annotation.type !== 'iteration' && annotation.type !== 'project' && (
+          {annotation.type !== 'iteration' && annotation.type !== 'project' && annotation.type !== 'pick' && (
             <button
               onClick={(e) => { e.stopPropagation(); onNavigate(annotation.id) }}
               title="Navigate to element"
