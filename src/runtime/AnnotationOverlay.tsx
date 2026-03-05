@@ -75,8 +75,8 @@ function ModeToggle({ value, onChange }: {
 }
 
 /* ── Marker dot ── */
-function MarkerDot({ id, comment, rect, onClick, progress }: {
-  id: number
+function MarkerDot({ displayIndex, comment, rect, onClick, progress }: {
+  displayIndex: number
   comment: string
   rect: DOMRect
   onClick: () => void
@@ -96,7 +96,7 @@ function MarkerDot({ id, comment, rect, onClick, progress }: {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontSize: T.ui,
+          fontSize: 10,
           fontWeight: 700,
           fontFamily: FONT,
           boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08), 0 1px 2px rgba(0,0,0,0.15), 0 0 0 0.5px rgba(0,0,0,0.06)',
@@ -104,7 +104,7 @@ function MarkerDot({ id, comment, rect, onClick, progress }: {
           userSelect: 'none',
         }}
       >
-        {id}
+        {displayIndex}
       </div>
       {progress && (
         <div style={{
@@ -1036,13 +1036,13 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
       )}
 
       {/* Annotation markers */}
-      {markers.map((marker) => {
+      {markers.map((marker, index) => {
         const rect = markerRects.get(marker.id)
         if (!rect) return null
         return (
           <MarkerDot
             key={marker.id}
-            id={marker.id}
+            displayIndex={index + 1}
             comment={marker.comment}
             rect={rect}
             progress={marker.progress}

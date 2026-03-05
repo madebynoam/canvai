@@ -83,11 +83,13 @@ function AnnotationBadge({ count, pendingCount, onClick }: { count: number; pend
 
 function AnnotationRow({
   annotation,
+  displayIndex,
   onApply,
   onNavigate,
   showApply,
 }: {
   annotation: Annotation
+  displayIndex: number
   onApply: (id: string) => void
   onNavigate: (id: string) => void
   showApply: boolean
@@ -110,7 +112,7 @@ function AnnotationRow({
         cursor: 'default',
       }}
     >
-      {/* Marker dot */}
+      {/* Marker dot — smaller font for better fit */}
       <div
         style={{
           width: S.lg,
@@ -121,13 +123,13 @@ function AnnotationRow({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontSize: T.ui,
-          fontWeight: 600,
+          fontSize: 10,
+          fontWeight: 700,
           flexShrink: 0,
           marginTop: 2,
         }}
       >
-        {annotation.id}
+        {displayIndex}
       </div>
 
       {/* Content */}
@@ -364,10 +366,11 @@ export function AnnotationPanelWidget({ endpoint }: { endpoint: string }) {
             </div>
           )}
 
-          {drafts.map(a => (
+          {drafts.map((a, i) => (
             <AnnotationRow
               key={a.id}
               annotation={a}
+              displayIndex={i + 1}
               onApply={handleApplyOne}
               onNavigate={handleNavigate}
               showApply={true}
@@ -391,10 +394,11 @@ export function AnnotationPanelWidget({ endpoint }: { endpoint: string }) {
               }}>
                 Resolved
               </div>
-              {resolved.map(a => (
+              {resolved.map((a, i) => (
                 <AnnotationRow
                   key={a.id}
                   annotation={a}
+                  displayIndex={i + 1}
                   onApply={handleApplyOne}
                   onNavigate={handleNavigate}
                   showApply={false}
