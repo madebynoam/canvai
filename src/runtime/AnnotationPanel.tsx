@@ -389,16 +389,16 @@ export function AnnotationPanelWidget({ endpoint }: { endpoint: string }) {
                 fontWeight: 500,
                 padding: `${S.sm}px ${S.sm}px`,
                 marginTop: drafts.length > 0 ? S.xs : 0,
-                
+
                 letterSpacing: 0.5,
               }}>
                 Resolved
               </div>
-              {resolved.map((a, i) => (
+              {[...resolved].reverse().map((a, i) => (
                 <AnnotationRow
                   key={a.id}
                   annotation={a}
-                  displayIndex={i + 1}
+                  displayIndex={resolved.length - i}
                   onApply={handleApplyOne}
                   onNavigate={handleNavigate}
                   showApply={false}
