@@ -170,7 +170,7 @@ Drafts created on Save, visible in TopBar dropdown. "Apply" promotes to pending 
 
 ### Annotation mode (`mode` field)
 
-Every annotation has a `mode` field: `'refine'` or `'ideate'`.
+Every annotation has a `mode` field: `'refine'`, `'ideate'`, or `'pick'`.
 
 **Refine mode** (default):
 - Edit the specific element the designer targeted
@@ -182,6 +182,19 @@ Every annotation has a `mode` field: `'refine'` or `'ideate'`.
 - "Genuinely different" means different in **layout, hierarchy, interaction, or density** — NOT just color or font variations
 - Each frame should be a distinct design bet, not a tweak of the same idea
 - Result: multiple new frames on the canvas
+
+**Pick mode** (CRITICAL — designer chose this direction):
+- The designer selected this frame as THE direction to move forward with
+- Store `pickedFrameId` in manifest for this iteration
+- When creating the NEXT iteration after a pick:
+  1. **Rebuild components from scratch** based on the picked frame's actual rendered output
+  2. **Extract exact tokens** — colors, spacing, typography from the picked design, not the old tokens.css
+  3. **Match 1:1** — the new iteration's components must visually match the picked frame exactly
+  4. Do NOT copy old components and tweak them — recreate based on what the picked frame actually looks like
+- The pick is a commitment: all future work builds on this exact design, not approximations
+
+**Why this matters:**
+During ideation, multiple directions may have different component implementations. When the designer picks one, they're choosing THAT specific visual result. Copying old components and adjusting defeats the purpose — the new iteration must faithfully reproduce the picked design.
 
 **First generation always implies ideate behavior:**
 - When a designer describes a component for the first time (no existing frames)
