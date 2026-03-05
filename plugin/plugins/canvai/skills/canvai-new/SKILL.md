@@ -11,20 +11,8 @@ Create a new design project inside Canvai and launch the dev environment.
 
 1. **Parse the command.** The format is `/canvai-new <project-name> [description]`.
    - If both name AND description are provided: proceed to step 2
-   - If only name is provided (no description/prompt):
-     1. Complete steps 2-6 (git init, gitignore, npm install, scaffold, MCP)
-     2. Create the project folder structure (step 7)
-     3. Launch the dev server (step 9)
-     4. Send a `prompt-request` annotation to request a prompt from the UI:
-        ```bash
-        curl -X POST http://localhost:4748/annotations \
-          -H 'Content-Type: application/json' \
-          -d '{"type":"prompt-request","comment":"{\"name\":\"<project-name>\"}"}'
-        ```
-     5. Wait for the designer's prompt using `npx canvai watch` — the response will be a `type: 'project'` annotation with the designer's prompt
-     6. Parse the prompt from the annotation's `comment` field (it's JSON: `{ name, description, prompt }`)
-     7. Continue with the **What happens next** sequence using the designer's prompt
-   - If no name provided: ask for one
+   - If only name is provided (no description/prompt): **Use AskUserQuestion** to ask "What would you like to design?" with example options like "Dashboard", "Landing page", "Mobile app", "Component library". Use their response as the description and proceed.
+   - If no name provided: **Use AskUserQuestion** to ask for a project name first, then ask what they want to design.
 
 2. **Initialize git** — check for a `.git` directory in the current folder.
    - If missing: run `git init`
@@ -88,20 +76,36 @@ Create a new design project inside Canvai and launch the dev environment.
 
 ## What happens next
 
-After init, the designer describes a component (or attaches a sketch). The agent follows this exact sequence — **order matters**:
+After init, the designer describes what they want. The agent follows this exact sequence — **order matters**:
 
-0. **Check for context images** — Call `get_context_images({ project, iteration: 'v1' })` to see if the designer pasted any inspiration images. If present, analyze them via Vision and incorporate their style into the token choices and design generation.
+0. **Check for context images** — Run `npx canvai context --project <name> --iteration v1` to see if the designer pasted any inspiration images. If present, read them via the Read tool and analyze via Vision. Incorporate their style into the design directions.
 
-1. **Populate tokens** — Write the complete OKLCH token set in `v1/tokens.css`, scoped under `:root, .iter-v1`. Derive colors from the OKLCH palette defined in CLAUDE.md. If context images are present, extract colors from them. Every visual value (color, background, border, shadow) must be a CSS custom property. No hex values.
-2. **Identify variations** — content scenarios, types, sizes (these become rows in the matrix)
-3. **Identify states** — interaction phases, conditions (these become columns in the matrix)
-4. **Create components** — build each component in `v1/components/`. Components use ONLY `var(--token)` for visual values — no hardcoded colors, sizes, or spacing. Export every component from `v1/components/index.ts`.
-5. **Create pages** — pages in `v1/pages/` that compose components. Pages import ONLY from `../components/` — never inline styled HTML. Two pages are **mandatory**:
-   - **Tokens page** — renders color swatches using `TokenSwatch` from `canvai/runtime` (click to open OKLCH picker, live preview, annotations on apply), typography scale, and spacing grid from `tokens.css`. This makes the token system visible and editable on the canvas.
-   - **Components page** — shows all building blocks individually with their variations and states.
-6. **Generate the manifest** — `manifest.ts` with iteration `name: 'V1'` containing all pages. Import `./v1/tokens.css` at the top. Iterations are always named V1, V2, V3 — sequential, never descriptive names.
-7. **Log to CHANGELOG.md** — record the initial design decisions and component inventory
-8. **The canvas auto-discovers the manifest** and renders all frames
+1. **GENERATE 3-5 DESIGN DIRECTIONS (MANDATORY)** — This is the whole point of Canvai. Before writing any code:
+   - Brainstorm 3-5 **genuinely different** design approaches
+   - "Genuinely different" means different in **layout, hierarchy, interaction pattern, or information density** — NOT just color or font variations
+   - Examples of genuinely different:
+     - Dashboard: card grid vs. data table vs. sidebar+detail vs. timeline view
+     - Landing page: hero-first vs. feature grid vs. testimonial-led vs. interactive demo
+     - Component: horizontal pills vs. vertical list vs. icon grid vs. dropdown
+   - **NOT genuinely different:** same layout with different colors, same hierarchy with different fonts
+   - Create an **"All Directions"** page in the manifest with all directions visible side by side
+   - Each direction gets its own row (use `DirectionLabel` as first frame, then the direction's frames)
+   - The designer will pick one — only then do you build out variations/states
+
+2. **Populate tokens** — Write the complete OKLCH token set in `v1/tokens.css`, scoped under `:root, .iter-v1`. Derive colors from the OKLCH palette defined in CLAUDE.md. If context images are present, extract colors from them. Every visual value (color, background, border, shadow) must be a CSS custom property. No hex values.
+
+3. **Create components for ALL directions** — build each component in `v1/components/`. Components use ONLY `var(--token)` for visual values — no hardcoded colors, sizes, or spacing. Export every component from `v1/components/index.ts`.
+
+4. **Create pages** — pages in `v1/pages/` that compose components. Pages import ONLY from `../components/` — never inline styled HTML. Three pages are **mandatory**:
+   - **All Directions page** — shows all 3-5 design directions side by side. This is the FIRST thing the designer sees.
+   - **Tokens page** — renders color swatches using `TokenSwatch` from `canvai/runtime`, typography scale, and spacing grid.
+   - **Components page** — shows all building blocks individually.
+
+5. **Generate the manifest** — `manifest.ts` with iteration `name: 'V1'` containing all pages. The "All Directions" page comes FIRST. Import `./v1/tokens.css` at the top.
+
+6. **Log to CHANGELOG.md** — record the design directions and why each is different
+
+7. **The canvas auto-discovers the manifest** and renders all frames — designer sees all directions at once
 
 The full token system, design language, component hierarchy, and guard protocol are defined in CLAUDE.md — those rules apply to every file the agent creates.
 

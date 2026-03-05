@@ -79,7 +79,7 @@ Start the Canvai dev server and enter watch mode.
    1. Parse the JSON comment: `{ name, description, prompt }`
    2. Create the project folder structure: `src/projects/<name>/v1/{tokens.css, components/index.ts, pages/, context/}`
    3. Create `manifest.ts` and `CHANGELOG.md`
-   4. If `prompt` is provided, generate the initial design following the "What happens next" sequence from `/canvai-new`. **CRITICAL: generate 3-5 distinct design directions shown side by side on an "All Directions" page.** The whole point of Canvai is seeing many at once — never generate just one design.
+   4. If `prompt` is provided, follow the "What happens next" sequence from `/canvai-new` **EXACTLY** — especially step 1 which REQUIRES generating 3-5 genuinely different design directions. The "All Directions" page must be the first thing the designer sees.
    5. Run `npx canvai resolve <id>`
    6. Run `npx canvai watch` again — back to waiting
 
