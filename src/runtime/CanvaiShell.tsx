@@ -413,7 +413,7 @@ export function CanvaiShell({ manifests, annotationEndpoint = 'http://localhost:
   }, [currentPageImages, activeProject?.project, iterationName, pageName, isContextPage, annotationEndpoint])
 
   // Handle image paste — save to server and add to current page
-  const handleImagePaste = useCallback(async (dataUrl: string, filename: string) => {
+  const handleImagePaste = useCallback(async (dataUrl: string, filename: string, viewportCenter: { x: number; y: number }) => {
     if (!activeProject?.project || !pageName) return
 
     try {
@@ -433,16 +433,18 @@ export function CanvaiShell({ manifests, annotationEndpoint = 'http://localhost:
       const result = await res.json()
 
       if (result.path) {
-        // Add to local state immediately
+        // Add to local state immediately — position near viewport center with slight offset for each image
         const pageQueryParam = isContextPage ? '' : `&page=${encodeURIComponent(pageName)}`
         const currentImages = pageImages[pageName] ?? []
+        // Offset each subsequent image slightly so they don't stack exactly
+        const offsetIndex = currentImages.length % 5
         const newImage: CanvasImageFrame = {
           type: 'image',
           id: `${pageName}-${result.filename}`,
           title: result.filename,
           src: `${annotationEndpoint}/context-image?project=${encodeURIComponent(activeProject.project)}&iteration=${encodeURIComponent(iterationName)}${pageQueryParam}&filename=${encodeURIComponent(result.filename)}`,
-          x: 50 + (currentImages.length % 4) * 320,
-          y: 50 + Math.floor(currentImages.length / 4) * 320,
+          x: viewportCenter.x - 150 + offsetIndex * 30,  // Center minus half width, plus cascade offset
+          y: viewportCenter.y - 150 + offsetIndex * 30,  // Center minus half height, plus cascade offset
           width: 300,
           height: 300,
         }

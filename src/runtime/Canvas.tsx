@@ -80,8 +80,8 @@ interface CanvasProps {
   children?: React.ReactNode
   pageKey?: string
   hud?: React.ReactNode
-  /** Called when user pastes an image — receives base64 dataUrl and filename */
-  onImagePaste?: (dataUrl: string, filename: string) => void
+  /** Called when user pastes an image — receives base64 dataUrl, filename, and viewport center position */
+  onImagePaste?: (dataUrl: string, filename: string, viewportCenter: { x: number; y: number }) => void
 }
 
 export function Canvas({ children, pageKey, hud, onImagePaste }: CanvasProps) {
@@ -415,6 +415,8 @@ export function Canvas({ children, pageKey, hud, onImagePaste }: CanvasProps) {
       return
     }
 
+    const container = containerRef.current
+
     console.log('[canvai] Paste handler attached')
 
     function handlePaste(e: ClipboardEvent) {
@@ -431,6 +433,16 @@ export function Canvas({ children, pageKey, hud, onImagePaste }: CanvasProps) {
             continue
           }
 
+          // Calculate viewport center in canvas coordinates
+          let viewportCenter = { x: 50, y: 50 }
+          if (container) {
+            const rect = container.getBoundingClientRect()
+            viewportCenter = {
+              x: (rect.width / 2 - panRef.current.x) / zoomRef.current,
+              y: (rect.height / 2 - panRef.current.y) / zoomRef.current,
+            }
+          }
+
           console.log('[canvai] Reading image blob:', blob.size, 'bytes')
           const reader = new FileReader()
           reader.onload = () => {
@@ -438,8 +450,8 @@ export function Canvas({ children, pageKey, hud, onImagePaste }: CanvasProps) {
             // Generate filename from timestamp and mime type
             const ext = item.type.split('/')[1] || 'png'
             const filename = `context-${Date.now()}.${ext}`
-            console.log('[canvai] Calling onImagePaste:', filename)
-            onImagePaste(dataUrl, filename)
+            console.log('[canvai] Calling onImagePaste:', filename, 'at', viewportCenter)
+            onImagePaste(dataUrl, filename, viewportCenter)
           }
           reader.readAsDataURL(blob)
           return // Only handle the first image

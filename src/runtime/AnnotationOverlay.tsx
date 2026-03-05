@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
-import { SquareMousePointer, Trash2 } from 'lucide-react'
+import { SquareMousePointer, Trash2, Pencil, Lightbulb, Check } from 'lucide-react'
 import { N, A, F, D, S, R, T, ICON, FONT } from './tokens'
 import { DialogCard, DialogActions, ActionButton } from './Menu'
 import type { CanvasFrame, CanvasComponentFrame, Connection } from './types'
@@ -36,53 +36,119 @@ interface AnnotationOverlayProps {
   project?: string
 }
 
-/* ── Mode toggle (Refine / Ideate / Pick) — compact, secondary to actions ── */
+/* ── Mode toggle (Refine / Ideate / Pick) — icon chips with tooltips ── */
 type AnnotationMode = 'refine' | 'ideate' | 'pick'
+
+interface ModeOption {
+  mode: AnnotationMode
+  icon: typeof Pencil
+  label: string
+  description: string
+}
+
+const MODES: ModeOption[] = [
+  { mode: 'refine', icon: Pencil, label: 'Refine', description: 'Adjust this element' },
+  { mode: 'ideate', icon: Lightbulb, label: 'Ideate', description: 'Generate new ideas' },
+  { mode: 'pick', icon: Check, label: 'Pick', description: 'Use this version' },
+]
+
+function ModeChip({ option, active, onClick }: {
+  option: ModeOption
+  active: boolean
+  onClick: () => void
+}) {
+  const [hovered, setHovered] = useState(false)
+  const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null)
+  const buttonRef = useRef<HTMLButtonElement>(null)
+
+  // Green accent for Pick mode
+  const pickActiveColor = 'oklch(0.55 0.14 155)'
+  const isPick = option.mode === 'pick'
+
+  useEffect(() => {
+    if (hovered && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect()
+      setTooltipPos({ x: rect.left + rect.width / 2, y: rect.bottom + 6 })
+    } else {
+      setTooltipPos(null)
+    }
+  }, [hovered])
+
+  return (
+    <>
+      <button
+        ref={buttonRef}
+        onClick={onClick}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        style={{
+          width: 28,
+          height: 28,
+          border: 'none',
+          cursor: 'default',
+          borderRadius: R.ui,
+          background: active
+            ? (isPick ? pickActiveColor : 'oklch(0.92 0.005 250)')
+            : hovered ? 'oklch(0.96 0.003 250)' : 'transparent',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: active
+            ? (isPick ? '#fff' : N.txtPri)
+            : N.txtSec,
+          transition: 'background 0.1s ease-out',
+        }}
+      >
+        <option.icon size={ICON.md} strokeWidth={active ? 2 : 1.5} />
+      </button>
+      {tooltipPos && (
+        <div style={{
+          position: 'fixed',
+          left: tooltipPos.x,
+          top: tooltipPos.y,
+          transform: 'translateX(-50%)',
+          background: 'oklch(0.18 0.005 250)',
+          color: D.text,
+          fontSize: 11,
+          fontFamily: FONT,
+          padding: '6px 10px',
+          borderRadius: R.ui,
+          whiteSpace: 'nowrap',
+          pointerEvents: 'none',
+          zIndex: 100000,
+          boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
+        }}>
+          <div style={{ fontWeight: 500 }}>{option.label}</div>
+          <div style={{ color: 'oklch(0.6 0 0)', marginTop: 2, fontSize: 10 }}>{option.description}</div>
+        </div>
+      )}
+    </>
+  )
+}
 
 function ModeToggle({ value, onChange, showPick = true }: {
   value: AnnotationMode
   onChange: (mode: AnnotationMode) => void
   showPick?: boolean
 }) {
-  const options: AnnotationMode[] = showPick
-    ? ['refine', 'ideate', 'pick']
-    : ['refine', 'ideate']
-
-  // Green accent for Pick mode (matches Share button "Shared" state)
-  const pickActiveColor = 'oklch(0.55 0.14 155)'
+  const options = showPick ? MODES : MODES.filter(m => m.mode !== 'pick')
 
   return (
     <div style={{
       display: 'flex',
       gap: 2,
+      background: 'oklch(0.97 0.003 250)',
+      borderRadius: R.ui,
+      padding: 2,
     }}>
-      {options.map(m => {
-        const active = value === m
-        const isPick = m === 'pick'
-        return (
-          <button
-            key={m}
-            onClick={() => onChange(m)}
-            style={{
-              border: 'none',
-              cursor: 'default',
-              padding: `2px 6px`,
-              borderRadius: 4,
-              background: active
-                ? (isPick ? pickActiveColor : 'oklch(0.92 0.005 250)')
-                : 'transparent',
-              fontSize: 11,
-              fontWeight: active ? 500 : 400,
-              fontFamily: FONT,
-              color: active
-                ? (isPick ? '#fff' : N.txtPri)
-                : N.txtTer,
-            }}
-          >
-            {m === 'refine' ? 'Refine' : m === 'ideate' ? 'Ideate' : 'Pick'}
-          </button>
-        )
-      })}
+      {options.map(opt => (
+        <ModeChip
+          key={opt.mode}
+          option={opt}
+          active={value === opt.mode}
+          onClick={() => onChange(opt.mode)}
+        />
+      ))}
     </div>
   )
 }
@@ -770,6 +836,77 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
     document.addEventListener('keydown', onKeyDown)
     return () => document.removeEventListener('keydown', onKeyDown)
   }, [mode, handleCancel])
+
+  // Global shift+click to annotate directly (skip FAB click)
+  useEffect(() => {
+    if (mode !== 'idle') return
+
+    function handleGlobalClick(e: MouseEvent) {
+      if (!e.shiftKey) return
+
+      // Find frame under cursor
+      const el = document.elementFromPoint(e.clientX, e.clientY)
+      if (!el) return
+
+      const frameEl = el.closest('[data-frame-id]')
+      if (!frameEl) {
+        // Clicked on empty canvas — canvas-level note
+        const cp = screenToCanvas(e.clientX, e.clientY)
+        setTarget({
+          frameId: '',
+          componentName: 'Canvas',
+          props: cp ? { __canvasPoint: cp } : {},
+          selector: '',
+          elementTag: 'canvas',
+          elementClasses: '',
+          elementText: '',
+          computedStyles: {},
+          rect: new DOMRect(e.clientX, e.clientY, 0, 0),
+        })
+        setHighlight(null)
+        setComment('')
+        setMode('commenting')
+        e.preventDefault()
+        e.stopPropagation()
+        return
+      }
+
+      // Clicked on a frame — target the specific element
+      const frameId = frameEl.getAttribute('data-frame-id') ?? ''
+      const frame = frames.find(f => f.id === frameId)
+      const isImage = frame && isCanvasImageFrame(frame)
+      const componentName = isImage
+        ? 'Context Image'
+        : (frame as CanvasComponentFrame)?.component?.displayName ?? (frame as CanvasComponentFrame)?.component?.name ?? 'Unknown'
+      const props = isImage
+        ? { src: frame.src }
+        : (frame as CanvasComponentFrame)?.props ?? {}
+
+      const boundary = frameEl.hasAttribute('data-frame-content') ? frameEl : frameEl.querySelector('[data-frame-content]')
+      const selector = boundary ? buildSelector(el, boundary) : el.tagName.toLowerCase()
+      const text = (el.textContent ?? '').trim().slice(0, 100)
+
+      setTarget({
+        frameId,
+        componentName,
+        props,
+        selector,
+        elementTag: el.tagName.toLowerCase(),
+        elementClasses: el.className?.toString() ?? '',
+        elementText: text,
+        computedStyles: getStyleSubset(el),
+        rect: el.getBoundingClientRect(),
+      })
+      setHighlight(null)
+      setComment('')
+      setMode('commenting')
+      e.preventDefault()
+      e.stopPropagation()
+    }
+
+    document.addEventListener('click', handleGlobalClick, true)
+    return () => document.removeEventListener('click', handleGlobalClick, true)
+  }, [mode, frames])
 
   // Click-outside to dismiss comment card (skip first frame to avoid race with originating click)
   useEffect(() => {
