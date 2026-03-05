@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { Share2, Loader2, Check } from 'lucide-react'
 import { SharePopover, type ShareStatus } from './SharePopover'
-import { N, S, R, T, FONT, ICON, DIM } from './tokens'
+import { N, S, R, T, FONT, DIM } from './tokens'
 
 interface ShareButtonProps {
   shareUrl?: string
@@ -151,17 +150,6 @@ export function ShareButton({ shareUrl, projectName, annotationEndpoint }: Share
     setPopoverOpen(true)
   }
 
-  // Determine icon
-  const renderIcon = () => {
-    if (status === 'sharing') {
-      return <Loader2 size={ICON.md} strokeWidth={1.5} style={{ animation: 'spin 1s linear infinite' }} />
-    }
-    if (status === 'shared' && shareUrl) {
-      return <Check size={ICON.md} strokeWidth={1.5} />
-    }
-    return <Share2 size={ICON.md} strokeWidth={1.5} />
-  }
-
   return (
     <div style={{ position: 'relative' }}>
       <button
@@ -170,9 +158,8 @@ export function ShareButton({ shareUrl, projectName, annotationEndpoint }: Share
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          gap: S.xs,
           height: DIM.control,
-          padding: `0 ${S.sm}px`,
+          padding: `0 ${S.md}px`,
           backgroundColor: status === 'shared' && shareUrl ? 'oklch(0.55 0.14 155)' : N.txtPri,
           color: N.card,
           border: 'none',
@@ -184,8 +171,7 @@ export function ShareButton({ shareUrl, projectName, annotationEndpoint }: Share
           transition: 'background-color 150ms ease-out',
         }}
       >
-        {renderIcon()}
-        <span>{status === 'shared' && shareUrl ? 'Shared' : 'Share'}</span>
+        {status === 'shared' && shareUrl ? 'Shared' : 'Share'}
       </button>
 
       {popoverOpen && (
@@ -240,13 +226,6 @@ export function ShareButton({ shareUrl, projectName, annotationEndpoint }: Share
           </p>
         </div>
       )}
-
-      <style>{`
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
     </div>
   )
 }
