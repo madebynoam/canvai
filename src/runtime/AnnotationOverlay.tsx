@@ -724,6 +724,11 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
     // Strip internal props before sending to server
     const { __canvasPoint: _cp, __connectionId: _connId, ...serverProps } = target.props as any
 
+    // Append ideate instruction so agent sees it clearly
+    const finalComment = annotationMode === 'ideate'
+      ? `${comment.trim()}\n\n---\n[IDEATE MODE: You MUST generate at least 5 genuinely different variations. Each must be a distinct design direction — different layout, hierarchy, or approach. Do NOT generate just 1 or 2.]`
+      : comment.trim()
+
     const body = {
       project,
       type: isConnection ? 'connection' : annotationMode === 'pick' ? 'pick' : undefined,
@@ -735,7 +740,7 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
       elementClasses: target.elementClasses,
       elementText: target.elementText,
       computedStyles: target.computedStyles,
-      comment: comment.trim(),
+      comment: finalComment,
       mode: annotationMode,
     }
 

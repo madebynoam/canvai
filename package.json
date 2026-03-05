@@ -1,6 +1,6 @@
 {
   "name": "canvai",
-  "version": "0.0.53",
+  "version": "0.0.54",
   "type": "module",
   "exports": {
     "./runtime": "./src/runtime/index.ts",

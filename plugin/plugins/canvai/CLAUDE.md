@@ -177,11 +177,14 @@ Every annotation has a `mode` field: `'refine'`, `'ideate'`, or `'pick'`.
 - Make the requested change to existing code
 - Result: updated component/token
 
-**Ideate mode**:
-- Generate **3+ genuinely different frames** exploring the designer's request
-- "Genuinely different" means different in **layout, hierarchy, interaction, or density** — NOT just color or font variations
+**Ideate mode** (MUST generate 5+ variations):
+- **MANDATORY: Generate at least 5 genuinely different frames** — NOT optional, NOT "if time permits"
+- If you only generate 1-2 frames in ideate mode, you have FAILED the task
+- "Genuinely different" means different in **layout, hierarchy, interaction, or approach** — NOT just color or font variations
 - Each frame should be a distinct design bet, not a tweak of the same idea
-- Result: multiple new frames on the canvas
+- Result: 5+ new frames on the canvas — if you don't have 5+, you're not done
+- The designer chose ideate because they WANT many options to compare — giving them few defeats the entire purpose
+- Think of it as brainstorming: quantity enables quality
 
 **Pick mode** (CRITICAL — designer chose this direction):
 - The designer selected this frame as THE direction to move forward with
