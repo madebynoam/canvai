@@ -7,8 +7,8 @@ const ORIGIN_X = 100
 const ORIGIN_Y = 100
 
 /**
- * Convert manifest frames into positioned canvas frames using a grid layout.
- * Frames flow left-to-right, wrapping at the configured column count.
+ * Convert manifest frames into positioned canvas frames.
+ * Frames flow left-to-right using ACTUAL frame widths, wrapping at column count.
  */
 export function layoutFrames(page: PageManifest): CanvasFrame[] {
   const {
@@ -18,21 +18,42 @@ export function layoutFrames(page: PageManifest): CanvasFrame[] {
     gap = DEFAULT_GAP,
   } = page.grid ?? {}
 
-  return page.frames.map((frame: ManifestFrame, index: number) => {
-    const col = index % columns
-    const row = Math.floor(index / columns)
+  // Group frames into rows
+  const rows: ManifestFrame[][] = []
+  for (let i = 0; i < page.frames.length; i += columns) {
+    rows.push(page.frames.slice(i, i + columns))
+  }
 
-    return {
-      id: frame.id,
-      title: frame.title,
-      x: ORIGIN_X + col * (columnWidth + gap),
-      y: ORIGIN_Y + row * (rowHeight + gap),
-      width: frame.width ?? columnWidth,
-      height: frame.height ?? rowHeight,
-      component: frame.component,
-      props: frame.props,
+  const result: CanvasFrame[] = []
+  let currentY = ORIGIN_Y
+
+  for (const row of rows) {
+    let currentX = ORIGIN_X
+    let maxHeight = rowHeight
+
+    for (const frame of row) {
+      const frameWidth = frame.width ?? columnWidth
+      const frameHeight = frame.height ?? rowHeight
+
+      result.push({
+        id: frame.id,
+        title: frame.title,
+        x: currentX,
+        y: currentY,
+        width: frameWidth,
+        height: frameHeight,
+        component: frame.component,
+        props: frame.props,
+      })
+
+      currentX += frameWidth + gap
+      if (frameHeight > maxHeight) maxHeight = frameHeight
     }
-  })
+
+    currentY += maxHeight + gap
+  }
+
+  return result
 }
 
 /**
