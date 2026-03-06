@@ -12,47 +12,36 @@ export const description = 'Rename canvai imports to bryllen (CanvaiShell → Br
 export const files = ['src/App.tsx', 'vite.config.ts', 'index.html']
 
 export function applies(fileContents) {
-  const app = fileContents['src/App.tsx']
-  const viteConfig = fileContents['vite.config.ts']
-  const indexHtml = fileContents['index.html']
-
-  // Check for any canvai references
-  if (app?.includes('canvai/runtime')) return true
-  if (app?.includes('virtual:canvai-manifests')) return true
-  if (app?.includes('CanvaiShell')) return true
-  if (viteConfig?.includes('canvai/vite-plugin')) return true
-  if (indexHtml?.includes('<title>Canvai</title>')) return true
-
+  // Check ALL files for any canvai references (including auto-discovered manifests/tokens)
+  for (const content of Object.values(fileContents)) {
+    if (content?.includes('canvai/runtime')) return true
+    if (content?.includes('virtual:canvai-manifests')) return true
+    if (content?.includes('CanvaiShell')) return true
+    if (content?.includes('canvai/vite-plugin')) return true
+    if (content?.includes('<title>Canvai</title>')) return true
+  }
   return false
 }
 
 export function migrate(fileContents) {
   const result = {}
 
-  // Migrate App.tsx
-  let app = fileContents['src/App.tsx']
-  if (app) {
-    // Replace CanvaiShell with BryllenShell
-    app = app.replace(/CanvaiShell/g, 'BryllenShell')
-    // Replace canvai/runtime with bryllen/runtime
-    app = app.replace(/canvai\/runtime/g, 'bryllen/runtime')
-    // Replace virtual:canvai-manifests with virtual:bryllen-manifests
-    app = app.replace(/virtual:canvai-manifests/g, 'virtual:bryllen-manifests')
-    result['src/App.tsx'] = app
-  }
+  // Process ALL files (including auto-discovered manifests and tokens)
+  for (const [filepath, content] of Object.entries(fileContents)) {
+    if (!content) continue
 
-  // Migrate vite.config.ts
-  let viteConfig = fileContents['vite.config.ts']
-  if (viteConfig) {
-    viteConfig = viteConfig.replace(/canvai\/vite-plugin/g, 'bryllen/vite-plugin')
-    result['vite.config.ts'] = viteConfig
-  }
+    let updated = content
+    // Replace all canvai references
+    updated = updated.replace(/CanvaiShell/g, 'BryllenShell')
+    updated = updated.replace(/canvai\/runtime/g, 'bryllen/runtime')
+    updated = updated.replace(/virtual:canvai-manifests/g, 'virtual:bryllen-manifests')
+    updated = updated.replace(/canvai\/vite-plugin/g, 'bryllen/vite-plugin')
+    updated = updated.replace(/<title>Canvai<\/title>/g, '<title>Bryllen</title>')
 
-  // Migrate index.html title
-  let indexHtml = fileContents['index.html']
-  if (indexHtml) {
-    indexHtml = indexHtml.replace(/<title>Canvai<\/title>/g, '<title>Bryllen</title>')
-    result['index.html'] = indexHtml
+    // Only include if changed
+    if (updated !== content) {
+      result[filepath] = updated
+    }
   }
 
   return result
