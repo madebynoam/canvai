@@ -423,6 +423,13 @@ function screenToCanvas(sx: number, sy: number): { x: number; y: number } | null
   if (!el?.parentElement) return null
   const container = el.parentElement.getBoundingClientRect()
   const matrix = new DOMMatrixReadOnly(getComputedStyle(el).transform)
+  // Validate matrix scale — if invalid, fall back to unscaled coords
+  if (matrix.a === 0 || !Number.isFinite(matrix.a)) {
+    return {
+      x: sx - container.left,
+      y: sy - container.top,
+    }
+  }
   return {
     x: (sx - container.left - matrix.e) / matrix.a,
     y: (sy - container.top - matrix.f) / matrix.a,
@@ -500,6 +507,7 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
   const [connections, setConnections] = useState<Connection[]>([])
   // Marquee selection state
   const [marqueeState, setMarqueeState] = useState<MarqueeState | null>(null)
+  const [marqueeSelectedIds, setMarqueeSelectedIds] = useState<Set<string>>(new Set())
   const [connectionRects, setConnectionRects] = useState<Map<string, { from: { x: number; y: number }; to: { x: number; y: number } }>>(new Map())
   const [hoveredConnectionId, setHoveredConnectionId] = useState<string | null>(null)
   const [editingConnectionId, setEditingConnectionId] = useState<string | null>(null)
@@ -625,14 +633,21 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
     // Update marquee state if marquee is active
     if (marqueeState) {
-      const cp = screenToCanvas(e.clientX, e.clientY)
-      if (cp) {
-        setMarqueeState(prev => prev ? {
-          ...prev,
-          currentPoint: cp,
-          screenCurrent: { x: e.clientX, y: e.clientY },
-        } : null)
-      }
+      // Use screenToCanvas if possible, otherwise fall back to screen coords
+      const cp = screenToCanvas(e.clientX, e.clientY) ?? { x: e.clientX, y: e.clientY }
+      setMarqueeState(prev => prev ? {
+        ...prev,
+        currentPoint: cp,
+        screenCurrent: { x: e.clientX, y: e.clientY },
+      } : null)
+      // Update live selection preview
+      const selectedFrames = findFramesInRect(frames, {
+        x1: marqueeState.startPoint.x,
+        y1: marqueeState.startPoint.y,
+        x2: cp.x,
+        y2: cp.y,
+      })
+      setMarqueeSelectedIds(new Set(selectedFrames.map(f => f.id)))
       return
     }
 
@@ -703,7 +718,7 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
     // Empty canvas → show a small dot at cursor for "click to add note"
     const sz = 8
     setHighlight(new DOMRect(e.clientX - sz / 2, e.clientY - sz / 2, sz, sz))
-  }, [mode, dragState, isContextImageFrame])
+  }, [mode, dragState, marqueeState, frames, isContextImageFrame])
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     if (mode !== 'targeting') return
@@ -717,7 +732,18 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
     const el = document.elementFromPoint(e.clientX, e.clientY)
     overlay.style.pointerEvents = 'auto'
 
-    if (!el) return
+    if (!el) {
+      // No element found, start marquee anyway
+      const cp = screenToCanvas(e.clientX, e.clientY) ?? { x: e.clientX, y: e.clientY }
+      setMarqueeState({
+        startPoint: cp,
+        currentPoint: cp,
+        screenStart: { x: e.clientX, y: e.clientY },
+        screenCurrent: { x: e.clientX, y: e.clientY },
+      })
+      setHighlight(null)
+      return
+    }
 
     const frameEl = el.closest('[data-frame-id]')
 
@@ -740,16 +766,15 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
       }
     } else {
       // Clicked on empty canvas — start marquee selection
-      const cp = screenToCanvas(e.clientX, e.clientY)
-      if (cp) {
-        setMarqueeState({
-          startPoint: cp,
-          currentPoint: cp,
-          screenStart: { x: e.clientX, y: e.clientY },
-          screenCurrent: { x: e.clientX, y: e.clientY },
-        })
-        setHighlight(null)
-      }
+      // Use screenToCanvas if possible, otherwise fall back to screen coords
+      const cp = screenToCanvas(e.clientX, e.clientY) ?? { x: e.clientX, y: e.clientY }
+      setMarqueeState({
+        startPoint: cp,
+        currentPoint: cp,
+        screenStart: { x: e.clientX, y: e.clientY },
+        screenCurrent: { x: e.clientX, y: e.clientY },
+      })
+      setHighlight(null)
     }
   }, [mode, frames, getFrameCenter])
 
@@ -777,6 +802,7 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
         setHighlight(null)
         setComment('')
         setMarqueeState(null)
+        setMarqueeSelectedIds(new Set())
         setMode('commenting')
         return
       }
@@ -790,6 +816,7 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
       })
 
       setMarqueeState(null)
+      setMarqueeSelectedIds(new Set())
 
       if (selectedFrames.length === 0) {
         // No frames selected — treat as canvas note at center of marquee
@@ -1102,6 +1129,7 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
     setEditingConnectionId(null)
     setDragState(null)
     setMarqueeState(null)
+    setMarqueeSelectedIds(new Set())
   }, [editingConnectionId, connections])
 
   const handleDelete = useCallback(() => {
@@ -1241,6 +1269,7 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
             position: 'fixed',
             inset: 0,
             zIndex: 99998,
+            pointerEvents: 'auto',
             cursor: marqueeState ? 'crosshair' : dragState ? 'grabbing' : 'crosshair',
           }}
         />
@@ -1262,6 +1291,52 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
           }}
         />
       )}
+
+      {/* Selection highlights for multi-select frames while dialog is open */}
+      {mode === 'commenting' && target?.frameIds && target.frameIds.map(frameId => {
+        const frameEl = document.querySelector(`[data-frame-id="${frameId}"]`)
+        if (!frameEl) return null
+        const rect = frameEl.getBoundingClientRect()
+        return (
+          <div
+            key={frameId}
+            style={{
+              position: 'fixed',
+              left: rect.left - 2,
+              top: rect.top - 2,
+              width: rect.width + 4,
+              height: rect.height + 4,
+              border: `2px solid ${F.marker}`,
+              borderRadius: R.ui,
+              pointerEvents: 'none',
+              zIndex: 99997,
+            }}
+          />
+        )
+      })}
+
+      {/* Live selection highlights during marquee drag */}
+      {marqueeState && Array.from(marqueeSelectedIds).map(frameId => {
+        const frameEl = document.querySelector(`[data-frame-id="${frameId}"]`)
+        if (!frameEl) return null
+        const rect = frameEl.getBoundingClientRect()
+        return (
+          <div
+            key={frameId}
+            style={{
+              position: 'fixed',
+              left: rect.left - 2,
+              top: rect.top - 2,
+              width: rect.width + 4,
+              height: rect.height + 4,
+              border: `2px solid ${F.marker}`,
+              borderRadius: R.ui,
+              pointerEvents: 'none',
+              zIndex: 99997,
+            }}
+          />
+        )
+      })}
 
       {/* Marquee selection rectangle */}
       {marqueeState && (
