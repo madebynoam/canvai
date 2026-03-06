@@ -374,28 +374,7 @@ function HoverButton({ children, onClick, baseStyle, hoverBg, title }: {
   )
 }
 
-// Build a CSS selector path from element up to the frame content boundary
-function buildSelector(el: Element, boundary: Element): string {
-  const parts: string[] = []
-  let current: Element | null = el
-  while (current && current !== boundary) {
-    const tag = current.tagName.toLowerCase()
-    const parent = current.parentElement
-    if (parent) {
-      const siblings = Array.from(parent.children).filter(c => c.tagName === current!.tagName)
-      if (siblings.length > 1) {
-        const index = siblings.indexOf(current) + 1
-        parts.unshift(`${tag}:nth-of-type(${index})`)
-      } else {
-        parts.unshift(tag)
-      }
-    } else {
-      parts.unshift(tag)
-    }
-    current = parent
-  }
-  return parts.join(' > ')
-}
+import { buildSelector } from './selector'
 
 // Extract key computed styles
 function getStyleSubset(el: Element): Record<string, string> {
