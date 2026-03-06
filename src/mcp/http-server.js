@@ -971,6 +971,14 @@ const httpServer = createServer(async (req, res) => {
 
         // Navigate to the target URL
         await page.goto(targetUrl, { waitUntil: 'load' })
+
+        // Dismiss tour overlay for clean screenshots
+        await page.evaluate(() => {
+          localStorage.setItem('bryllen:tour-completed', 'true')
+        })
+        // Reload to apply the tour dismissal
+        await page.reload({ waitUntil: 'load' })
+
         await new Promise(r => setTimeout(r, delay))
         await page.waitForSelector('[data-frame-id]', { timeout: 10000 })
 
