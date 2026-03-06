@@ -30,7 +30,7 @@ export function migrate(fileContents) {
   // 1. Add useNavMemory to import
   if (!app.includes('useNavMemory')) {
     app = app.replace(
-      /import \{([^}]*)\} from 'canvai\/runtime'/,
+      /import \{([^}]*)\} from 'bryllen\/runtime'/,
       (match, imports) => {
         const importList = imports.split(',').map(s => s.trim()).filter(Boolean)
         if (!importList.includes('useNavMemory')) {
@@ -41,7 +41,7 @@ export function migrate(fileContents) {
             importList.push('useNavMemory')
           }
         }
-        return `import { ${importList.join(', ')} } from 'canvai/runtime'`
+        return `import { ${importList.join(', ')} } from 'bryllen/runtime'`
       }
     )
   }

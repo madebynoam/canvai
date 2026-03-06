@@ -3,7 +3,7 @@ import type { CanvasFrame } from './types'
 import { relayoutFrames } from './layout'
 
 const FRAME_GAP = 40
-const STORAGE_KEY = 'canvai:pos:'
+const STORAGE_KEY = 'bryllen:pos:'
 
 function frameIdsKey(frames: CanvasFrame[]): string {
   return frames.map(f => f.id).join(',')
@@ -86,8 +86,8 @@ export function useFrames(
         )
       })
     }
-    window.addEventListener('canvai:frame-resize', onFrameResize)
-    return () => window.removeEventListener('canvai:frame-resize', onFrameResize)
+    window.addEventListener('bryllen:frame-resize', onFrameResize)
+    return () => window.removeEventListener('bryllen:frame-resize', onFrameResize)
   }, [])
 
   // Persist frame positions to localStorage (debounced)

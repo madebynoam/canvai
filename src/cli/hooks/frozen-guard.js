@@ -68,7 +68,7 @@ const frozenMatch = manifestContent.match(frozenPattern)
 if (frozenMatch && frozenMatch[1] === 'true') {
   console.log(JSON.stringify({
     decision: 'block',
-    reason: `Iteration ${iterName} of "${projectName}" is frozen. Create a new iteration with /canvai-iterate instead of editing frozen files.`,
+    reason: `Iteration ${iterName} of "${projectName}" is frozen. Create a new iteration with /bryllen-iterate instead of editing frozen files.`,
   }))
   process.exit(0)
 }

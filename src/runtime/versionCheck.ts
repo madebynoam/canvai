@@ -1,7 +1,7 @@
 // Version check utility — fetches latest version from GitHub, compares with local
 
-const GITHUB_RAW_URL = 'https://raw.githubusercontent.com/madebynoam/canvai/main/package.json'
-const CACHE_KEY = 'canvai:version-check'
+const GITHUB_RAW_URL = 'https://raw.githubusercontent.com/madebynoam/bryllen/main/package.json'
+const CACHE_KEY = 'bryllen:version-check'
 const CACHE_DURATION = 4 * 60 * 60 * 1000 // 4 hours
 
 interface VersionCache {
@@ -82,7 +82,7 @@ export async function checkForUpdate(currentVersion: string): Promise<VersionChe
 }
 
 // Get dismissed version from localStorage
-const DISMISSED_KEY = 'canvai:version-dismissed'
+const DISMISSED_KEY = 'bryllen:version-dismissed'
 
 export function getDismissedVersion(): string | null {
   try {

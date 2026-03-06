@@ -2,7 +2,7 @@ import { useRef, useState, useEffect, useCallback, createContext, useContext, us
 
 const MIN_ZOOM = 0.1
 const MAX_ZOOM = 5
-const VP_KEY = 'canvai:vp:'
+const VP_KEY = 'bryllen:vp:'
 
 function saveViewport(key: string, x: number, y: number, zoom: number) {
   try { localStorage.setItem(VP_KEY + key, JSON.stringify({ x, y, zoom })) } catch {}
@@ -15,7 +15,7 @@ function loadViewport(key: string): { x: number; y: number; zoom: number } | nul
   } catch { return null }
 }
 
-const BG_KEY = 'canvai:bg:'
+const BG_KEY = 'bryllen:bg:'
 
 export function saveCanvasBg(project: string, color: string) {
   try { localStorage.setItem(BG_KEY + project, color) } catch {}
@@ -372,10 +372,10 @@ export function Canvas({ children, pageKey, hud, onImagePaste }: CanvasProps) {
     commitState(newPan, fitZoom)
   }
 
-  // Expose canvas API for Playwright visual review (merge with existing API from CanvaiShell)
+  // Expose canvas API for Playwright visual review (merge with existing API from BryllenShell)
   useEffect(() => {
-    const existing = (window as any).__canvai || {}
-    ;(window as any).__canvai = {
+    const existing = (window as any).__bryllen || {}
+    ;(window as any).__bryllen = {
       ...existing,
       fitToView: () => doFitToView(),
       getFrameBounds: (frameId: string) => {
@@ -384,7 +384,7 @@ export function Canvas({ children, pageKey, hud, onImagePaste }: CanvasProps) {
       },
       getCanvasElement: () => document.querySelector('[data-canvas-content]'),
     }
-    // Don't delete on cleanup - CanvaiShell owns the object
+    // Don't delete on cleanup - BryllenShell owns the object
   }, [])
 
   // Keyboard shortcuts
@@ -411,25 +411,25 @@ export function Canvas({ children, pageKey, hud, onImagePaste }: CanvasProps) {
   // Image paste handler — Cmd+V with image on clipboard
   useEffect(() => {
     if (!onImagePaste) {
-      console.log('[canvai] Paste handler not attached - no onImagePaste callback')
+      console.log('[bryllen] Paste handler not attached - no onImagePaste callback')
       return
     }
 
     const container = containerRef.current
 
-    console.log('[canvai] Paste handler attached')
+    console.log('[bryllen] Paste handler attached')
 
     function handlePaste(e: ClipboardEvent) {
-      console.log('[canvai] Paste event received', e.clipboardData?.items.length, 'items')
+      console.log('[bryllen] Paste event received', e.clipboardData?.items.length, 'items')
       if (!e.clipboardData) return
 
       for (const item of e.clipboardData.items) {
-        console.log('[canvai] Clipboard item:', item.type)
+        console.log('[bryllen] Clipboard item:', item.type)
         if (item.type.startsWith('image/')) {
           e.preventDefault()
           const blob = item.getAsFile()
           if (!blob) {
-            console.log('[canvai] No blob from clipboard item')
+            console.log('[bryllen] No blob from clipboard item')
             continue
           }
 
@@ -443,14 +443,14 @@ export function Canvas({ children, pageKey, hud, onImagePaste }: CanvasProps) {
             }
           }
 
-          console.log('[canvai] Reading image blob:', blob.size, 'bytes')
+          console.log('[bryllen] Reading image blob:', blob.size, 'bytes')
           const reader = new FileReader()
           reader.onload = () => {
             const dataUrl = reader.result as string
             // Generate filename from timestamp and mime type
             const ext = item.type.split('/')[1] || 'png'
             const filename = `context-${Date.now()}.${ext}`
-            console.log('[canvai] Calling onImagePaste:', filename, 'at', viewportCenter)
+            console.log('[bryllen] Calling onImagePaste:', filename, 'at', viewportCenter)
             onImagePaste(dataUrl, filename, viewportCenter)
           }
           reader.readAsDataURL(blob)

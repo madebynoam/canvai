@@ -1,7 +1,7 @@
 /**
- * canvai — Browser-side GitHub API client
+ * bryllen — Browser-side GitHub API client
  *
- * Used on GitHub Pages (static builds) where there is no canvai design server.
+ * Used on GitHub Pages (static builds) where there is no bryllen design server.
  * The token is stored in localStorage after the device flow completes in-browser.
  *
  * In local dev, the CommentOverlay routes through the server proxy instead.
@@ -9,7 +9,7 @@
 
 import type { CommentThread, CommentMessage, CommentAuthor, CommentReaction } from './comment-types'
 
-// TODO: Replace with the actual canvai GitHub OAuth App Client ID
+// TODO: Replace with the actual bryllen GitHub OAuth App Client ID
 // Registered at https://github.com/settings/applications/new
 // Client IDs are public — safe to commit.
 export const GITHUB_CLIENT_ID = (import.meta as Record<string, unknown> & { env: Record<string, string> }).env?.VITE_GITHUB_CLIENT_ID ?? 'Ov23liXXXXXXXXXXXXXX'
@@ -19,8 +19,8 @@ const GITHUB_DEVICE_CODE_URL = 'https://github.com/login/device/code'
 const GITHUB_TOKEN_URL = 'https://github.com/login/oauth/access_token'
 const SCOPES = 'repo read:user'
 
-const TOKEN_KEY = 'canvai_github_token'
-const USER_KEY = 'canvai_github_user'
+const TOKEN_KEY = 'bryllen_github_token'
+const USER_KEY = 'bryllen_github_user'
 
 // ── Token storage (localStorage) ─────────────────────────────────────────────
 
@@ -185,12 +185,12 @@ type GHComment = Record<string, unknown>
 
 function parseIssueBody(body: string): { meta: Record<string, unknown> | null; comment: string } {
   if (!body) return { meta: null, comment: '' }
-  const metaMatch = body.match(/<!--\s*canvai:meta\s*([\s\S]+?)\s*-->/)
+  const metaMatch = body.match(/<!--\s*bryllen:meta\s*([\s\S]+?)\s*-->/)
   if (!metaMatch) return { meta: null, comment: body }
   try {
     const meta = JSON.parse(metaMatch[1]) as Record<string, unknown>
     const withoutMeta = body.replace(/<!--[\s\S]+?-->\s*/, '')
-    const comment = withoutMeta.replace(/\s*---\s*\*Posted from \[canvai\][\s\S]*$/, '').trim()
+    const comment = withoutMeta.replace(/\s*---\s*\*Posted from \[bryllen\][\s\S]*$/, '').trim()
     return { meta, comment }
   } catch {
     return { meta: null, comment: body }
@@ -198,8 +198,8 @@ function parseIssueBody(body: string): { meta: Record<string, unknown> | null; c
 }
 
 function buildIssueBody(meta: Record<string, unknown>, comment: string): string {
-  const metaBlock = `<!-- canvai:meta\n${JSON.stringify(meta, null, 2)}\n-->`
-  return `${metaBlock}\n\n${comment}\n\n---\n*Posted from [canvai](https://github.com/madebynoam/canvai) canvas*`
+  const metaBlock = `<!-- bryllen:meta\n${JSON.stringify(meta, null, 2)}\n-->`
+  return `${metaBlock}\n\n${comment}\n\n---\n*Posted from [bryllen](https://github.com/madebynoam/bryllen) canvas*`
 }
 
 function issueToThread(issue: GHIssue, ghComments: GHComment[]): CommentThread {
@@ -258,7 +258,7 @@ function issueToThread(issue: GHIssue, ghComments: GHComment[]): CommentThread {
 }
 
 export async function fetchThreads(repo: string): Promise<CommentThread[]> {
-  const issues = await ghFetch(`/repos/${repo}/issues?labels=canvai-comment&state=all&per_page=100`) as GHIssue[]
+  const issues = await ghFetch(`/repos/${repo}/issues?labels=bryllen-comment&state=all&per_page=100`) as GHIssue[]
   // Fetch comments for each issue in parallel
   const threads = await Promise.all(
     issues.map(async issue => {
@@ -288,11 +288,11 @@ export async function createThread(repo: string, data: {
   }
   const body = buildIssueBody(meta, data.comment)
   const firstLine = data.comment.split('\n')[0].slice(0, 60)
-  const title = `[canvai] ${data.componentName} · ${data.elementTag} — ${firstLine}`
+  const title = `[bryllen] ${data.componentName} · ${data.elementTag} — ${firstLine}`
 
   const issue = await ghFetch(`/repos/${repo}/issues`, {
     method: 'POST',
-    body: { title, body, labels: ['canvai-comment'] },
+    body: { title, body, labels: ['bryllen-comment'] },
   }) as GHIssue
 
   return issueToThread(issue, [])

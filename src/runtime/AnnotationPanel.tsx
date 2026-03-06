@@ -50,7 +50,7 @@ function AnnotationBadge({ count, pendingCount, onClick }: { count: number; pend
             alignItems: 'center',
             justifyContent: 'center',
             color: F.marker,
-            animation: 'canvai-spin 1s linear infinite',
+            animation: 'bryllen-spin 1s linear infinite',
           }}
         >
           <Loader2 size={ICON.sm} strokeWidth={2} />
@@ -224,7 +224,7 @@ function PendingRow({ annotation }: { annotation: Annotation }) {
           flexShrink: 0,
           marginTop: 2,
           color: F.marker,
-          animation: 'canvai-spin 1s linear infinite',
+          animation: 'bryllen-spin 1s linear infinite',
         }}
       >
         <Loader2 size={ICON.sm} strokeWidth={2} />
@@ -333,7 +333,7 @@ export function AnnotationPanelWidget({ endpoint }: { endpoint: string }) {
 
   return (
     <div ref={containerRef} style={{ position: 'relative', fontFamily: FONT }}>
-      <style>{`@keyframes canvai-spin { to { transform: rotate(360deg) } }`}</style>
+      <style>{`@keyframes bryllen-spin { to { transform: rotate(360deg) } }`}</style>
       <AnnotationBadge count={drafts.length + pending.length} pendingCount={pending.length} onClick={() => setOpen(o => !o)} />
 
       {/* Dropdown — instant show/hide */}

@@ -6,7 +6,7 @@ import { fileURLToPath } from 'url'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const pkg = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../../package.json'), 'utf-8'))
 
-const VIRTUAL_MODULE_ID = 'virtual:canvai-manifests'
+const VIRTUAL_MODULE_ID = 'virtual:bryllen-manifests'
 const RESOLVED_VIRTUAL_MODULE_ID = '\0' + VIRTUAL_MODULE_ID
 
 /**
@@ -14,16 +14,16 @@ const RESOLVED_VIRTUAL_MODULE_ID = '\0' + VIRTUAL_MODULE_ID
  * and exposes them via a virtual module import.
  *
  * Usage in app code:
- *   import { manifests } from 'virtual:canvai-manifests'
+ *   import { manifests } from 'virtual:bryllen-manifests'
  *   // manifests: ProjectManifest[]
  */
-export function canvaiPlugin(): Plugin {
+export function bryllenPlugin(): Plugin {
   let projectsDir: string
 
   function findManifests(): string[] {
     if (!fs.existsSync(projectsDir)) return []
 
-    const filterProject = process.env.CANVAI_PROJECT
+    const filterProject = process.env.BRYLLEN_PROJECT
 
     return fs.readdirSync(projectsDir, { withFileTypes: true })
       .filter(d => d.isDirectory())
@@ -47,27 +47,27 @@ export function canvaiPlugin(): Plugin {
   }
 
   return {
-    name: 'canvai-manifests',
+    name: 'bryllen-manifests',
 
     config() {
-      // Read HTTP port from .canvai-ports.json or env var
+      // Read HTTP port from .bryllen-ports.json or env var
       let httpPort = 4748
       try {
-        const portsPath = path.resolve(process.cwd(), '.canvai-ports.json')
+        const portsPath = path.resolve(process.cwd(), '.bryllen-ports.json')
         if (fs.existsSync(portsPath)) {
           const ports = JSON.parse(fs.readFileSync(portsPath, 'utf-8'))
           httpPort = ports.http || 4748
         }
       } catch {}
       // Also check env var
-      if (process.env.CANVAI_HTTP_PORT) {
-        httpPort = parseInt(process.env.CANVAI_HTTP_PORT, 10)
+      if (process.env.BRYLLEN_HTTP_PORT) {
+        httpPort = parseInt(process.env.BRYLLEN_HTTP_PORT, 10)
       }
 
       return {
         define: {
-          '__CANVAI_VERSION__': JSON.stringify(pkg.version),
-          '__CANVAI_HTTP_PORT__': JSON.stringify(httpPort),
+          '__BRYLLEN_VERSION__': JSON.stringify(pkg.version),
+          '__BRYLLEN_HTTP_PORT__': JSON.stringify(httpPort),
         },
       }
     },

@@ -1,9 +1,9 @@
 ---
-name: canvai-share
+name: bryllen-share
 description: Build the canvas and deploy to GitHub Pages for sharing
 ---
 
-# /canvai-share [project-name] [--dest subpath]
+# /bryllen-share [project-name] [--dest subpath]
 
 Build the current canvas project and deploy it to GitHub Pages so you can share a live link with others.
 
@@ -33,12 +33,12 @@ Build the current canvas project and deploy it to GitHub Pages so you can share 
 4. **Build** with the correct base path:
    ```bash
    # Without --dest (deploys to root):
-   CANVAI_PROJECT=<project-name> npx vite build --base=/<repo-name>/
+   BRYLLEN_PROJECT=<project-name> npx vite build --base=/<repo-name>/
 
    # With --dest explore (deploys to subpath):
-   CANVAI_PROJECT=<project-name> npx vite build --base=/<repo-name>/explore/
+   BRYLLEN_PROJECT=<project-name> npx vite build --base=/<repo-name>/explore/
    ```
-   The `CANVAI_PROJECT` env var tells the vite plugin to only include that project's manifest.
+   The `BRYLLEN_PROJECT` env var tells the vite plugin to only include that project's manifest.
 
 5. **Deploy to GitHub Pages:**
    ```bash
@@ -77,15 +77,15 @@ Build the current canvas project and deploy it to GitHub Pages so you can share 
 ## Examples
 
 ```
-/canvai-share                        → all projects, deployed to root
-/canvai-share canvai-ui              → single project, deployed to root
-/canvai-share canvai-ui --dest explore  → single project at /explore/ subpath
+/bryllen-share                        → all projects, deployed to root
+/bryllen-share bryllen-ui              → single project, deployed to root
+/bryllen-share bryllen-ui --dest explore  → single project at /explore/ subpath
 ```
 
 ## Notes
 
 - The `--base` flag is critical — without it, asset paths break on GitHub Pages
-- `CANVAI_PROJECT` filters the build to only include the specified project
+- `BRYLLEN_PROJECT` filters the build to only include the specified project
 - `--dest` uses gh-pages' subdirectory support — it won't overwrite other content on the gh-pages branch
 - First deploy may take 1-2 minutes for GitHub to provision the Pages site
 - Subsequent deploys update within ~30 seconds

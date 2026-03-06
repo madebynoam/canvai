@@ -1,9 +1,9 @@
 {
   "mcpServers": {
-    "canvai-annotations": {
+    "bryllen-annotations": {
       "command": "node",
       "args": [
-        "node_modules/canvai/src/mcp/mcp-server.js"
+        "node_modules/bryllen/src/mcp/mcp-server.js"
       ]
     }
   }

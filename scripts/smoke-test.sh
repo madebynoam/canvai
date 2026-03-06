@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 #
 # Smoke test: scaffold a fresh consumer project and verify it typechecks.
-# Simulates what a real consumer does: npm install canvai, canvai new, tsc.
+# Simulates what a real consumer does: npm install bryllen, bryllen new, tsc.
 #
 set -euo pipefail
 
 CANVAI_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 TMPDIR_BASE="${TMPDIR:-/tmp}"
-WORKDIR="$(mktemp -d "${TMPDIR_BASE}canvai-smoke-XXXXXX")"
+WORKDIR="$(mktemp -d "${TMPDIR_BASE}bryllen-smoke-XXXXXX")"
 
 cleanup() { rm -rf "$WORKDIR"; }
 trap cleanup EXIT
@@ -19,13 +19,13 @@ cd "$WORKDIR"
 # Initialize a minimal package.json
 npm init -y --silent >/dev/null 2>&1
 
-# Install local canvai (simulates github:madebynoam/canvai)
-echo "==> Installing canvai from local path..."
+# Install local bryllen (simulates github:madebynoam/bryllen)
+echo "==> Installing bryllen from local path..."
 npm install "$CANVAI_ROOT" --silent 2>&1 | tail -1
 
-# Run canvai new
-echo "==> Running canvai new..."
-npx canvai new 2>&1
+# Run bryllen new
+echo "==> Running bryllen new..."
+npx bryllen new 2>&1
 
 # Verify expected files exist
 echo "==> Verifying scaffolded files..."
@@ -39,7 +39,7 @@ EXPECTED_FILES=(
   "src/App.tsx"
   "src/index.css"
   "src/vite-env.d.ts"
-  ".canvai-version"
+  ".bryllen-version"
 )
 
 MISSING=0
@@ -56,13 +56,13 @@ if [ "$MISSING" -gt 0 ]; then
 fi
 echo "  All expected files present."
 
-# Verify .canvai-version has a version
-echo "==> Checking .canvai-version marker..."
-if ! node -e "const d = JSON.parse(require('fs').readFileSync('.canvai-version','utf-8')); if(!d.version) process.exit(1)"; then
-  echo "FAIL: .canvai-version is missing or has no version"
+# Verify .bryllen-version has a version
+echo "==> Checking .bryllen-version marker..."
+if ! node -e "const d = JSON.parse(require('fs').readFileSync('.bryllen-version','utf-8')); if(!d.version) process.exit(1)"; then
+  echo "FAIL: .bryllen-version is missing or has no version"
   exit 1
 fi
-echo "  .canvai-version marker OK."
+echo "  .bryllen-version marker OK."
 
 # Typecheck
 echo "==> Running tsc --noEmit..."

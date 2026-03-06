@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Bump the canvai version across all 5 fields in 4 files.
+# Bump the bryllen version across all 5 fields in 4 files.
 #
 # Usage: ./scripts/bump-version.sh <version>
 # Example: ./scripts/bump-version.sh 0.0.15
@@ -46,15 +46,15 @@ node -e "
 "
 echo "  2/4 plugin/.claude-plugin/marketplace.json"
 
-# 3. plugin/plugins/canvai/.claude-plugin/plugin.json → version
+# 3. plugin/plugins/bryllen/.claude-plugin/plugin.json → version
 node -e "
   const fs = require('fs');
-  const path = '$ROOT/plugin/plugins/canvai/.claude-plugin/plugin.json';
+  const path = '$ROOT/plugin/plugins/bryllen/.claude-plugin/plugin.json';
   const data = JSON.parse(fs.readFileSync(path, 'utf-8'));
   data.version = '$VERSION';
   fs.writeFileSync(path, JSON.stringify(data, null, 2) + '\n');
 "
-echo "  3/4 plugin/plugins/canvai/.claude-plugin/plugin.json"
+echo "  3/4 plugin/plugins/bryllen/.claude-plugin/plugin.json"
 
 # 4. .claude-plugin/marketplace.json → metadata.version + plugins[0].version
 node -e "

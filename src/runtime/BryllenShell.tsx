@@ -22,12 +22,12 @@ import { VERSION } from './version'
 import { N, D, E, S, T, R, FONT, DIM } from './tokens'
 import type { ProjectManifest, CanvasImageFrame } from './types'
 
-interface CanvaiShellProps {
+interface BryllenShellProps {
   manifests: ProjectManifest[]
   annotationEndpoint?: string
 }
 
-const PROJECT_KEY = 'canvai:active-project'
+const PROJECT_KEY = 'bryllen:active-project'
 
 function loadProjectIndex(max: number): number {
   try {
@@ -210,7 +210,7 @@ const ContextImageContent = memo(function ContextImageContent({
   )
 })
 
-export function CanvaiShell({ manifests, annotationEndpoint = 'http://localhost:4748' }: CanvaiShellProps) {
+export function BryllenShell({ manifests, annotationEndpoint = 'http://localhost:4748' }: BryllenShellProps) {
   // URL routing takes precedence, then localStorage fallback
   const urlState = parseUrl(manifests)
   const [activeProjectIndex, setActiveProjectIndex] = useState(() => urlState?.projectIdx ?? loadProjectIndex(manifests.length))
@@ -230,7 +230,7 @@ export function CanvaiShell({ manifests, annotationEndpoint = 'http://localhost:
   // Images stored per-page: { "pageName": CanvasImageFrame[] }
   const [pageImages, setPageImages] = useState<Record<string, CanvasImageFrame[]>>({})
   const [showTour, setShowTour] = useState(() => !isTourCompleted())
-  // Pending prompt request from agent (when /canvai-new is called without a prompt)
+  // Pending prompt request from agent (when /bryllen-new is called without a prompt)
   const [promptRequest, setPromptRequest] = useState<{ id: string; projectName: string } | null>(null)
   // Update checker state
   const [updateInfo, setUpdateInfo] = useState<{ available: boolean; latestVersion: string | null }>({ available: false, latestVersion: null })
@@ -318,7 +318,7 @@ export function CanvaiShell({ manifests, annotationEndpoint = 'http://localhost:
     }
   }, [annotationEndpoint, showToast, activeProject])
 
-  // Handle prompt request submission (from agent's /canvai-new without prompt)
+  // Handle prompt request submission (from agent's /bryllen-new without prompt)
   const handlePromptRequestSubmit = useCallback(async (payload: { name: string; description: string; prompt: string; images?: Array<{ id: string; dataUrl: string; filename: string }> }) => {
     if (!promptRequest) return
 
@@ -356,7 +356,7 @@ export function CanvaiShell({ manifests, annotationEndpoint = 'http://localhost:
     }
   }, [annotationEndpoint, showToast, promptRequest])
 
-  // SSE listener for prompt-requested events (from agent's /canvai-new without prompt)
+  // SSE listener for prompt-requested events (from agent's /bryllen-new without prompt)
   useEffect(() => {
     if (typeof window === 'undefined') return
 
@@ -562,7 +562,7 @@ export function CanvaiShell({ manifests, annotationEndpoint = 'http://localhost:
   // Empty state — no projects yet
   if (manifests.length === 0) {
     return (
-      <div id="canvai-root" style={{
+      <div id="bryllen-root" style={{
         width: '100vw',
         height: '100vh',
         display: 'flex',
@@ -618,7 +618,7 @@ export function CanvaiShell({ manifests, annotationEndpoint = 'http://localhost:
   }
 
   return (
-    <div id="canvai-root" style={{ width: '100vw', height: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <div id="bryllen-root" style={{ width: '100vw', height: '100vh', display: 'flex', flexDirection: 'column' }}>
       <TopBar
         projects={manifests}
         activeProjectIndex={activeProjectIndex}
@@ -743,7 +743,7 @@ export function CanvaiShell({ manifests, annotationEndpoint = 'http://localhost:
         />
       )}
 
-      {/* Prompt request dialog (from agent's /canvai-new without prompt) */}
+      {/* Prompt request dialog (from agent's /bryllen-new without prompt) */}
       {promptRequest && (
         <NewProjectDialog
           open={true}

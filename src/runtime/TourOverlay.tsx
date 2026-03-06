@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { N, A, D, S, R, T, FONT } from './tokens'
 import { ActionButton } from './Menu'
 
-const TOUR_KEY = 'canvai:tour-completed'
+const TOUR_KEY = 'bryllen:tour-completed'
 
 export function isTourCompleted(): boolean {
   try {
@@ -34,7 +34,7 @@ interface TourStep {
 const TOUR_STEPS: TourStep[] = [
   {
     targetId: 'canvas',
-    title: 'Welcome to Canvai',
+    title: 'Welcome to Bryllen',
     body: 'This is your infinite canvas. Pan with scroll, zoom with pinch or Cmd+scroll. Your designs live here as interactive frames.',
   },
   {

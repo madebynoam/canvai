@@ -1,7 +1,7 @@
 /**
  * Migration 0.0.29: Upgrade unfrozen Tokens pages to use TokenSwatch
  *
- * Replaces custom <Swatch> with <TokenSwatch> from canvai/runtime,
+ * Replaces custom <Swatch> with <TokenSwatch> from bryllen/runtime,
  * adding `oklch` and `tokenPath` props so the color picker works.
  * Only transforms unfrozen iterations (frozen iterations are skipped).
  *
@@ -72,9 +72,9 @@ function transformTokensPage(content, tokenMap) {
 
   if (!transformed) return content
 
-  // Remove Swatch from any local (non-canvai) import
+  // Remove Swatch from any local (non-bryllen) import
   result = result.replace(
-    /import\s*\{([^}]*)\}\s*from\s*(['"])(?!canvai)[^'"]+\2/g,
+    /import\s*\{([^}]*)\}\s*from\s*(['"])(?!bryllen)[^'"]+\2/g,
     (match, imports, quote) => {
       if (!imports.includes('Swatch')) return match
       const parts = imports.split(',').map(s => s.trim()).filter(s => s && s !== 'Swatch')
@@ -85,17 +85,17 @@ function transformTokensPage(content, tokenMap) {
   // Clean up blank lines left by a removed import
   result = result.replace(/^\n+/, '').replace(/\n{3,}/g, '\n\n')
 
-  // Add TokenSwatch to existing canvai/runtime import, or create one
-  if (result.includes("from 'canvai/runtime'")) {
+  // Add TokenSwatch to existing bryllen/runtime import, or create one
+  if (result.includes("from 'bryllen/runtime'")) {
     result = result.replace(
-      /import\s*\{([^}]+)\}\s*from\s*'canvai\/runtime'/,
+      /import\s*\{([^}]+)\}\s*from\s*'bryllen\/runtime'/,
       (match, imports) => {
         if (imports.includes('TokenSwatch')) return match
-        return `import { ${imports.trim()}, TokenSwatch } from 'canvai/runtime'`
+        return `import { ${imports.trim()}, TokenSwatch } from 'bryllen/runtime'`
       },
     )
   } else {
-    result = `import { TokenSwatch } from 'canvai/runtime'\n` + result
+    result = `import { TokenSwatch } from 'bryllen/runtime'\n` + result
   }
 
   return result

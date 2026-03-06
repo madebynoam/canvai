@@ -4,7 +4,7 @@ import { N, S, T, ICON, FONT } from './tokens'
 import { useMenu, MenuPanel, MenuRow } from './Menu'
 import { resetTourCompleted } from './TourOverlay'
 
-const GITHUB_URL = 'https://github.com/madebynoam/canvai'
+const GITHUB_URL = 'https://github.com/madebynoam/bryllen'
 
 export function InfoButton() {
   const { open, setOpen, containerRef, portalRef } = useMenu()
@@ -26,7 +26,7 @@ export function InfoButton() {
         onClick={() => setOpen(o => !o)}
         onMouseEnter={() => setTriggerHover(true)}
         onMouseLeave={() => setTriggerHover(false)}
-        title="About canvai"
+        title="About bryllen"
         style={{
           width: 28,
           height: 28,
@@ -56,7 +56,7 @@ export function InfoButton() {
             fontFamily: FONT,
             userSelect: 'none',
           }}>
-            v{typeof __CANVAI_VERSION__ !== 'undefined' ? __CANVAI_VERSION__ : '0.0.0'}
+            v{typeof __BRYLLEN_VERSION__ !== 'undefined' ? __BRYLLEN_VERSION__ : '0.0.0'}
           </div>
           <MenuRow
             onClick={() => {

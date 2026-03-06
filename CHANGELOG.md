@@ -10,7 +10,7 @@
 - Added `pickedFrameId` field to IterationManifest type
 - Frame component supports `faded` prop — picked frame renders normally, others show 40% opacity and 50% saturation
 - Agent creates new iteration from picked direction with all states built out
-- Updated canvai-design skill with "Pick request arrives" documentation
+- Updated bryllen-design skill with "Pick request arrives" documentation
 
 ## 0.0.44 — Paste Anywhere
 
@@ -24,18 +24,18 @@
 
 ## 0.0.43 — Share Button
 
-- Added `ShareButton` runtime component — allows designers to trigger `/canvai-share` directly from the canvas UI
+- Added `ShareButton` runtime component — allows designers to trigger `/bryllen-share` directly from the canvas UI
 - Added `SharePopover` runtime component — shows GitHub auth flow, deploy status, and shareable URL
-- Integrated GitHub OAuth device flow into the Share UI (reuses `~/.canvai/auth.json` token)
+- Integrated GitHub OAuth device flow into the Share UI (reuses `~/.bryllen/auth.json` token)
 - ShareButton states: checking auth, needs-auth, idle (ready to deploy), sharing (in progress), shared (shows URL)
 - SharePopover modes: login prompt, deploy button, URL display with copy/open actions, re-deploy option
 - Added `type: 'share'` annotation type to http-server.js for immediate processing
 - TopBar now includes ShareButton in right section (DEV mode only)
-- Updated canvai-design skill documentation with share request handling
+- Updated bryllen-design skill documentation with share request handling
 
 ## V10 — Live App Mirror
 
-- New iteration matching the actual running Canvai app (light mode)
+- New iteration matching the actual running Bryllen app (light mode)
 - Shell page: faithful replica of the live shell — TopBar, sidebar, canvas with frames, ZoomControl, CanvasColorPicker, and FAB
 - Components page: expanded to catalog every runtime UI component with multiple instances/states
   - Added FAB (idle/hover/pressed), MarkerDot, ActionButton (primary/ghost/disabled), MenuPanel, DialogCard (empty/filled), InfoButton, Overlay, Frame title
@@ -46,12 +46,12 @@
 
 - Added `screenshot_canvas` MCP tool — agent can screenshot the canvas after applying changes for visual self-review
 - Two modes: frame-specific (`frameId` param) or full-canvas (fit-to-view)
-- Exposed `window.__canvai` bridge on Canvas component (`fitToView`, `getFrameBounds`, `getCanvasElement`)
+- Exposed `window.__bryllen` bridge on Canvas component (`fitToView`, `getFrameBounds`, `getCanvasElement`)
 - Added `data-canvas-content` attribute to canvas transform container for Playwright targeting
 - Lazy Playwright browser — launched on first screenshot, graceful 503 if not installed
 - Added `playwright` as optional dependency
-- Removed `/canvai-check` skill (redundant — `/canvai-dev` drains backlog on startup)
-- Added fast file lookup hint to `/canvai-dev` — parse annotation `frameId` directly instead of searching
+- Removed `/bryllen-check` skill (redundant — `/bryllen-dev` drains backlog on startup)
+- Added fast file lookup hint to `/bryllen-dev` — parse annotation `frameId` directly instead of searching
 
 ## V9 — Dark Mode Iteration
 
@@ -79,14 +79,14 @@
 - Added `description?: string` to `IterationManifest` type
 - Trigger icon changed from `ChevronDown` to `ChevronsUpDown` for both pickers
 - `IterationPills` deprecated with `console.warn` — will be removed in a future version
-- No consumer migration needed (all changes internal to `CanvaiShell`)
+- No consumer migration needed (all changes internal to `BryllenShell`)
 
 ## 0.0.28 — GitHub Comments
 
 - Added full GitHub-backed comment system to the canvas
 - New runtime component: `CommentOverlay` — FAB, targeting, compose card, thread card, avatar pins, auth flow
 - New module: `src/mcp/github.js` — GitHub Issues/Comments/Reactions API wrapper (server-side)
-- New module: `src/mcp/auth.js` — GitHub OAuth device flow + token storage in `~/.canvai/auth.json`
+- New module: `src/mcp/auth.js` — GitHub OAuth device flow + token storage in `~/.bryllen/auth.json`
 - New module: `src/runtime/github-client.ts` — browser-side GitHub API client for static builds
 - Extended `http-server.js` with `/auth/*` and `/comments/*` routes + `/comments/events` SSE stream
 - New types in `src/runtime/comment-types.ts`: `CommentThread`, `CommentMessage`, `CommentAuthor`, `CommentReaction`, `CommentPin`
@@ -101,17 +101,17 @@
 
 ## 0.0.25
 
-- Extracted `CanvaiShell` runtime component — all shell logic (state, hooks, SSE mode listener, layout, TopBar, sidebar, canvas, annotations) now lives in `canvai/runtime`
-- Consumer `App.tsx` reduced from ~100 lines of boilerplate to a 6-line wrapper: `<CanvaiShell manifests={manifests} />`
+- Extracted `BryllenShell` runtime component — all shell logic (state, hooks, SSE mode listener, layout, TopBar, sidebar, canvas, annotations) now lives in `bryllen/runtime`
+- Consumer `App.tsx` reduced from ~100 lines of boilerplate to a 6-line wrapper: `<BryllenShell manifests={manifests} />`
 - Shell changes now ship via `npm update` — no more fragile regex migrations to patch App.tsx
 - SSE mode listener (watch/manual) now available to all consumers (previously repo-only)
-- Migration 0.0.25: replaces existing consumer App.tsx boilerplate with the CanvaiShell import
+- Migration 0.0.25: replaces existing consumer App.tsx boilerplate with the BryllenShell import
 
 ## 0.0.24
 
 - Added `rules-guard` PreToolUse hook — blocks writes violating the token → component → page hierarchy (hardcoded colors in components, direct token imports in pages, non-OKLCH values in tokens.css)
-- Auto-commit after each design change — `/canvai-check`, `/canvai-watch`, and `/canvai-init` skills now commit after processing
-- Added `/canvai-undo` skill — reverts the last commit to undo a bad design change
+- Auto-commit after each design change — `/bryllen-check`, `/bryllen-watch`, and `/bryllen-init` skills now commit after processing
+- Added `/bryllen-undo` skill — reverts the last commit to undo a bad design change
 - Added commit discipline to guard protocol (step 6 in "Before any edit")
 - Migration 0.0.24: patches existing consumer `.claude/settings.json` with rules-guard hook + adds commit step to `CLAUDE.md`
 
@@ -124,7 +124,7 @@
 - Updated App.tsx template with ZoomControl (bottom-center) and CanvasColorPicker (top-right)
 - Migration 0.0.23: patches existing consumer App.tsx with both controls + canvas bg state
 
-## canvai-ui-system V6
+## bryllen-ui-system V6
 
 - Created V6 iteration from V5 (V5 frozen)
 - Added `ZoomControl` component — compact +/- zoom with percentage display and fit-to-view
@@ -134,21 +134,21 @@
 
 ## 0.0.21
 
-- Promoted `TokenSwatch` and `ColorPicker` to `canvai/runtime` — every project's Tokens page can now let designers click a swatch, pick an OKLCH color with live preview, and post an annotation
+- Promoted `TokenSwatch` and `ColorPicker` to `bryllen/runtime` — every project's Tokens page can now let designers click a swatch, pick an OKLCH color with live preview, and post an annotation
 - Added `TokenOverrideContext` inside `Canvas` for live CSS custom property propagation during color editing
 - Three swatch states: default, editing (live preview), pending (annotation queued for agent)
 - Edit and discard support on pending swatches — designer can reopen the picker or trash the annotation before agent picks it up
 - Added `colorUtils.ts` runtime module (OKLCH/sRGB/Hex/HSL conversions)
 - Migration 0.0.21: patches consumer `CLAUDE.md` with TokenSwatch documentation
-- Updated plugin CLAUDE.md and canvai-init skill with TokenSwatch guidance
+- Updated plugin CLAUDE.md and bryllen-init skill with TokenSwatch guidance
 
 ## 0.0.16
 
 - Grouped iterations: `ProjectManifest.pages` → `ProjectManifest.iterations` with nested pages
 - Migration now covers both App.tsx and manifest files (was missing manifests)
 - Fixed unsafe optional chaining in App.tsx template
-- Fixed stale code bug: `canvai update` now spawns a new process for migrations
-- Added `canvai migrate` subcommand
+- Fixed stale code bug: `bryllen update` now spawns a new process for migrations
+- Added `bryllen migrate` subcommand
 - Added `/plugin-local` and `/plugin-release` dev skills for local plugin testing
 - Added development workflow docs to README and CLAUDE.md
 - Added integration tests for migration coverage
@@ -159,7 +159,7 @@
 - Added export contract and migration tests (`npm test`)
 - Added scaffold smoke test (`npm run test:smoke`)
 - Added version bump script (`./scripts/bump-version.sh`)
-- Built migration system with `.canvai` version marker
+- Built migration system with `.bryllen` version marker
 - Synced all version fields (package.json was stuck at 0.0.1)
 - Added engineering rules to CLAUDE.md
 - Separated repo dev vs consumer-facing CLAUDE.md
@@ -174,7 +174,7 @@
 
 ## 0.0.12
 
-- Update skill uses `npx canvai update`
+- Update skill uses `npx bryllen update`
 
 ## 0.0.11
 

@@ -42,7 +42,7 @@ export function Frame({ id, title, x, y, width, height, children, onMove, onResi
       for (const entry of entries) {
         const h = entry.borderBoxSize?.[0]?.blockSize ?? entry.contentRect.height
         onResizeRef.current?.(idRef.current, h)
-        window.dispatchEvent(new CustomEvent('canvai:frame-resize', {
+        window.dispatchEvent(new CustomEvent('bryllen:frame-resize', {
           detail: { id: idRef.current, height: h },
         }))
       }

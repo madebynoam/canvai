@@ -21,7 +21,7 @@ import {
   claudeMd,
   gitignore,
 } from './templates.js'
-import { runMigrations, writeMarker, getCanvaiVersion } from './migrate.js'
+import { runMigrations, writeMarker, getBryllenVersion } from './migrate.js'
 
 const command = process.argv[2]
 const subcommand = process.argv[3]
@@ -30,7 +30,7 @@ const subcommand = process.argv[3]
 
 function getHttpPort() {
   try {
-    const ports = JSON.parse(readFileSync(join(process.cwd(), '.canvai-ports.json'), 'utf8'))
+    const ports = JSON.parse(readFileSync(join(process.cwd(), '.bryllen-ports.json'), 'utf8'))
     return ports.http || 4748
   } catch {
     return 4748
@@ -80,7 +80,7 @@ async function watchAnnotations() {
     // Output the annotation as JSON for Claude to parse
     console.log(JSON.stringify(result, null, 2))
   } catch (err) {
-    console.error(JSON.stringify({ error: err.message, hint: 'Is canvai design running?' }))
+    console.error(JSON.stringify({ error: err.message, hint: 'Is bryllen design running?' }))
     process.exit(1)
   }
 }
@@ -88,7 +88,7 @@ async function watchAnnotations() {
 async function resolveAnnotation() {
   const id = process.argv[3]
   if (!id) {
-    console.error('Usage: canvai resolve <id>')
+    console.error('Usage: bryllen resolve <id>')
     process.exit(1)
   }
 
@@ -109,7 +109,7 @@ async function progressAnnotation() {
   const id = process.argv[3]
   const message = process.argv.slice(4).join(' ')
   if (!id || !message) {
-    console.error('Usage: canvai progress <id> <message>')
+    console.error('Usage: bryllen progress <id> <message>')
     process.exit(1)
   }
 
@@ -131,7 +131,7 @@ async function pendingAnnotations() {
     const pending = await httpGet('/annotations?status=pending')
     console.log(JSON.stringify(pending, null, 2))
   } catch (err) {
-    console.error(JSON.stringify({ error: err.message, hint: 'Is canvai design running?' }))
+    console.error(JSON.stringify({ error: err.message, hint: 'Is bryllen design running?' }))
     process.exit(1)
   }
 }
@@ -141,7 +141,7 @@ async function listAnnotations() {
     const all = await httpGet('/annotations')
     console.log(JSON.stringify(all, null, 2))
   } catch (err) {
-    console.error(JSON.stringify({ error: err.message, hint: 'Is canvai design running?' }))
+    console.error(JSON.stringify({ error: err.message, hint: 'Is bryllen design running?' }))
     process.exit(1)
   }
 }
@@ -191,7 +191,7 @@ async function screenshotCanvas() {
 
     console.log(JSON.stringify({ path: result.path }))
   } catch (err) {
-    console.error(JSON.stringify({ error: err.message, hint: 'Is canvai design running?' }))
+    console.error(JSON.stringify({ error: err.message, hint: 'Is bryllen design running?' }))
     process.exit(1)
   }
 }
@@ -455,9 +455,9 @@ function scaffold() {
     console.log('  created src/projects/')
   }
 
-  // Write .canvai-version marker
-  writeMarker(cwd, getCanvaiVersion())
-  console.log('  created .canvai-version')
+  // Write .bryllen-version marker
+  writeMarker(cwd, getBryllenVersion())
+  console.log('  created .bryllen-version')
 
   if (wrote === 0) {
     console.log('All scaffold files already exist — nothing to write.')
@@ -482,25 +482,25 @@ function scaffold() {
     })
     install.on('exit', (code) => {
       if (code === 0) {
-        console.log('\nReady! Run `npx canvai design` to start.')
+        console.log('\nReady! Run `npx bryllen design` to start.')
       } else {
         console.error('\nnpm install failed. Install manually and try again.')
       }
       process.exit(code ?? 0)
     })
   } else {
-    console.log('\nReady! Run `npx canvai design` to start.')
+    console.log('\nReady! Run `npx bryllen design` to start.')
   }
 }
 
 function update() {
   const cwd = process.cwd()
-  console.log('Updating canvai to latest...\n')
+  console.log('Updating bryllen to latest...\n')
 
-  // Remove cached canvai so npm re-resolves from GitHub instead of using the locked SHA.
+  // Remove cached bryllen so npm re-resolves from GitHub instead of using the locked SHA.
   // Both node_modules AND the lockfile entry must be cleared — npm uses the lockfile
   // resolved commit SHA even when node_modules is deleted.
-  const cachedPkg = join(cwd, 'node_modules', 'canvai')
+  const cachedPkg = join(cwd, 'node_modules', 'bryllen')
   if (existsSync(cachedPkg)) {
     rmSync(cachedPkg, { recursive: true, force: true })
   }
@@ -509,13 +509,13 @@ function update() {
     if (existsSync(lockPath)) {
       const lock = JSON.parse(readFileSync(lockPath, 'utf8'))
       let changed = false
-      if (lock.packages?.['node_modules/canvai']) { delete lock.packages['node_modules/canvai']; changed = true }
-      if (lock.dependencies?.canvai) { delete lock.dependencies.canvai; changed = true }
+      if (lock.packages?.['node_modules/bryllen']) { delete lock.packages['node_modules/bryllen']; changed = true }
+      if (lock.dependencies?.bryllen) { delete lock.dependencies.bryllen; changed = true }
       if (changed) writeFileSync(lockPath, JSON.stringify(lock, null, 2) + '\n')
     }
   } catch {}
 
-  const install = spawn('npm', ['install', 'github:madebynoam/canvai'], {
+  const install = spawn('npm', ['install', 'github:madebynoam/bryllen'], {
     cwd,
     stdio: 'inherit',
     shell: true,
@@ -530,17 +530,17 @@ function update() {
       }
       // Run migrations in a NEW process so the freshly-installed code is used.
       // The current process still has the old modules loaded from before npm install.
-      const migratePath = join(cwd, 'node_modules', 'canvai', 'src', 'cli', 'index.js')
+      const migratePath = join(cwd, 'node_modules', 'bryllen', 'src', 'cli', 'index.js')
       const migrate = spawn('node', [migratePath, 'migrate'], {
         cwd,
         stdio: 'inherit',
       })
       migrate.on('exit', () => {
-        console.log('\nUpdated! Restart `npx canvai design` to use the latest.')
+        console.log('\nUpdated! Restart `npx bryllen design` to use the latest.')
         process.exit(0)
       })
     } else {
-      console.error('\nUpdate failed. Try running: npm install github:madebynoam/canvai')
+      console.error('\nUpdate failed. Try running: npm install github:madebynoam/bryllen')
       process.exit(code ?? 1)
     }
   })
@@ -566,14 +566,14 @@ async function findFreePort(start) {
 
 /** Write port info so MCP server and Vite plugin can discover them. */
 function writePorts(cwd, httpPort, vitePort, vitePid, httpPid) {
-  writeFileSync(join(cwd, '.canvai-ports.json'), JSON.stringify({ http: httpPort, vite: vitePort, vitePid, httpPid, pid: process.pid }) + '\n')
+  writeFileSync(join(cwd, '.bryllen-ports.json'), JSON.stringify({ http: httpPort, vite: vitePort, vitePid, httpPid, pid: process.pid }) + '\n')
 }
 
 async function startDev() {
   const cwd = process.cwd()
 
   // Kill any existing servers from previous sessions (prevents orphans)
-  const portsFile = join(cwd, '.canvai-ports.json')
+  const portsFile = join(cwd, '.bryllen-ports.json')
   if (existsSync(portsFile)) {
     try {
       const ports = JSON.parse(readFileSync(portsFile, 'utf8'))
@@ -581,11 +581,11 @@ async function startDev() {
         try { process.kill(pid, 'SIGTERM') } catch {}
       }
       rmSync(portsFile, { force: true })
-      console.log('[canvai] Cleaned up previous servers')
+      console.log('[bryllen] Cleaned up previous servers')
     } catch {}
   }
 
-  // Clear Vite dep cache so updated canvai code is re-bundled
+  // Clear Vite dep cache so updated bryllen code is re-bundled
   const viteCache = join(cwd, 'node_modules', '.vite')
   if (existsSync(viteCache)) {
     rmSync(viteCache, { recursive: true, force: true })
@@ -603,7 +603,7 @@ async function startDev() {
 
   // Write ports BEFORE spawning so Vite's config() can read them
   writePorts(cwd, httpPort, vitePort, null, null)
-  console.log(`[canvai] HTTP server → :${httpPort}  Vite → :${vitePort}`)
+  console.log(`[bryllen] HTTP server → :${httpPort}  Vite → :${vitePort}`)
 
   // Start Vite dev server on the chosen port
   const vite = spawn('npx', ['vite', '--port', String(vitePort), '--strictPort'], {
@@ -625,7 +625,7 @@ async function startDev() {
 
   // Clean up on exit — remove ports file so stale info doesn't linger
   function cleanup() {
-    try { rmSync(join(cwd, '.canvai-ports.json'), { force: true }) } catch {}
+    try { rmSync(join(cwd, '.bryllen-ports.json'), { force: true }) } catch {}
     vite.kill()
     httpSrv.kill()
     process.exit()
@@ -635,7 +635,7 @@ async function startDev() {
   process.on('SIGTERM', cleanup)
 
   vite.on('exit', (code) => {
-    try { rmSync(join(cwd, '.canvai-ports.json'), { force: true }) } catch {}
+    try { rmSync(join(cwd, '.bryllen-ports.json'), { force: true }) } catch {}
     httpSrv.kill()
     process.exit(code ?? 0)
   })
@@ -655,7 +655,7 @@ switch (command) {
   case 'doctor': {
     const cwd = process.cwd()
     if (command === 'doctor') {
-      console.log('Running canvai doctor — checking all migrations...\n')
+      console.log('Running bryllen doctor — checking all migrations...\n')
     }
     const applied = runMigrations(cwd)
     if (applied > 0) {
@@ -693,23 +693,23 @@ switch (command) {
     break
 
   default:
-    console.log('Canvai — design studio on an infinite canvas\n')
+    console.log('Bryllen — design studio on an infinite canvas\n')
     console.log('Usage:')
-    console.log('  canvai new                  Scaffold project files')
-    console.log('  canvai design               Start dev server + annotation server')
-    console.log('  canvai update               Update canvai to latest')
-    console.log('  canvai doctor               Check and fix project files')
+    console.log('  bryllen new                  Scaffold project files')
+    console.log('  bryllen design               Start dev server + annotation server')
+    console.log('  bryllen update               Update bryllen to latest')
+    console.log('  bryllen doctor               Check and fix project files')
     console.log('')
     console.log('Annotation commands (for Claude Code agent):')
-    console.log('  canvai watch [--timeout N]  Wait for annotation (default 15s)')
-    console.log('  canvai resolve <id>         Mark annotation as resolved')
-    console.log('  canvai progress <id> <msg>  Update progress shown on canvas')
-    console.log('  canvai pending              List pending annotations')
-    console.log('  canvai list                 List all annotations')
-    console.log('  canvai screenshot [--project <name>] [--iteration <v>] [--page <name>] [--frame <id>] [--delay <ms>]')
-    console.log('  canvai context [--project <name>] [--iteration <v>]')
-    console.log('  canvai iterate [--project <name>]  Create new iteration (freeze + copy)')
+    console.log('  bryllen watch [--timeout N]  Wait for annotation (default 15s)')
+    console.log('  bryllen resolve <id>         Mark annotation as resolved')
+    console.log('  bryllen progress <id> <msg>  Update progress shown on canvas')
+    console.log('  bryllen pending              List pending annotations')
+    console.log('  bryllen list                 List all annotations')
+    console.log('  bryllen screenshot [--project <name>] [--iteration <v>] [--page <name>] [--frame <id>] [--delay <ms>]')
+    console.log('  bryllen context [--project <name>] [--iteration <v>]')
+    console.log('  bryllen iterate [--project <name>]  Create new iteration (freeze + copy)')
     console.log('')
-    console.log('  canvai help                 Show this message')
+    console.log('  bryllen help                 Show this message')
     process.exit(command === 'help' ? 0 : 1)
 }

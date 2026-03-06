@@ -1,6 +1,6 @@
-declare module 'virtual:canvai-manifests' {
+declare module 'virtual:bryllen-manifests' {
   import type { ProjectManifest } from '../runtime/types'
   export const manifests: ProjectManifest[]
 }
 
-declare const __CANVAI_VERSION__: string
+declare const __BRYLLEN_VERSION__: string

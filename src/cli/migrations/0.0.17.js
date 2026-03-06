@@ -28,7 +28,7 @@ export function applies(fileContents) {
   if (app.includes('iterations={') && app.includes('onSelect={(iterIdx, pageIdx)')) return true
 
   // Detect missing IterationPills import
-  if (app.includes('canvai/runtime') && !app.includes('IterationPills')) return true
+  if (app.includes('bryllen/runtime') && !app.includes('IterationPills')) return true
 
   // Detect missing sidebarOpen state
   if (app.includes('TopBar') && !app.includes('sidebarOpen')) return true
@@ -47,7 +47,7 @@ export function migrate(fileContents) {
   // 1. Add IterationPills to import
   if (!app.includes('IterationPills')) {
     app = app.replace(
-      /import \{([^}]*)\} from 'canvai\/runtime'/,
+      /import \{([^}]*)\} from 'bryllen\/runtime'/,
       (match, imports) => {
         const importList = imports.split(',').map(s => s.trim()).filter(Boolean)
         if (!importList.includes('IterationPills')) {
@@ -59,7 +59,7 @@ export function migrate(fileContents) {
             importList.push('IterationPills')
           }
         }
-        return `import { ${importList.join(', ')} } from 'canvai/runtime'`
+        return `import { ${importList.join(', ')} } from 'bryllen/runtime'`
       }
     )
   }

@@ -1,7 +1,7 @@
 /**
- * Scaffold templates for `canvai new`.
+ * Scaffold templates for `bryllen new`.
  * These are the consumer-project versions of each file,
- * importing from 'canvai/runtime' and 'canvai/vite-plugin'.
+ * importing from 'bryllen/runtime' and 'bryllen/vite-plugin'.
  */
 
 export const indexHtml = `<!doctype html>
@@ -20,10 +20,10 @@ export const indexHtml = `<!doctype html>
 
 export const viteConfig = `import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import { canvaiPlugin } from 'canvai/vite-plugin'
+import { bryllenPlugin } from 'bryllen/vite-plugin'
 
 export default defineConfig({
-  plugins: [react(), canvaiPlugin()],
+  plugins: [react(), bryllenPlugin()],
 })
 `
 
@@ -39,11 +39,11 @@ createRoot(document.getElementById('root')!).render(
 )
 `
 
-export const appTsx = `import { CanvaiShell } from 'canvai/runtime'
-import { manifests } from 'virtual:canvai-manifests'
+export const appTsx = `import { BryllenShell } from 'bryllen/runtime'
+import { manifests } from 'virtual:bryllen-manifests'
 
 export default function App() {
-  return <CanvaiShell manifests={manifests} />
+  return <BryllenShell manifests={manifests} />
 }
 `
 
@@ -65,8 +65,8 @@ html, body, #root {
 
 export const viteEnvDts = `/// <reference types="vite/client" />
 
-declare module 'virtual:canvai-manifests' {
-  import type { ProjectManifest } from 'canvai/runtime'
+declare module 'virtual:bryllen-manifests' {
+  import type { ProjectManifest } from 'bryllen/runtime'
   export const manifests: ProjectManifest[]
 }
 `
@@ -79,11 +79,11 @@ export const claudeSettingsJson = `{
         "hooks": [
           {
             "type": "command",
-            "command": "node node_modules/canvai/src/cli/hooks/frozen-guard.js"
+            "command": "node node_modules/bryllen/src/cli/hooks/frozen-guard.js"
           },
           {
             "type": "command",
-            "command": "node node_modules/canvai/src/cli/hooks/rules-guard.js"
+            "command": "node node_modules/bryllen/src/cli/hooks/rules-guard.js"
           }
         ]
       }
@@ -165,13 +165,13 @@ A page defines exactly one exported function. Any sub-component belongs in \\\`c
 
 ## Mandatory pages
 
-- **Tokens** — color swatches (\\\`TokenSwatch\\\` from \\\`canvai/runtime\\\`), typography, spacing
+- **Tokens** — color swatches (\\\`TokenSwatch\\\` from \\\`bryllen/runtime\\\`), typography, spacing
 - **Components** — all building blocks with variations and states
 
 ### TokenSwatch
 
 \\\`\\\`\\\`tsx
-import { TokenSwatch } from 'canvai/runtime'
+import { TokenSwatch } from 'bryllen/runtime'
 <TokenSwatch color="var(--chrome)" label="chrome" sublabel="oklch(0.952 0.003 80)"
   oklch={{ l: 0.952, c: 0.003, h: 80 }} tokenPath="--chrome" />
 \\\`\\\`\\\`
@@ -219,7 +219,7 @@ export const gitignore = `node_modules
 dist
 .DS_Store
 *.local
-.canvai
+.bryllen
 `
 
 // MCP removed in favor of CLI commands — no .mcp.json needed

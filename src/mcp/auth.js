@@ -1,13 +1,13 @@
 /**
- * canvai — GitHub OAuth Device Flow
+ * bryllen — GitHub OAuth Device Flow
  *
  * Implements the device flow for GitHub authentication.
- * Token stored in ~/.canvai/auth.json
+ * Token stored in ~/.bryllen/auth.json
  * Browser receives user info only (token never sent to browser).
  *
  * SETUP: Register a GitHub OAuth App at github.com/settings/applications/new
- *   - Application name: canvai
- *   - Homepage URL: https://github.com/madebynoam/canvai
+ *   - Application name: bryllen
+ *   - Homepage URL: https://github.com/madebynoam/bryllen
  *   - Authorization callback URL: (leave empty — device flow doesn't need it)
  *   Then replace GITHUB_CLIENT_ID below with your app's Client ID.
  */
@@ -16,7 +16,7 @@ import { readFileSync, writeFileSync, mkdirSync } from 'fs'
 import { homedir } from 'os'
 import { join } from 'path'
 
-// TODO: Replace with the canvai GitHub OAuth App Client ID after registering at
+// TODO: Replace with the bryllen GitHub OAuth App Client ID after registering at
 // https://github.com/settings/applications/new
 // Client IDs are public — safe to commit.
 export const GITHUB_CLIENT_ID = process.env.CANVAI_GITHUB_CLIENT_ID ?? 'Ov23liXXXXXXXXXXXXXX'
@@ -25,7 +25,7 @@ const GITHUB_DEVICE_CODE_URL = 'https://github.com/login/device/code'
 const GITHUB_TOKEN_URL = 'https://github.com/login/oauth/access_token'
 const SCOPES = 'repo read:user'
 
-const AUTH_FILE = join(homedir(), '.canvai', 'auth.json')
+const AUTH_FILE = join(homedir(), '.bryllen', 'auth.json')
 
 // ── Token storage ─────────────────────────────────────────────────────────────
 
@@ -38,7 +38,7 @@ function readAuthFile() {
 }
 
 function writeAuthFile(data) {
-  mkdirSync(join(homedir(), '.canvai'), { recursive: true })
+  mkdirSync(join(homedir(), '.bryllen'), { recursive: true })
   writeFileSync(AUTH_FILE, JSON.stringify(data, null, 2), 'utf8')
 }
 
@@ -72,7 +72,7 @@ export async function initiateDeviceFlow() {
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/x-www-form-urlencoded',
-      'User-Agent': 'canvai/1.0',
+      'User-Agent': 'bryllen/1.0',
     },
     body: new URLSearchParams({
       client_id: GITHUB_CLIENT_ID,
@@ -106,7 +106,7 @@ export async function pollForToken(deviceCode) {
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/x-www-form-urlencoded',
-      'User-Agent': 'canvai/1.0',
+      'User-Agent': 'bryllen/1.0',
     },
     body: new URLSearchParams({
       client_id: GITHUB_CLIENT_ID,
@@ -143,7 +143,7 @@ export async function pollForToken(deviceCode) {
     headers: {
       'Authorization': `Bearer ${data.access_token}`,
       'Accept': 'application/vnd.github+json',
-      'User-Agent': 'canvai/1.0',
+      'User-Agent': 'bryllen/1.0',
     },
   })
 

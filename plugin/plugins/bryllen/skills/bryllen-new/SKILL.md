@@ -1,15 +1,15 @@
 ---
-name: canvai-new
+name: bryllen-new
 description: Create a new design project and start designing
 ---
 
-# /canvai-new <project-name>
+# /bryllen-new <project-name>
 
-Create a new design project inside Canvai and launch the dev environment.
+Create a new design project inside Bryllen and launch the dev environment.
 
 ## Steps
 
-1. **Parse the command.** The format is `/canvai-new <project-name> [description]`.
+1. **Parse the command.** The format is `/bryllen-new <project-name> [description]`.
    - If both name AND description are provided: proceed to step 2
    - If only name is provided (no description/prompt): **Use AskUserQuestion** to ask "What would you like to design?" with example options like "Dashboard", "Landing page", "Mobile app", "Component library". Use their response as the description and proceed.
    - If no name provided: **Use AskUserQuestion** to ask for a project name first, then ask what they want to design.
@@ -25,20 +25,20 @@ Create a new design project inside Canvai and launch the dev environment.
      dist
      .DS_Store
      *.local
-     .canvai
+     .bryllen
      ```
    - If exists: leave it alone
 
-4. **Check if canvai is installed.** Look for `package.json` in the current directory.
-   - If no `package.json`: run `npm init -y && npm install github:madebynoam/canvai`
-   - If `package.json` exists but no canvai dependency: run `npm install github:madebynoam/canvai`
+4. **Check if bryllen is installed.** Look for `package.json` in the current directory.
+   - If no `package.json`: run `npm init -y && npm install github:madebynoam/bryllen`
+   - If `package.json` exists but no bryllen dependency: run `npm install github:madebynoam/bryllen`
    - If already installed: continue
 
    If `npm install` fails, stop immediately and tell the user what went wrong. Do not proceed to step 5.
 
 5. **Scaffold the project.** Run:
    ```bash
-   npx canvai new
+   npx bryllen new
    ```
    This creates `index.html`, `vite.config.ts`, `src/App.tsx`, `src/main.tsx`, `CLAUDE.md` (project rules), `.claude/settings.json` (frozen guard hook), tsconfigs, and installs peer dependencies. Files that already exist are skipped.
 
@@ -63,7 +63,7 @@ Create a new design project inside Canvai and launch the dev environment.
 
 8. **Launch the dev server:**
    ```bash
-   npx canvai design
+   npx bryllen design
    ```
    This starts both Vite and the annotation HTTP server in one command.
 
@@ -76,9 +76,9 @@ Create a new design project inside Canvai and launch the dev environment.
 
 After init, the designer describes what they want. The agent follows this exact sequence — **order matters**:
 
-0. **Check for context images** — Run `npx canvai context --project <name> --iteration v1` to see if the designer pasted any inspiration images. If present, read them via the Read tool and analyze via Vision. Incorporate their style into the design directions.
+0. **Check for context images** — Run `npx bryllen context --project <name> --iteration v1` to see if the designer pasted any inspiration images. If present, read them via the Read tool and analyze via Vision. Incorporate their style into the design directions.
 
-1. **GENERATE 3-5 DESIGN DIRECTIONS (MANDATORY)** — This is the whole point of Canvai. Before writing any code:
+1. **GENERATE 3-5 DESIGN DIRECTIONS (MANDATORY)** — This is the whole point of Bryllen. Before writing any code:
    - Brainstorm 3-5 **genuinely different** design approaches
    - "Genuinely different" means different in **layout, hierarchy, interaction pattern, or information density** — NOT just color or font variations
    - Examples of genuinely different:
@@ -96,7 +96,7 @@ After init, the designer describes what they want. The agent follows this exact 
 
 4. **Create pages** — pages in `v1/pages/` that compose components. Pages import ONLY from `../components/` — never inline styled HTML. Three pages are **mandatory**:
    - **All Directions page** — shows all 3-5 design directions side by side. This is the FIRST thing the designer sees.
-   - **Tokens page** — renders color swatches using `TokenSwatch` from `canvai/runtime`, typography scale, and spacing grid.
+   - **Tokens page** — renders color swatches using `TokenSwatch` from `bryllen/runtime`, typography scale, and spacing grid.
    - **Components page** — shows all building blocks individually.
 
 5. **Generate the manifest** — `manifest.ts` with iteration `name: 'V1'` containing all pages. The "All Directions" page comes FIRST. Import `./v1/tokens.css` at the top.
@@ -105,7 +105,7 @@ After init, the designer describes what they want. The agent follows this exact 
 
 7. **The canvas auto-discovers the manifest** and renders all frames — designer sees all directions at once
 
-8. **Enter watch mode** — run `npx canvai watch` to start listening for designer annotations. This is critical — the designer should be able to click and annotate immediately without running any commands.
+8. **Enter watch mode** — run `npx bryllen watch` to start listening for designer annotations. This is critical — the designer should be able to click and annotate immediately without running any commands.
 
 The full token system, design language, component hierarchy, and guard protocol are defined in CLAUDE.md — those rules apply to every file the agent creates.
 
@@ -125,7 +125,7 @@ If a page needs a button, create `Button.tsx` in `components/` FIRST, then impor
 
 ## Components must be interactive
 
-This is the whole point of Canvai — the code IS the design. Every component must work:
+This is the whole point of Bryllen — the code IS the design. Every component must work:
 - Text inputs are typeable
 - Buttons have hover and active states
 - Menus open on click and dismiss on outside click
@@ -144,7 +144,7 @@ The matrix model (variations × states as separate frames) is for isolated compo
 ## Manifest format
 
 ```ts
-import type { ProjectManifest } from 'canvai/runtime'
+import type { ProjectManifest } from 'bryllen/runtime'
 import './v1/tokens.css'
 import { TokensPage } from './v1/pages/tokens'
 import { ComponentsPage } from './v1/pages/components'

@@ -1,6 +1,6 @@
-# Canvai — Repo Development
+# Bryllen — Repo Development
 
-Canvai is an infinite canvas for Claude Code. Designers describe what they want, Claude generates multiple real React components, they compare side-by-side and ship the best one.
+Bryllen is an infinite canvas for Claude Code. Designers describe what they want, Claude generates multiple real React components, they compare side-by-side and ship the best one.
 
 **Jobs to Be Done:**
 1. **Explore** — See multiple directions at once → Canvas shows options
@@ -10,7 +10,7 @@ Canvai is an infinite canvas for Claude Code. Designers describe what they want,
 
 The code was never a mockup. Explore → Decide → Ship. No handoff.
 
-Two pieces: **npm package** (runtime, Vite plugin, CLI) and **Claude Code plugin** (skills, MCP, agent instructions in `plugin/plugins/canvai/CLAUDE.md`).
+Two pieces: **npm package** (runtime, Vite plugin, CLI) and **Claude Code plugin** (skills, MCP, agent instructions in `plugin/plugins/bryllen/CLAUDE.md`).
 
 ## Project structure
 
@@ -29,7 +29,7 @@ scripts/
   bump-version.sh     ← version bump helper
   smoke-test.sh       ← scaffold smoke test
 plugin/               ← Claude Code plugin marketplace
-  plugins/canvai/     ← the plugin (skills, MCP, CLAUDE.md)
+  plugins/bryllen/     ← the plugin (skills, MCP, CLAUDE.md)
 ```
 
 ## Engineering rules
@@ -40,7 +40,7 @@ All 5 fields across 4 files must be bumped together. Use `./scripts/bump-version
 
 1. `package.json` → `version`
 2. `plugin/.claude-plugin/marketplace.json` → `metadata.version` + `plugins[0].version`
-3. `plugin/plugins/canvai/.claude-plugin/plugin.json` → `version`
+3. `plugin/plugins/bryllen/.claude-plugin/plugin.json` → `version`
 4. `.claude-plugin/marketplace.json` → `metadata.version` + `plugins[0].version`
 
 ### Export contract
@@ -49,7 +49,7 @@ If you remove/rename a runtime export: update template in `src/cli/templates.js`
 
 ### Scaffolded file changes (CRITICAL)
 
-Files from `src/cli/templates.js` are **consumer-owned** — copied during `canvai new`. Changing a template does NOT update existing consumers. If you change ANY scaffolded template:
+Files from `src/cli/templates.js` are **consumer-owned** — copied during `bryllen new`. Changing a template does NOT update existing consumers. If you change ANY scaffolded template:
 1. Update template in `src/cli/templates.js`
 2. Write migration in `src/cli/migrations/`
 3. Bump version via `./scripts/bump-version.sh`
@@ -79,15 +79,15 @@ Files from `src/cli/templates.js` are **consumer-owned** — copied during `canv
 
 ### Update command: stale code trap
 
-`canvai update` runs `npm install` then migrations, but migration code was loaded at startup (old version). The update command spawns `canvai migrate` as a **new process** after npm install. Never call `runMigrations()` directly inside update.
+`bryllen update` runs `npm install` then migrations, but migration code was loaded at startup (old version). The update command spawns `bryllen migrate` as a **new process** after npm install. Never call `runMigrations()` directly inside update.
 
 ### Self-healing migrations
 
-The runner checks `applies()` on ALL migrations every run. A partially-applied migration will be re-applied next run. The marker only bumps after all migrations verify clean. `canvai doctor` is the manual escape hatch.
+The runner checks `applies()` on ALL migrations every run. A partially-applied migration will be re-applied next run. The marker only bumps after all migrations verify clean. `bryllen doctor` is the manual escape hatch.
 
 ### Deprecation before removal
 
-First release: `console.warn('[canvai] X is deprecated, use Y instead')`. Remove in next version with migration.
+First release: `console.warn('[bryllen] X is deprecated, use Y instead')`. Remove in next version with migration.
 
 ### Migration authoring
 
@@ -99,25 +99,25 @@ The runtime shell (`src/runtime/`) follows a Dieter Rams / Jony Ive aesthetic. O
 
 Key rules: no pure white/black, `cursor: default` for all shell UI, `text-wrap: pretty`, components must be interactive.
 
-### Dogfooding project (`src/projects/canvai-ui/`)
+### Dogfooding project (`src/projects/bryllen-ui/`)
 
-Renders actual runtime UI components for visual testing. Imports from `../../runtime/`. When adding/removing runtime components, update `canvai-ui/manifest.ts`.
+Renders actual runtime UI components for visual testing. Imports from `../../runtime/`. When adding/removing runtime components, update `bryllen-ui/manifest.ts`.
 
 ## Commands
 
 - `npm test` — export contract + migration tests
 - `npm run test:smoke` — scaffold smoke test
 - `./scripts/bump-version.sh <version>` — bump all version fields
-- `npx canvai new | design | update | doctor` — CLI commands
+- `npx bryllen new | design | update | doctor` — CLI commands
 
 ### Local plugin testing
 
 1. `/plugin-local` — swaps marketplace to local `plugin/`
-2. Edit skills/MCP in `plugin/plugins/canvai/`
-3. In consumer: `claude plugin update canvai@canvai` → restart → test
+2. Edit skills/MCP in `plugin/plugins/bryllen/`
+3. In consumer: `claude plugin update bryllen@bryllen` → restart → test
 4. `/plugin-release` — swaps back to GitHub
 
 ## Skills
 
-**Plugin (consumer-facing):** `/canvai-new`, `/canvai-design`, `/canvai-share`, `/canvai-close`, `/canvai-update`
+**Plugin (consumer-facing):** `/bryllen-new`, `/bryllen-design`, `/bryllen-share`, `/bryllen-close`, `/bryllen-update`
 **Dev (repo-local):** `/plugin-local`, `/plugin-release`

@@ -34,9 +34,9 @@ export function migrate(fileContents) {
     return result
   }
 
-  // 1. Add ZoomControl, CanvasColorPicker, loadCanvasBg, saveCanvasBg to the canvai/runtime import
+  // 1. Add ZoomControl, CanvasColorPicker, loadCanvasBg, saveCanvasBg to the bryllen/runtime import
   app = app.replace(
-    /from 'canvai\/runtime'/,
+    /from 'bryllen\/runtime'/,
     (match) => {
       // Find the import statement that contains this
       const importStart = app.lastIndexOf('import', app.indexOf(match))
@@ -58,8 +58,8 @@ export function migrate(fileContents) {
   )
 
   // More reliable approach: patch the import line directly
-  // Find the main canvai/runtime import
-  const importMatch = app.match(/import\s*\{([^}]+)\}\s*from\s*'canvai\/runtime'/)
+  // Find the main bryllen/runtime import
+  const importMatch = app.match(/import\s*\{([^}]+)\}\s*from\s*'bryllen\/runtime'/)
   if (importMatch) {
     const existingImports = importMatch[1]
     const additions = []
@@ -70,7 +70,7 @@ export function migrate(fileContents) {
 
     if (additions.length > 0) {
       const newImports = existingImports.trimEnd() + ', ' + additions.join(', ')
-      app = app.replace(importMatch[0], `import {${newImports}} from 'canvai/runtime'`)
+      app = app.replace(importMatch[0], `import {${newImports}} from 'bryllen/runtime'`)
     }
   }
 

@@ -14,7 +14,7 @@ import { existsSync, readFileSync, readdirSync, writeFileSync } from 'fs'
 import { join } from 'path'
 import { migrations } from './migrations/index.js'
 
-const MARKER = '.canvai-version'
+const MARKER = '.bryllen-version'
 
 /** Compare two semver-ish strings. Returns -1 | 0 | 1 */
 export function compareSemver(a, b) {
@@ -27,7 +27,7 @@ export function compareSemver(a, b) {
   return 0
 }
 
-/** Read the consumer's .canvai version. Returns '0.0.0' if missing. */
+/** Read the consumer's .bryllen version. Returns '0.0.0' if missing. */
 export function readMarkerVersion(cwd) {
   const markerPath = join(cwd, MARKER)
   if (!existsSync(markerPath)) return '0.0.0'
@@ -39,13 +39,13 @@ export function readMarkerVersion(cwd) {
   }
 }
 
-/** Write the .canvai version marker. */
+/** Write the .bryllen version marker. */
 export function writeMarker(cwd, version) {
   writeFileSync(join(cwd, MARKER), JSON.stringify({ version }, null, 2) + '\n')
 }
 
-/** Get the current canvai package version from package.json. */
-export function getCanvaiVersion() {
+/** Get the current bryllen package version from package.json. */
+export function getBryllenVersion() {
   const pkgPath = new URL('../../package.json', import.meta.url)
   const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'))
   return pkg.version
@@ -126,7 +126,7 @@ function runMigration(cwd, migration) {
  * Returns the number of migrations applied.
  */
 export function runMigrations(cwd) {
-  const canvaiVersion = getCanvaiVersion()
+  const bryllenVersion = getBryllenVersion()
   let applied = 0
 
   // Run ALL migrations whose applies() returns true.
@@ -151,13 +151,13 @@ export function runMigrations(cwd) {
     }
 
     if (allClean) {
-      writeMarker(cwd, canvaiVersion)
+      writeMarker(cwd, bryllenVersion)
     } else {
-      console.warn('  Marker NOT bumped — some migrations still apply. Run `npx canvai doctor` to diagnose.')
+      console.warn('  Marker NOT bumped — some migrations still apply. Run `npx bryllen doctor` to diagnose.')
     }
   } else {
     // No migrations needed, but ensure marker is at current version
-    writeMarker(cwd, canvaiVersion)
+    writeMarker(cwd, bryllenVersion)
   }
 
   return applied

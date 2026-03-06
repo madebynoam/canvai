@@ -1,9 +1,9 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import { canvaiPlugin } from './src/vite-plugin'
+import { bryllenPlugin } from './src/vite-plugin'
 
 export default defineConfig({
-  plugins: [react(), canvaiPlugin()],
+  plugins: [react(), bryllenPlugin()],
   server: {
     // SPA fallback: serve index.html for all routes
     middlewareMode: false,

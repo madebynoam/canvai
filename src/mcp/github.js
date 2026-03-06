@@ -1,5 +1,5 @@
 /**
- * canvai — GitHub API wrapper
+ * bryllen — GitHub API wrapper
  *
  * All GitHub API calls go through this module.
  * Used by the HTTP server proxy (local dev).
@@ -47,7 +47,7 @@ async function ghFetch(path, { token, method = 'GET', body } = {}) {
       'Accept': 'application/vnd.github+json',
       'X-GitHub-Api-Version': '2022-11-28',
       'Content-Type': 'application/json',
-      'User-Agent': 'canvai/1.0',
+      'User-Agent': 'bryllen/1.0',
     },
     ...(body ? { body: JSON.stringify(body) } : {}),
   })
@@ -132,7 +132,7 @@ const EMOJI_TO_CONTENT = {
   '🤔': 'confused',
   '❤️': 'heart',
   '🎉': 'hooray',
-  '🔥': 'hooray',   // canvai uses 🔥, GitHub maps to hooray
+  '🔥': 'hooray',   // bryllen uses 🔥, GitHub maps to hooray
   '🚀': 'rocket',
   '👀': 'eyes',
 }
@@ -143,7 +143,7 @@ const CONTENT_TO_EMOJI = {
   'laugh': '😄',
   'confused': '🤔',
   'heart': '❤️',
-  'hooray': '🔥',   // display hooray as 🔥 in canvai
+  'hooray': '🔥',   // display hooray as 🔥 in bryllen
   'rocket': '🚀',
   'eyes': '👀',
 }
@@ -191,22 +191,22 @@ export async function getAuthenticatedUser(token) {
 
 /**
  * Build the structured issue body.
- * Metadata lives in an HTML comment block (parseable by canvai, readable on GitHub).
+ * Metadata lives in an HTML comment block (parseable by bryllen, readable on GitHub).
  */
 export function buildIssueBody(meta, comment) {
-  const metaBlock = `<!-- canvai:meta\n${JSON.stringify(meta, null, 2)}\n-->`
-  const footer = `---\n*Posted from [canvai](https://github.com/madebynoam/canvai) canvas*`
+  const metaBlock = `<!-- bryllen:meta\n${JSON.stringify(meta, null, 2)}\n-->`
+  const footer = `---\n*Posted from [bryllen](https://github.com/madebynoam/bryllen) canvas*`
   return `${metaBlock}\n\n${comment}\n\n${footer}`
 }
 
 export function parseIssueBody(body) {
   if (!body) return { meta: null, comment: '' }
-  const metaMatch = body.match(/<!--\s*canvai:meta\s*([\s\S]+?)\s*-->/)
+  const metaMatch = body.match(/<!--\s*bryllen:meta\s*([\s\S]+?)\s*-->/)
   if (!metaMatch) return { meta: null, comment: body }
   try {
     const meta = JSON.parse(metaMatch[1])
     const withoutMeta = body.replace(/<!--[\s\S]+?-->\s*/, '')
-    const comment = withoutMeta.replace(/\s*---\s*\*Posted from \[canvai\][\s\S]*$/, '').trim()
+    const comment = withoutMeta.replace(/\s*---\s*\*Posted from \[bryllen\][\s\S]*$/, '').trim()
     return { meta, comment }
   } catch {
     return { meta: null, comment: body }
@@ -274,5 +274,5 @@ export function issueToThread(issue, ghComments = []) {
  */
 export function buildIssueTitle(componentName, elementTag, comment) {
   const firstLine = comment.split('\n')[0].slice(0, 60)
-  return `[canvai] ${componentName} · ${elementTag} — ${firstLine}`
+  return `[bryllen] ${componentName} · ${elementTag} — ${firstLine}`
 }

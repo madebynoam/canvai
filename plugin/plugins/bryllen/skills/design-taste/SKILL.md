@@ -113,7 +113,7 @@ frames: [
 { x: 0, y: 0 }, { x: 0, y: 940 }, { x: 0, y: 1880 }
 ```
 
-**If your frames have the same X and different Y values, you have failed.** Horizontal side-by-side comparison is Canvai's core value.
+**If your frames have the same X and different Y values, you have failed.** Horizontal side-by-side comparison is Bryllen's core value.
 
 ## 9. Variation Mandate
 

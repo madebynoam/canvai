@@ -65,7 +65,7 @@ process.on('exit', closeBrowser)
 
 // --- Persistence ---
 
-const STORE_DIR = join(process.cwd(), '.canvai')
+const STORE_DIR = join(process.cwd(), '.bryllen')
 const STORE_FILE = join(STORE_DIR, 'annotations.json')
 
 function loadAnnotations() {
@@ -89,7 +89,7 @@ function persistAnnotations() {
     if (!existsSync(STORE_DIR)) mkdirSync(STORE_DIR, { recursive: true })
     writeFileSync(STORE_FILE, JSON.stringify([...annotations.values()], null, 2))
   } catch (err) {
-    console.error('[canvai] Failed to persist annotations:', err.message)
+    console.error('[bryllen] Failed to persist annotations:', err.message)
   }
 }
 
@@ -207,7 +207,7 @@ function autoCommit(annotation) {
     const msg = `${prefix}: annotation #${annotation.id} — ${comment}`
 
     execSync(`git commit -m '${msg}'`, { stdio: 'ignore' })
-    console.log(`[canvai] Auto-committed: ${msg}`)
+    console.log(`[bryllen] Auto-committed: ${msg}`)
 
     // Notify SSE clients about the commit
     for (const client of sseClients) {
@@ -343,7 +343,7 @@ const httpServer = createServer(async (req, res) => {
     if (req.method === 'POST' && url.pathname === '/annotations') {
       const data = await parseBody(req)
       const annotation = addAnnotation(data)
-      console.log(`[canvai] Annotation #${annotation.id}: "${annotation.comment}"`)
+      console.log(`[bryllen] Annotation #${annotation.id}: "${annotation.comment}"`)
       sendJson(res, 201, annotation)
       return
     }
@@ -462,7 +462,7 @@ const httpServer = createServer(async (req, res) => {
     if (req.method === 'DELETE' && deleteAnnotationMatch) {
       const annotation = deleteAnnotation(deleteAnnotationMatch[1])
       if (annotation) {
-        console.log(`[canvai] Annotation #${deleteAnnotationMatch[1]} deleted`)
+        console.log(`[bryllen] Annotation #${deleteAnnotationMatch[1]} deleted`)
         sendJson(res, 200, annotation)
       } else {
         sendJson(res, 404, { error: 'Annotation not found' })
@@ -535,7 +535,7 @@ const httpServer = createServer(async (req, res) => {
     // GET /comments — list all comment threads for this project
     if (req.method === 'GET' && url.pathname === '/comments') {
       if (!repo) { sendJson(res, 503, { error: 'Cannot detect GitHub repo from git remote' }); return }
-      const issues = await listIssues(repo, { labels: ['canvai-comment'] }, token)
+      const issues = await listIssues(repo, { labels: ['bryllen-comment'] }, token)
       const threads = await Promise.all(
         issues.map(async issue => {
           const comments = await listIssueComments(repo, issue.number, token)
@@ -573,12 +573,12 @@ const httpServer = createServer(async (req, res) => {
       const issue = await createIssue(repo, {
         title,
         body,
-        labels: ['canvai-comment'],
+        labels: ['bryllen-comment'],
       }, token)
 
       const thread = issueToThread(issue, [])
       broadcastCommentEvent({ type: 'comment-created', thread })
-      console.log(`[canvai] Comment thread #${issue.number} created`)
+      console.log(`[bryllen] Comment thread #${issue.number} created`)
       sendJson(res, 201, thread)
       return
     }
@@ -697,7 +697,7 @@ const httpServer = createServer(async (req, res) => {
         comment: data.comment ?? '',
       })
 
-      console.log(`[canvai] Comment #${issueNumber} promoted to annotation #${annotation.id}`)
+      console.log(`[bryllen] Comment #${issueNumber} promoted to annotation #${annotation.id}`)
       sendJson(res, 201, { annotationId: annotation.id })
       return
     }
@@ -740,7 +740,7 @@ const httpServer = createServer(async (req, res) => {
       }
 
       writeFileSync(filepath, buffer)
-      console.log(`[canvai] Context image saved: ${filepath}`)
+      console.log(`[bryllen] Context image saved: ${filepath}`)
 
       const relativePath = page ? `context/${page}/${finalFilename}` : `context/${finalFilename}`
       sendJson(res, 201, { path: relativePath, filename: finalFilename, absolutePath: filepath, page: page || null })
@@ -882,7 +882,7 @@ const httpServer = createServer(async (req, res) => {
 
       const { unlinkSync } = await import('fs')
       unlinkSync(filepath)
-      console.log(`[canvai] Context image deleted: ${filepath}`)
+      console.log(`[bryllen] Context image deleted: ${filepath}`)
       sendJson(res, 200, { deleted: true, filename })
       return
     }
@@ -927,7 +927,7 @@ const httpServer = createServer(async (req, res) => {
         const storeIsDir = existsSync(STORE_DIR) && statSync(STORE_DIR).isDirectory()
         const screenshotDir = storeIsDir
           ? join(STORE_DIR, 'screenshots')
-          : join(process.cwd(), '.canvai-screenshots')
+          : join(process.cwd(), '.bryllen-screenshots')
         if (!existsSync(screenshotDir)) mkdirSync(screenshotDir, { recursive: true })
 
         const timestamp = Date.now()
@@ -936,20 +936,20 @@ const httpServer = createServer(async (req, res) => {
 
         if (frameId) {
           // Frame mode — screenshot a specific frame's content
-          await page.evaluate(() => window.__canvai?.fitToView())
+          await page.evaluate(() => window.__bryllen?.fitToView())
           await new Promise(r => setTimeout(r, 300))
 
           const frameContent = await page.$(`[data-frame-id="${frameId}"] [data-frame-content]`)
           if (!frameContent) {
             // List available frames for debugging
-            const available = await page.evaluate(() => window.__canvai?.getFrameIds?.() ?? [])
+            const available = await page.evaluate(() => window.__bryllen?.getFrameIds?.() ?? [])
             sendJson(res, 404, { error: `Frame "${frameId}" not found`, available })
             return
           }
           await frameContent.screenshot({ path: filepath })
         } else {
           // Page mode — fit all frames into view, screenshot canvas content
-          await page.evaluate(() => window.__canvai?.fitToView())
+          await page.evaluate(() => window.__bryllen?.fitToView())
           await new Promise(r => setTimeout(r, 300))
 
           const canvasContent = await page.$('[data-canvas-content]')
@@ -973,11 +973,11 @@ const httpServer = createServer(async (req, res) => {
 
     sendJson(res, 404, { error: 'Not found' })
   } catch (err) {
-    console.error(`[canvai] HTTP error:`, err.message)
+    console.error(`[bryllen] HTTP error:`, err.message)
     sendJson(res, err.status ?? 500, { error: err.message })
   }
 })
 
 httpServer.listen(PORT, () => {
-  console.log(`[canvai] Annotation server listening on port ${PORT}`)
+  console.log(`[bryllen] Annotation server listening on port ${PORT}`)
 })

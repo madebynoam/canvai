@@ -45,7 +45,7 @@ export function migrate(fileContents) {
           if (!hasRulesGuard) {
             editWriteEntry.hooks.push({
               type: 'command',
-              command: 'node node_modules/canvai/src/cli/hooks/rules-guard.js',
+              command: 'node node_modules/bryllen/src/cli/hooks/rules-guard.js',
             })
           }
         }
@@ -67,7 +67,7 @@ export function migrate(fileContents) {
       /(\d+)(\.\s*(?:\*\*)?(?:Log to|.*CHANGELOG\.md).*)/,
       (_, num, rest) => {
         const nextNum = parseInt(num, 10) + 1
-        return `${num}${rest}\n${nextNum}. **Commit after each change** — After completing the requested changes, stage and commit project files:\n   \`git add src/projects/ && git commit -m 'style: <brief description of change>'\`\n   Every change gets its own commit so the designer can rewind with \`/canvai-undo\`.`
+        return `${num}${rest}\n${nextNum}. **Commit after each change** — After completing the requested changes, stage and commit project files:\n   \`git add src/projects/ && git commit -m 'style: <brief description of change>'\`\n   Every change gets its own commit so the designer can rewind with \`/bryllen-undo\`.`
       }
     )
     result['CLAUDE.md'] = claudeMd

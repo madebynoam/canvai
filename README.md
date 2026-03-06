@@ -1,6 +1,6 @@
-# Canvai
+# Bryllen
 
-> **Work in progress.** Canvai is under active development. Things will break and change.
+> **Work in progress.** Bryllen is under active development. Things will break and change.
 
 A design studio on an infinite canvas where every design is live React code. Describe what you want, the agent builds it on the canvas, annotate elements to iterate, and ship the final code to a production repo.
 
@@ -10,16 +10,16 @@ A design studio on an infinite canvas where every design is live React code. Des
 
 ### 1. Install the Claude Code plugin
 
-In your **terminal**, add the canvai marketplace:
+In your **terminal**, add the bryllen marketplace:
 
 ```bash
-claude plugin marketplace add madebynoam/canvai
+claude plugin marketplace add madebynoam/bryllen
 ```
 
 Then open **Claude Code** and install the plugin:
 
 ```
-/plugin install canvai@canvai
+/plugin install bryllen@bryllen
 ```
 
 Restart your Claude Code session for the plugin to activate.
@@ -29,11 +29,11 @@ Restart your Claude Code session for the plugin to activate.
 Open Claude Code in any directory and run:
 
 ```
-/canvai-new my-component
+/bryllen-new my-component
 ```
 
 This will:
-- Install canvai and dependencies
+- Install bryllen and dependencies
 - Scaffold the project files (`index.html`, `vite.config.ts`, `App.tsx`, etc.)
 - Start the dev server with live canvas
 
@@ -48,36 +48,36 @@ Tell the agent what to build. It generates a React component with all meaningful
 
 Click "Annotate" on the canvas, select an element, describe the change, and click "Apply". The agent receives the annotation automatically and updates the component live.
 
-For rapid annotation sessions, run `/canvai-watch` to enter watch mode — the agent processes every annotation as it arrives. Send any message to exit back to chat.
+For rapid annotation sessions, run `/bryllen-watch` to enter watch mode — the agent processes every annotation as it arrives. Send any message to exit back to chat.
 
-Run `/canvai-iterate` to create a new version (page) while keeping previous iterations frozen.
+Run `/bryllen-iterate` to create a new version (page) while keeping previous iterations frozen.
 
 ### 5. Ship
 
-Run `/canvai-ship` to PR the finished component to a production repo.
+Run `/bryllen-ship` to PR the finished component to a production repo.
 
 ## Updating
 
-Run `/canvai-update` inside a Claude Code session to update both the npm package and plugin.
+Run `/bryllen-update` inside a Claude Code session to update both the npm package and plugin.
 
 ## Skills
 
 | Skill | Description |
 |---|---|
-| `/canvai-new <name>` | Create a new design project |
-| `/canvai-design` | Start the dev server (chat mode) |
-| `/canvai-watch` | Enter watch mode for rapid annotations |
-| `/canvai-iterate` | Create a new design iteration |
-| `/canvai-share` | Build and deploy to GitHub Pages for sharing |
-| `/canvai-ship` | Ship component to a production repo |
-| `/canvai-update` | Update canvai to latest version |
+| `/bryllen-new <name>` | Create a new design project |
+| `/bryllen-design` | Start the dev server (chat mode) |
+| `/bryllen-watch` | Enter watch mode for rapid annotations |
+| `/bryllen-iterate` | Create a new design iteration |
+| `/bryllen-share` | Build and deploy to GitHub Pages for sharing |
+| `/bryllen-ship` | Ship component to a production repo |
+| `/bryllen-update` | Update bryllen to latest version |
 
 ## CLI
 
 ```bash
-npx canvai new       # Scaffold project files and install dependencies
-npx canvai design    # Start Vite dev server + annotation HTTP server
-npx canvai update    # Update canvai npm package to latest
+npx bryllen new       # Scaffold project files and install dependencies
+npx bryllen design    # Start Vite dev server + annotation HTTP server
+npx bryllen update    # Update bryllen npm package to latest
 ```
 
 ## Project structure
@@ -95,7 +95,7 @@ The manifest declares which component variations to render:
 
 ```ts
 import { MyComponent } from './MyComponent'
-import type { ProjectManifest } from 'canvai/runtime'
+import type { ProjectManifest } from 'bryllen/runtime'
 
 const manifest: ProjectManifest = {
   project: 'my-component',
@@ -116,7 +116,7 @@ export default manifest
 
 ## Architecture
 
-- **npm package** — canvas runtime, Vite plugin, and CLI (`canvai new`, `canvai design`)
+- **npm package** — canvas runtime, Vite plugin, and CLI (`bryllen new`, `bryllen design`)
 - **Claude Code plugin** — skills, MCP config, and agent instructions
 
 ## Development
@@ -124,8 +124,8 @@ export default manifest
 ### Setup
 
 ```bash
-git clone https://github.com/madebynoam/canvai.git
-cd canvai
+git clone https://github.com/madebynoam/bryllen.git
+cd bryllen
 npm install
 ```
 
@@ -133,20 +133,20 @@ npm install
 
 1. Edit files in `src/runtime/`, `src/cli/`, `src/vite-plugin/`
 2. Run `npm test` to verify the export contract
-3. Dogfood with `canvai-ui` — run `npx canvai design` from the repo root, changes reflect via HMR
+3. Dogfood with `bryllen-ui` — run `npx bryllen design` from the repo root, changes reflect via HMR
 4. Breaking export changes need a migration in `src/cli/migrations/` and a template update in `src/cli/templates.js`
 
 ### Plugin & skill changes
 
 Plugin changes (skills, MCP, CLAUDE.md) can't be tested until installed. To test locally without pushing:
 
-1. Run `/plugin-local` in the canvai repo — swaps the marketplace to the local `plugin/` directory
-2. In your consumer test folder: `claude plugin update canvai@canvai` then restart the session
+1. Run `/plugin-local` in the bryllen repo — swaps the marketplace to the local `plugin/` directory
+2. In your consumer test folder: `claude plugin update bryllen@bryllen` then restart the session
 3. Test the skills
-4. Iterate: edit skill files → `claude plugin update canvai@canvai` → restart → test again
-5. When done, run `/plugin-release` in the canvai repo — swaps back to GitHub
+4. Iterate: edit skill files → `claude plugin update bryllen@bryllen` → restart → test again
+5. When done, run `/plugin-release` in the bryllen repo — swaps back to GitHub
 
-The consumer folder always uses `canvai@canvai` and doesn't need to know whether the source is local or GitHub.
+The consumer folder always uses `bryllen@bryllen` and doesn't need to know whether the source is local or GitHub.
 
 ### Publishing
 
@@ -156,7 +156,7 @@ The consumer folder always uses `canvai@canvai` and doesn't need to know whether
 4. Update `CHANGELOG.md`
 5. Commit and push to main
 6. `/plugin-release` — ensure marketplace points to GitHub
-7. In the consumer folder: `claude plugin marketplace update canvai` then `claude plugin update canvai@canvai`
+7. In the consumer folder: `claude plugin marketplace update bryllen` then `claude plugin update bryllen@bryllen`
 
 ### Commands
 
@@ -165,18 +165,18 @@ The consumer folder always uses `canvai@canvai` and doesn't need to know whether
 | `npm test` | Export contract + migration tests |
 | `npm run test:smoke` | Scaffold smoke test |
 | `./scripts/bump-version.sh <version>` | Bump all version fields |
-| `npx canvai design` | Start dev server + annotation MCP |
-| `npx canvai new` | Scaffold consumer project files |
-| `npx canvai update` | Update consumer to latest canvai |
+| `npx bryllen design` | Start dev server + annotation MCP |
+| `npx bryllen new` | Scaffold consumer project files |
+| `npx bryllen update` | Update consumer to latest bryllen |
 
 ### Dev skills
 
-These skills are only available in the canvai repo (not in consumer projects):
+These skills are only available in the bryllen repo (not in consumer projects):
 
 | Skill | Description |
 |---|---|
-| `/plugin-local` | Swap canvai marketplace to local for testing |
-| `/plugin-release` | Swap canvai marketplace back to GitHub |
+| `/plugin-local` | Swap bryllen marketplace to local for testing |
+| `/plugin-release` | Swap bryllen marketplace back to GitHub |
 
 ## License
 

@@ -15,7 +15,7 @@ export function UpdateDialog({ open, onClose, currentVersion, latestVersion }: U
   const [copied, setCopied] = useState(false)
 
   const handleCopy = useCallback(() => {
-    navigator.clipboard.writeText('/canvai-update')
+    navigator.clipboard.writeText('/bryllen-update')
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }, [])
@@ -92,7 +92,7 @@ export function UpdateDialog({ open, onClose, currentVersion, latestVersion }: U
               color: D.text,
               fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
             }}>
-              /canvai-update
+              /bryllen-update
             </code>
             <button
               onClick={handleCopy}
@@ -129,7 +129,7 @@ export function UpdateDialog({ open, onClose, currentVersion, latestVersion }: U
             borderRadius: 3,
             fontSize: 11,
             fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-          }}>/canvai-design</code>
+          }}>/bryllen-design</code>
         </div>
 
         {/* Actions */}

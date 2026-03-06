@@ -1,19 +1,19 @@
 {
-  "name": "canvai",
+  "name": "bryllen",
   "owner": {
     "name": "Noam Almosnino",
     "email": "noam@noamalmos.com"
   },
   "metadata": {
-    "description": "Canvai — design studio on an infinite canvas with live React code",
-    "version": "0.0.61"
+    "description": "Bryllen — design studio on an infinite canvas with live React code",
+    "version": "0.0.62"
   },
   "plugins": [
     {
-      "name": "canvai",
-      "source": "./plugins/canvai",
-      "description": "Canvai design skills — init projects, iterate designs, and ship components from an infinite canvas",
-      "version": "0.0.61",
+      "name": "bryllen",
+      "source": "./plugins/bryllen",
+      "description": "Bryllen design skills — init projects, iterate designs, and ship components from an infinite canvas",
+      "version": "0.0.62",
       "category": "design",
       "tags": [
         "canvas",

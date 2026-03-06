@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 
-const NAV_KEY = 'canvai:nav:'
+const NAV_KEY = 'bryllen:nav:'
 const SYSTEM_PAGES = ['Tokens', 'Components', 'Context']
 // In DEV mode, Context page is added dynamically, so allow +1 on page index
 const DEV_EXTRA_PAGES = import.meta.env.DEV ? 1 : 0

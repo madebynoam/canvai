@@ -1,13 +1,13 @@
 {
-  "name": "canvai",
-  "version": "0.0.61",
+  "name": "bryllen",
+  "version": "0.0.62",
   "type": "module",
   "exports": {
     "./runtime": "./src/runtime/index.ts",
     "./vite-plugin": "./src/vite-plugin/plugin.cjs"
   },
   "bin": {
-    "canvai": "./src/cli/index.js"
+    "bryllen": "./src/cli/index.js"
   },
   "scripts": {
     "dev": "vite",

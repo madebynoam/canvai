@@ -27,16 +27,16 @@ export function migrate(fileContents) {
   // 1. Update the Tokens bullet to mention TokenSwatch
   claude = claude.replace(
     /- \*\*Tokens\*\* — renders color swatches,/,
-    '- **Tokens** — renders color swatches (using `TokenSwatch` from `canvai/runtime`),'
+    '- **Tokens** — renders color swatches (using `TokenSwatch` from `bryllen/runtime`),'
   )
 
   // 2. Insert Token swatches section before "## Interactive navigation"
   const tokenSwatchSection = `\n## Token swatches (runtime)
 
-Canvai provides \`TokenSwatch\` and \`ColorPicker\` from \`canvai/runtime\` for the Tokens page. The designer clicks a swatch to open an OKLCH color picker, sees a live preview across the canvas, and posts an annotation to change the token value.
+Bryllen provides \`TokenSwatch\` and \`ColorPicker\` from \`bryllen/runtime\` for the Tokens page. The designer clicks a swatch to open an OKLCH color picker, sees a live preview across the canvas, and posts an annotation to change the token value.
 
 \`\`\`tsx
-import { TokenSwatch } from 'canvai/runtime'
+import { TokenSwatch } from 'bryllen/runtime'
 
 <TokenSwatch
   color="var(--chrome)"

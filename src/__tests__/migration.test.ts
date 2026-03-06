@@ -5,9 +5,9 @@ import { appTsx } from '../cli/templates.js'
 
 // Old App.tsx template that used PageTabs + ProjectSidebar (pre-0.0.10)
 const oldAppTsx = `import { useState } from 'react'
-import { Canvas, Frame, useFrames, layoutFrames, PageTabs, ProjectSidebar, AnnotationOverlay } from 'canvai/runtime'
-import { manifests } from 'virtual:canvai-manifests'
-import type { ProjectManifest } from 'canvai/runtime'
+import { Canvas, Frame, useFrames, layoutFrames, PageTabs, ProjectSidebar, AnnotationOverlay } from 'bryllen/runtime'
+import { manifests } from 'virtual:bryllen-manifests'
+import type { ProjectManifest } from 'bryllen/runtime'
 
 function App() {
   const activeProject: ProjectManifest | undefined = manifests[0]
@@ -37,7 +37,7 @@ describe('migration 0.0.10', () => {
 
   it('does not apply to current template', () => {
     // Current template has TopBar/IterationSidebar — migration should not apply
-    const currentApp = `import { TopBar, IterationSidebar } from 'canvai/runtime'`
+    const currentApp = `import { TopBar, IterationSidebar } from 'bryllen/runtime'`
     expect(migration.applies({ 'src/App.tsx': currentApp })).toBe(false)
   })
 
@@ -90,9 +90,9 @@ describe('migration registry', () => {
 
 // Old App.tsx template that used flat pages (pre-0.0.16)
 const oldPagesAppTsx = `import { useState } from 'react'
-import { Canvas, Frame, useFrames, layoutFrames, TopBar, IterationSidebar, AnnotationOverlay } from 'canvai/runtime'
-import { manifests } from 'virtual:canvai-manifests'
-import type { ProjectManifest } from 'canvai/runtime'
+import { Canvas, Frame, useFrames, layoutFrames, TopBar, IterationSidebar, AnnotationOverlay } from 'bryllen/runtime'
+import { manifests } from 'virtual:bryllen-manifests'
+import type { ProjectManifest } from 'bryllen/runtime'
 
 function App() {
   const [activeProjectIndex, setActiveProjectIndex] = useState(0)
@@ -107,7 +107,7 @@ function App() {
   const { frames, updateFrame, handleResize } = useFrames(layoutedFrames, activePage?.grid)
 
   return (
-    <div id="canvai-root" style={{ width: '100vw', height: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <div id="bryllen-root" style={{ width: '100vw', height: '100vh', display: 'flex', flexDirection: 'column' }}>
       <TopBar
         projects={manifests}
         activeProjectIndex={activeProjectIndex}
@@ -158,7 +158,7 @@ export default App
 
 // Old manifest format (pre-0.0.16) — flat pages at top level
 const oldManifest = `import { MyComponent } from './MyComponent'
-import type { ProjectManifest } from 'canvai/runtime'
+import type { ProjectManifest } from 'bryllen/runtime'
 
 const manifest: ProjectManifest = {
   project: 'my-project',
@@ -324,9 +324,9 @@ describe('migration 0.0.16 integration', () => {
     expect(pagesIdx).toBeGreaterThan(iterationsIdx)
   })
 
-  it('current template uses CanvaiShell (all shell logic is in runtime)', () => {
-    expect(appTsx).toContain('CanvaiShell')
-    expect(appTsx).toContain("from 'canvai/runtime'")
+  it('current template uses BryllenShell (all shell logic is in runtime)', () => {
+    expect(appTsx).toContain('BryllenShell')
+    expect(appTsx).toContain("from 'bryllen/runtime'")
     expect(appTsx).toContain('manifests')
     // No shell boilerplate in template
     expect(appTsx).not.toContain('TopBar')
@@ -343,9 +343,9 @@ describe('migration 0.0.16 recovery', () => {
   // Simulates what happened: old migration ran on App.tsx (unsafe chaining),
   // manifest was never touched, marker was bumped to 0.0.16
   const halfMigratedApp = `import { useState } from 'react'
-import { Canvas, Frame, useFrames, layoutFrames, TopBar, IterationSidebar, AnnotationOverlay } from 'canvai/runtime'
-import { manifests } from 'virtual:canvai-manifests'
-import type { ProjectManifest } from 'canvai/runtime'
+import { Canvas, Frame, useFrames, layoutFrames, TopBar, IterationSidebar, AnnotationOverlay } from 'bryllen/runtime'
+import { manifests } from 'virtual:bryllen-manifests'
+import type { ProjectManifest } from 'bryllen/runtime'
 
 function App() {
   const [activeProjectIndex, setActiveProjectIndex] = useState(0)
@@ -471,7 +471,7 @@ describe('migration 0.0.21', () => {
 
   it('updates Tokens bullet to mention TokenSwatch', () => {
     const result = migration.migrate({ 'CLAUDE.md': oldClaudeMd })
-    expect(result['CLAUDE.md']).toContain('using `TokenSwatch` from `canvai/runtime`')
+    expect(result['CLAUDE.md']).toContain('using `TokenSwatch` from `bryllen/runtime`')
   })
 
   it('inserts section before Interactive navigation', () => {
@@ -503,7 +503,7 @@ These rules are enforced by the agent. Do not remove this file.
 ## Mandatory pages
 
 Every project must include:
-- **Tokens** — renders color swatches (using \`TokenSwatch\` from \`canvai/runtime\`)
+- **Tokens** — renders color swatches (using \`TokenSwatch\` from \`bryllen/runtime\`)
 - **Components** — shows all building blocks
 
 ## Token swatches (runtime)
@@ -569,9 +569,9 @@ describe('migration 0.0.22', () => {
 // --- Migration 0.0.23: ZoomControl + CanvasColorPicker ---
 
 const pre023AppTsx = `import { useState } from 'react'
-import { Canvas, Frame, useFrames, useNavMemory, layoutFrames, TopBar, IterationPills, IterationSidebar, AnnotationOverlay, N, E } from 'canvai/runtime'
-import { manifests } from 'virtual:canvai-manifests'
-import type { ProjectManifest } from 'canvai/runtime'
+import { Canvas, Frame, useFrames, useNavMemory, layoutFrames, TopBar, IterationPills, IterationSidebar, AnnotationOverlay, N, E } from 'bryllen/runtime'
+import { manifests } from 'virtual:bryllen-manifests'
+import type { ProjectManifest } from 'bryllen/runtime'
 
 function App() {
   const [activeProjectIndex, setActiveProjectIndex] = useState(0)
@@ -593,7 +593,7 @@ function App() {
   const { frames, updateFrame, handleResize } = useFrames(layoutedFrames, activePage?.grid)
 
   return (
-    <div id="canvai-root" style={{ width: '100vw', height: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <div id="bryllen-root" style={{ width: '100vw', height: '100vh', display: 'flex', flexDirection: 'column' }}>
       <TopBar
         projects={manifests}
         activeProjectIndex={activeProjectIndex}
@@ -742,8 +742,8 @@ describe('migration 0.0.23', () => {
     // Simulate broken 0.0.23 output: ZoomControl as sibling after </Canvas>
     const broken = pre023AppTsx
       .replace(
-        /from 'canvai\/runtime'/,
-        (m) => m.replace("'canvai/runtime'", "'canvai/runtime'").replace(
+        /from 'bryllen\/runtime'/,
+        (m) => m.replace("'bryllen/runtime'", "'bryllen/runtime'").replace(
           /AnnotationOverlay/,
           'AnnotationOverlay, ZoomControl, CanvasColorPicker, loadCanvasBg, saveCanvasBg'
         )
@@ -764,7 +764,7 @@ const settingsWithoutRulesGuard = `{
         "hooks": [
           {
             "type": "command",
-            "command": "node node_modules/canvai/src/cli/hooks/frozen-guard.js"
+            "command": "node node_modules/bryllen/src/cli/hooks/frozen-guard.js"
           }
         ]
       }
@@ -811,7 +811,7 @@ describe('migration 0.0.24', () => {
   })
 
   it('does not apply when settings.json already has rules-guard', () => {
-    const updated = settingsWithoutRulesGuard.replace('frozen-guard', 'frozen-guard.js"},{"type":"command","command":"node node_modules/canvai/src/cli/hooks/rules-guard')
+    const updated = settingsWithoutRulesGuard.replace('frozen-guard', 'frozen-guard.js"},{"type":"command","command":"node node_modules/bryllen/src/cli/hooks/rules-guard')
     expect(migration.applies({ '.claude/settings.json': updated })).toBe(false)
   })
 
@@ -854,7 +854,7 @@ describe('migration 0.0.24', () => {
     const result = migration.migrate({ 'CLAUDE.md': claudeMdWithoutCommit })
     expect(result['CLAUDE.md']).toContain('Commit after each change')
     expect(result['CLAUDE.md']).toContain('git add src/projects/')
-    expect(result['CLAUDE.md']).toContain('/canvai-undo')
+    expect(result['CLAUDE.md']).toContain('/bryllen-undo')
   })
 
   it('is idempotent for CLAUDE.md', () => {
@@ -878,9 +878,9 @@ describe('migration 0.0.24', () => {
 
 // The 0.0.24 template (pre-0.0.25) — has TopBar + IterationSidebar + Canvas boilerplate
 const pre025AppTsx = `import { useState, useEffect } from 'react'
-import { Canvas, Frame, useFrames, useNavMemory, layoutFrames, TopBar, IterationPills, IterationSidebar, AnnotationOverlay, ZoomControl, CanvasColorPicker, loadCanvasBg, saveCanvasBg, N, E } from 'canvai/runtime'
-import { manifests } from 'virtual:canvai-manifests'
-import type { ProjectManifest } from 'canvai/runtime'
+import { Canvas, Frame, useFrames, useNavMemory, layoutFrames, TopBar, IterationPills, IterationSidebar, AnnotationOverlay, ZoomControl, CanvasColorPicker, loadCanvasBg, saveCanvasBg, N, E } from 'bryllen/runtime'
+import { manifests } from 'virtual:bryllen-manifests'
+import type { ProjectManifest } from 'bryllen/runtime'
 
 function App() {
   const [activeProjectIndex, setActiveProjectIndex] = useState(0)
@@ -889,7 +889,7 @@ function App() {
   const activeProject: ProjectManifest | undefined = manifests[activeProjectIndex]
 
   return (
-    <div id="canvai-root">
+    <div id="bryllen-root">
       <TopBar projects={manifests} />
       <IterationSidebar />
       <Canvas pageKey="test">
@@ -904,11 +904,11 @@ function App() {
 export default App
 `
 
-const migratedAppTsx = `import { CanvaiShell } from 'canvai/runtime'
-import { manifests } from 'virtual:canvai-manifests'
+const migratedAppTsx = `import { BryllenShell } from 'bryllen/runtime'
+import { manifests } from 'virtual:bryllen-manifests'
 
 export default function App() {
-  return <CanvaiShell manifests={manifests} />
+  return <BryllenShell manifests={manifests} />
 }
 `
 
@@ -928,7 +928,7 @@ describe('migration 0.0.25', () => {
     expect(migration.applies({ 'src/App.tsx': oldAppTsx })).toBe(true)
   })
 
-  it('does not apply when CanvaiShell already present', () => {
+  it('does not apply when BryllenShell already present', () => {
     expect(migration.applies({ 'src/App.tsx': migratedAppTsx })).toBe(false)
   })
 
@@ -936,7 +936,7 @@ describe('migration 0.0.25', () => {
     expect(migration.applies({})).toBe(false)
   })
 
-  it('produces correct CanvaiShell output', () => {
+  it('produces correct BryllenShell output', () => {
     const result = migration.migrate({ 'src/App.tsx': pre025AppTsx })
     expect(result['src/App.tsx']).toBe(migratedAppTsx)
   })
@@ -946,15 +946,15 @@ describe('migration 0.0.25', () => {
     expect(migration.applies({ 'src/App.tsx': result['src/App.tsx'] })).toBe(false)
   })
 
-  it('migrates pre-0.0.10 template to CanvaiShell', () => {
+  it('migrates pre-0.0.10 template to BryllenShell', () => {
     const result = migration.migrate({ 'src/App.tsx': oldAppTsx })
     expect(result['src/App.tsx']).toBe(migratedAppTsx)
   })
 })
 
-// --- Old migrations safely skip the CanvaiShell output ---
+// --- Old migrations safely skip the BryllenShell output ---
 
-describe('old migrations skip CanvaiShell output', () => {
+describe('old migrations skip BryllenShell output', () => {
   const m0010 = migrations.find(m => m.version === '0.0.10')!
   const m0016 = migrations.find(m => m.version === '0.0.16')!
   const m0023 = migrations.find(m => m.version === '0.0.23')!
@@ -967,7 +967,7 @@ describe('old migrations skip CanvaiShell output', () => {
     expect(m0016.applies({ 'src/App.tsx': migratedAppTsx })).toBe(false)
   })
 
-  it('0.0.23 skips — no Canvas substring (CanvaiShell differs at pos 5)', () => {
+  it('0.0.23 skips — no Canvas substring (BryllenShell differs at pos 5)', () => {
     expect(m0023.applies({ 'src/App.tsx': migratedAppTsx })).toBe(false)
   })
 })
@@ -975,7 +975,7 @@ describe('old migrations skip CanvaiShell output', () => {
 // --- Migration 0.0.26: Remove frameId from TokenSwatch ---
 
 const tokenPageWithFrameId = `import { S, R, T, FONT } from '../tokens'
-import { TokenSwatch } from 'canvai/runtime'
+import { TokenSwatch } from 'bryllen/runtime'
 
 const FRAME_ID = 'v2-tokens'
 
@@ -993,7 +993,7 @@ export function Tokens() {
 }
 `
 
-const tokenPageWithStringFrameId = `import { TokenSwatch } from 'canvai/runtime'
+const tokenPageWithStringFrameId = `import { TokenSwatch } from 'bryllen/runtime'
 
 export function Tokens() {
   return (
@@ -1121,13 +1121,13 @@ describe('migration 0.0.27', () => {
     expect(migration.applies({})).toBe(true)
   })
 
-  it('applies when .mcp.json exists but lacks the canvai-annotations key', () => {
+  it('applies when .mcp.json exists but lacks the bryllen-annotations key', () => {
     expect(migration.applies({ '.mcp.json': mcpJsonWithoutAnnotations })).toBe(true)
   })
 
-  it('does not apply when canvai-annotations is already present (idempotency)', () => {
+  it('does not apply when bryllen-annotations is already present (idempotency)', () => {
     const alreadyMigrated = JSON.stringify(
-      { mcpServers: { 'canvai-annotations': { command: 'node', args: ['node_modules/canvai/src/mcp/mcp-server.js'] } } },
+      { mcpServers: { 'bryllen-annotations': { command: 'node', args: ['node_modules/bryllen/src/mcp/mcp-server.js'] } } },
       null,
       2,
     ) + '\n'
@@ -1143,19 +1143,19 @@ describe('migration 0.0.27', () => {
     const output = result['.mcp.json']
     expect(output).toBeDefined()
     const parsed = JSON.parse(output)
-    expect(parsed.mcpServers['canvai-annotations']).toBeDefined()
-    expect(parsed.mcpServers['canvai-annotations'].command).toBe('node')
-    expect(parsed.mcpServers['canvai-annotations'].args).toEqual(['node_modules/canvai/src/mcp/mcp-server.js'])
+    expect(parsed.mcpServers['bryllen-annotations']).toBeDefined()
+    expect(parsed.mcpServers['bryllen-annotations'].command).toBe('node')
+    expect(parsed.mcpServers['bryllen-annotations'].args).toEqual(['node_modules/bryllen/src/mcp/mcp-server.js'])
   })
 
-  it('merges canvai-annotations into existing .mcp.json without losing other entries', () => {
+  it('merges bryllen-annotations into existing .mcp.json without losing other entries', () => {
     const result = migration.migrate({ '.mcp.json': mcpJsonWithoutAnnotations })
     const output = result['.mcp.json']
     expect(output).toBeDefined()
     const parsed = JSON.parse(output)
-    expect(parsed.mcpServers['canvai-annotations']).toBeDefined()
-    expect(parsed.mcpServers['canvai-annotations'].command).toBe('node')
-    expect(parsed.mcpServers['canvai-annotations'].args).toEqual(['node_modules/canvai/src/mcp/mcp-server.js'])
+    expect(parsed.mcpServers['bryllen-annotations']).toBeDefined()
+    expect(parsed.mcpServers['bryllen-annotations'].command).toBe('node')
+    expect(parsed.mcpServers['bryllen-annotations'].args).toEqual(['node_modules/bryllen/src/mcp/mcp-server.js'])
     // Existing entry must be preserved
     expect(parsed.mcpServers['some-other-server']).toBeDefined()
     expect(parsed.mcpServers['some-other-server'].command).toBe('node')
@@ -1268,7 +1268,7 @@ const tokensCss = `.iter-v1 {
 `
 
 const unfrozenManifest = `import { Tokens as V1Tokens } from './v1/pages/tokens'
-import type { ProjectManifest } from 'canvai/runtime'
+import type { ProjectManifest } from 'bryllen/runtime'
 
 const manifest: ProjectManifest = {
   project: 'my-app',
@@ -1400,21 +1400,21 @@ describe('migration 0.0.29', () => {
     expect(output).toContain('ScaleRow')
   })
 
-  it('adds TokenSwatch import from canvai/runtime', () => {
+  it('adds TokenSwatch import from bryllen/runtime', () => {
     const result = migration.migrate({
       'src/projects/my-app/v1/pages/tokens.tsx': oldTokensPageWithSwatch,
       'src/projects/my-app/v1/tokens.css': tokensCss,
       'src/projects/my-app/manifest.ts': unfrozenManifest,
     })
     const output = result['src/projects/my-app/v1/pages/tokens.tsx']
-    expect(output).toContain("from 'canvai/runtime'")
+    expect(output).toContain("from 'bryllen/runtime'")
     expect(output).toContain('TokenSwatch')
   })
 
-  it('appends to existing canvai/runtime import if present', () => {
+  it('appends to existing bryllen/runtime import if present', () => {
     const withRuntimeImport = oldTokensPageWithSwatch.replace(
       "import { Swatch, ScaleRow } from '../components'",
-      "import { Swatch, ScaleRow } from '../components'\nimport { SomeHelper } from 'canvai/runtime'",
+      "import { Swatch, ScaleRow } from '../components'\nimport { SomeHelper } from 'bryllen/runtime'",
     )
     const result = migration.migrate({
       'src/projects/my-app/v1/pages/tokens.tsx': withRuntimeImport,
@@ -1425,7 +1425,7 @@ describe('migration 0.0.29', () => {
     // Should be one import with both SomeHelper and TokenSwatch
     expect(output).toContain('SomeHelper')
     expect(output).toContain('TokenSwatch')
-    expect(output.match(/from 'canvai\/runtime'/g)?.length).toBe(1)
+    expect(output.match(/from 'bryllen\/runtime'/g)?.length).toBe(1)
   })
 
   it('skips frozen iteration and transforms unfrozen one', () => {

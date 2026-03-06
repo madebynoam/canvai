@@ -38,7 +38,7 @@ describe('export contract', () => {
   const runtimeExports = extractExports(runtimeSource)
 
   it('appTsx template only imports symbols that runtime/index.ts exports', () => {
-    const imports = extractImports(appTsx, 'canvai/runtime')
+    const imports = extractImports(appTsx, 'bryllen/runtime')
     expect(imports.length).toBeGreaterThan(0)
 
     for (const symbol of imports) {
@@ -50,7 +50,7 @@ describe('export contract', () => {
   })
 
   it('viteEnvDts template only imports symbols that runtime/index.ts exports', () => {
-    const imports = extractImports(viteEnvDts, 'canvai/runtime')
+    const imports = extractImports(viteEnvDts, 'bryllen/runtime')
     expect(imports.length).toBeGreaterThan(0)
 
     for (const symbol of imports) {

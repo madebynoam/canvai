@@ -116,7 +116,7 @@ export function ShareButton({ shareUrl, projectName, annotationEndpoint }: Share
         }
       }, flow.expires_in * 1000)
     } catch (err) {
-      console.error('[canvai] Login failed:', err)
+      console.error('[bryllen] Login failed:', err)
     }
   }, [annotationEndpoint, shareUrl])
 
@@ -140,7 +140,7 @@ export function ShareButton({ shareUrl, projectName, annotationEndpoint }: Share
       })
       // Stay in 'sharing' state until shareUrl appears via HMR
     } catch (err) {
-      console.error('[canvai] Share failed:', err)
+      console.error('[bryllen] Share failed:', err)
       setStatus('idle')
     }
   }, [annotationEndpoint, projectName])

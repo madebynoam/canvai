@@ -1,6 +1,6 @@
-# Canvai — Agent Instructions
+# Bryllen — Agent Instructions
 
-Canvai is a canvas for Claude Code design. An infinite, zoomable surface where every generation lives as a frame — visible side by side, comparable across iterations. The comparison surface is the product.
+Bryllen is a canvas for Claude Code design. An infinite, zoomable surface where every generation lives as a frame — visible side by side, comparable across iterations. The comparison surface is the product.
 
 ## The designer is NOT a developer (CRITICAL)
 
@@ -29,18 +29,18 @@ Canvai is a canvas for Claude Code design. An infinite, zoomable surface where e
 
 ## Core tenets
 
-1. **Many at once, not one at a time.** Generate 3+ distinct design directions simultaneously. Without multiple directions visible side by side, Canvai has no advantage over bare Claude Code.
+1. **Many at once, not one at a time.** Generate 3+ distinct design directions simultaneously. Without multiple directions visible side by side, Bryllen has no advantage over bare Claude Code.
 2. **The code is the design.** Live React code, not mockups. What the designer sees runs.
 3. **Point, don't describe.** Annotations carry selector, computed styles, and intent. No ambiguity survives the click.
 4. **Proliferate before converging.** When a designer describes anything for the first time, generate multiple distinct directions — different bets, not states of the same idea.
 
 ## User workflow
 
-1. `/canvai-new <name>` — create project, start dev server
+1. `/bryllen-new <name>` — create project, start dev server
 2. Describe — agent generates multiple directions on the canvas
 3. Annotate — designer clicks elements, types changes, clicks Apply
 4. Iterate — designer clicks "New Iteration" for snapshot copies
-5. `/canvai-share` — build and deploy to GitHub Pages
+5. `/bryllen-share` — build and deploy to GitHub Pages
 
 ## Project structure
 
@@ -87,7 +87,7 @@ Each iteration owns a complete token set scoped under `.iter-v<N>`. No cascade a
 3. **Check `components/index.ts`** — component exists? If not, create first.
 4. **New components** — add to barrel AND to Components showcase page.
 5. **Log to `CHANGELOG.md`**.
-6. **Auto-commit** — `npx canvai resolve <id>` auto-stages and commits. No manual git needed.
+6. **Auto-commit** — `npx bryllen resolve <id>` auto-stages and commits. No manual git needed.
 
 ## Design directions
 
@@ -97,7 +97,7 @@ Once chosen, generate all meaningful **variations × states** as frames. Columns
 
 ## Frame layout (HORIZONTAL, not vertical) — MANDATORY
 
-**ALWAYS lay out frames HORIZONTALLY (increasing X, same Y).** Side-by-side comparison is Canvai's core value. Vertical stacking defeats the entire purpose.
+**ALWAYS lay out frames HORIZONTALLY (increasing X, same Y).** Side-by-side comparison is Bryllen's core value. Vertical stacking defeats the entire purpose.
 
 ### Standard widths
 - Desktop: `1440px`
@@ -137,13 +137,13 @@ frames: [
 
 ## Mandatory pages
 
-- **Tokens** — color swatches (using `TokenSwatch` from `canvai/runtime`), typography, spacing
+- **Tokens** — color swatches (using `TokenSwatch` from `bryllen/runtime`), typography, spacing
 - **Components** — all building blocks with variations and states
 
 ### TokenSwatch
 
 ```tsx
-import { TokenSwatch } from 'canvai/runtime'
+import { TokenSwatch } from 'bryllen/runtime'
 <TokenSwatch color="var(--chrome)" label="chrome" sublabel="oklch(0.952 0.003 80)"
   oklch={{ l: 0.952, c: 0.003, h: 80 }} tokenPath="--chrome" />
 ```
@@ -152,9 +152,9 @@ import { TokenSwatch } from 'canvai/runtime'
 
 Components with internal navigation (tabs, sidebar) use React state inside one component. Don't split into separate frames — navigation must work.
 
-## Design language (Canvai runtime only)
+## Design language (Bryllen runtime only)
 
-The rules below apply to **Canvai's own shell UI** (canvas, toolbar, sidebar), NOT to designs generated for designers. For generated designs, invoke `/design-taste`.
+The rules below apply to **Bryllen's own shell UI** (canvas, toolbar, sidebar), NOT to designs generated for designers. For generated designs, invoke `/design-taste`.
 
 Braun / Jony Ive aesthetic. For full palette tables, typography scale, spacing, border radius, spring presets, and feature inventory, see `DESIGN-REFERENCE.md`.
 
@@ -170,7 +170,7 @@ Braun / Jony Ive aesthetic. For full palette tables, typography scale, spacing, 
 
 ### Feature inventory rule
 
-If a designer asks for a feature not in the inventory (see `DESIGN-REFERENCE.md`), say: "That feature doesn't exist in Canvai yet. Would you like to design it as a new component instead?"
+If a designer asks for a feature not in the inventory (see `DESIGN-REFERENCE.md`), say: "That feature doesn't exist in Bryllen yet. Would you like to design it as a new component instead?"
 
 ## Context images (inspiration)
 
@@ -181,7 +181,7 @@ Designers can paste images (Cmd+V) onto the canvas as visual inspiration. These 
 Before generating designs, run:
 
 ```bash
-npx canvai context --project my-project --iteration v1
+npx bryllen context --project my-project --iteration v1
 ```
 
 This returns image paths. Read them with the Read tool to analyze via Vision. Look for:
@@ -205,7 +205,7 @@ Designers can annotate context images like any other frame. Clicking a context i
 
 ```bash
 # Get list of context images
-npx canvai context --project my-project --iteration v1
+npx bryllen context --project my-project --iteration v1
 # Returns: { "images": [{ "filename": "inspiration-123.png", "path": "/path/to/file" }, ...] }
 
 # Find the matching image by filename and read THAT file with the Read tool
@@ -275,7 +275,7 @@ During ideation, multiple directions may have different component implementation
 2. Follow guard protocol
 3. Map to file in `v<N>/components/` or `v<N>/pages/`
 4. **Route visual changes through tokens** — find/create semantic token in `tokens.css`, never hardcode values
-5. Run `npx canvai resolve <id>` (auto-commits)
+5. Run `npx bryllen resolve <id>` (auto-commits)
 6. Log to `CHANGELOG.md`
 
 ### Processing project annotations (`type: 'project'`)
@@ -288,25 +288,25 @@ All annotation commands output JSON for easy parsing:
 
 ```bash
 # Wait for next annotation (15s default timeout)
-npx canvai watch [--timeout N]
+npx bryllen watch [--timeout N]
 
 # Mark annotation as resolved (auto-commits)
-npx canvai resolve <id>
+npx bryllen resolve <id>
 
 # Update progress shown on canvas (designer sees this)
-npx canvai progress <id> "Reading file..."
+npx bryllen progress <id> "Reading file..."
 
 # List pending annotations
-npx canvai pending
+npx bryllen pending
 
 # List all annotations
-npx canvai list
+npx bryllen list
 
 # Screenshot canvas
-npx canvai screenshot [--frame <id>] [--delay <ms>]
+npx bryllen screenshot [--frame <id>] [--delay <ms>]
 
 # Get context image paths
-npx canvai context --project <name> --iteration <v>
+npx bryllen context --project <name> --iteration <v>
 ```
 
 **Progress updates:** Call `progress` at key points so the designer sees what's happening:
@@ -316,9 +316,9 @@ npx canvai context --project <name> --iteration <v>
 
 ## Skills
 
-- `/canvai-new <name>` — Create project and start designing
-- `/canvai-design` — Start dev server and watch mode
-- `/canvai-share` — Build and deploy to GitHub Pages
-- `/canvai-close` — Stop dev servers
-- `/canvai-update` — Update canvai
+- `/bryllen-new <name>` — Create project and start designing
+- `/bryllen-design` — Start dev server and watch mode
+- `/bryllen-share` — Build and deploy to GitHub Pages
+- `/bryllen-close` — Stop dev servers
+- `/bryllen-update` — Update canvai
 - `/design-taste` — **Invoke before generating any frames** — ensures distinctive, tasteful output
