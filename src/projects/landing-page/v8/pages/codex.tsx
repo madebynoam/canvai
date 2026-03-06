@@ -62,7 +62,7 @@ export function Codex() {
         width: '100%', boxSizing: 'border-box',
       }}>
         <span style={{ fontFamily: font, fontSize: 15, fontWeight: 500, color: C.text }}>bryllen</span>
-        <span style={{ fontFamily: mono, fontSize: 11, color: C.textTer }}>design canvas</span>
+        <span style={{ fontFamily: mono, fontSize: 11, color: C.textTer }}>for Claude Code</span>
       </nav>
 
       {/* Title page */}
@@ -74,13 +74,13 @@ export function Codex() {
           fontFamily: font, fontSize: 48, fontWeight: 500, color: C.text,
           lineHeight: 1.1, letterSpacing: '-0.03em', margin: 0, textWrap: 'pretty',
         }}>
-          The canvas for<br />design exploration
+          The AI canvas for<br />design exploration
         </h1>
         <p style={{
           fontFamily: font, fontSize: 17, fontWeight: 400, color: C.textSec,
           marginTop: 20, marginBottom: 36, lineHeight: 1.65, textWrap: 'pretty', maxWidth: 480,
         }}>
-          Describe what you need. See five directions at once. Annotate, iterate, ship. Every version preserved on an infinite canvas.
+          Claude Code generates real React components on an infinite canvas. Describe what you need, compare directions side by side, ship the best one.
         </p>
         <button {...bhB} {...baB} style={{
           border: 'none', cursor: 'default', fontFamily: font, fontWeight: 500,
