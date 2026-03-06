@@ -606,13 +606,20 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
 
   const projectKey = activeProject?.project ?? ''
   const [canvasBg, setCanvasBg] = useState(DEFAULT_CANVAS_COLOR)
+  const canvasBgLoadedRef = useRef(false)
   useEffect(() => {
+    canvasBgLoadedRef.current = false
     loadCanvasBgAsync(projectKey).then(color => {
       if (color) setCanvasBg(color)
       else setCanvasBg(DEFAULT_CANVAS_COLOR)
+      canvasBgLoadedRef.current = true
     })
   }, [projectKey])
-  useEffect(() => { saveCanvasBgAsync(projectKey, canvasBg) }, [projectKey, canvasBg])
+  useEffect(() => {
+    // Don't save on initial mount — wait until load completes
+    if (!canvasBgLoadedRef.current) return
+    saveCanvasBgAsync(projectKey, canvasBg)
+  }, [projectKey, canvasBg])
 
   // Empty state — no projects yet
   if (manifests.length === 0) {

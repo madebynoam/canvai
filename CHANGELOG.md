@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.0.87
+
+- **fix: persistence race condition** — canvas color and frame positions were being overwritten on mount before the saved values could load. Added load-complete guards to prevent saving until initial fetch completes.
+
 ## 0.0.86
 
 - fix: annotations label now uses primary text color for better dark mode contrast

@@ -60,6 +60,7 @@ export function useFrames(
   const effectiveConfigRef = useRef<{ columns?: number; rowHeight?: number; gap?: number }>({})
   const persistConfigRef = useRef(persistConfig)
   persistConfigRef.current = persistConfig
+  const positionsLoadedRef = useRef(false)
 
   const sourceKey = frameIdsKey(sourceFrames)
   sourceKeyRef.current = sourceKey
@@ -74,6 +75,7 @@ export function useFrames(
   // Sync when source frames actually change (page switch = different IDs)
   useEffect(() => {
     let cancelled = false
+    positionsLoadedRef.current = false
 
     async function load() {
       const base = sourceFramesRef.current
@@ -92,6 +94,7 @@ export function useFrames(
 
       setFrames(merged)
       measuredHeightsRef.current = {}
+      positionsLoadedRef.current = true
     }
 
     load()
@@ -122,6 +125,8 @@ export function useFrames(
   // Persist frame positions (debounced) — server only (SQLite)
   const persistRef = useRef<ReturnType<typeof setTimeout>>()
   useEffect(() => {
+    // Don't save until initial load completes — prevents overwriting saved positions
+    if (!positionsLoadedRef.current) return
     clearTimeout(persistRef.current)
     persistRef.current = setTimeout(() => {
       if (persistConfigRef.current?.project && persistConfigRef.current?.page) {
