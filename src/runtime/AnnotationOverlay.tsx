@@ -706,6 +706,7 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
   }, [mode, dragState, isContextImageFrame])
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    console.log('[marquee] pointerdown', { mode, clientX: e.clientX, clientY: e.clientY })
     if (mode !== 'targeting') return
     const overlay = overlayRef.current
     if (!overlay) return
@@ -716,6 +717,8 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
     overlay.style.pointerEvents = 'none'
     const el = document.elementFromPoint(e.clientX, e.clientY)
     overlay.style.pointerEvents = 'auto'
+
+    console.log('[marquee] element under cursor:', el?.tagName, el?.getAttribute('data-frame-id'))
 
     if (!el) return
 
@@ -741,6 +744,7 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
     } else {
       // Clicked on empty canvas — start marquee selection
       const cp = screenToCanvas(e.clientX, e.clientY)
+      console.log('[marquee] starting marquee, canvasPoint:', cp)
       if (cp) {
         setMarqueeState({
           startPoint: cp,
@@ -749,18 +753,24 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
           screenCurrent: { x: e.clientX, y: e.clientY },
         })
         setHighlight(null)
+        console.log('[marquee] marqueeState set')
+      } else {
+        console.log('[marquee] screenToCanvas returned null!')
       }
     }
   }, [mode, frames, getFrameCenter])
 
   const handlePointerUp = useCallback((e: React.PointerEvent) => {
+    console.log('[marquee] pointerup', { marqueeState: !!marqueeState, dragState: !!dragState })
     // Handle marquee selection release
     if (marqueeState) {
       const dx = e.clientX - marqueeState.screenStart.x
       const dy = e.clientY - marqueeState.screenStart.y
       const dist = Math.sqrt(dx * dx + dy * dy)
+      console.log('[marquee] release dist:', dist, { screenStart: marqueeState.screenStart, clientX: e.clientX, clientY: e.clientY })
 
       if (dist < 10) {
+        console.log('[marquee] dist < 10, treating as canvas note')
         // It was just a click, not a drag — create a canvas note
         const cp = marqueeState.startPoint
         setTarget({
@@ -788,10 +798,15 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
         x2: marqueeState.currentPoint.x,
         y2: marqueeState.currentPoint.y,
       })
+      console.log('[marquee] selectedFrames:', selectedFrames.length, 'frames in rect', {
+        x1: marqueeState.startPoint.x, y1: marqueeState.startPoint.y,
+        x2: marqueeState.currentPoint.x, y2: marqueeState.currentPoint.y,
+      })
 
       setMarqueeState(null)
 
       if (selectedFrames.length === 0) {
+        console.log('[marquee] no frames selected, creating canvas note')
         // No frames selected — treat as canvas note at center of marquee
         const cp = {
           x: (marqueeState.startPoint.x + marqueeState.currentPoint.x) / 2,
