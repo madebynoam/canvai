@@ -425,7 +425,10 @@ export function BryllenShell({ manifests, annotationEndpoint = 'http://localhost
   const isContextPage = pageName === 'Context'
   const layoutedFrames = activePage && !isContextPage ? layoutFrames(activePage) : []
 
-  const { frames, updateFrame, handleResize } = useFrames(layoutedFrames, activePage?.grid)
+  const persistConfig = activeProject?.project && pageName
+    ? { project: activeProject.project, page: `${iterationName}/${pageName}` }
+    : undefined
+  const { frames, updateFrame, handleResize } = useFrames(layoutedFrames, activePage?.grid, persistConfig)
 
   // Get images for current page
   const currentPageImages = pageImages[pageName] ?? []

@@ -5,12 +5,13 @@ import { relayoutFrames } from './layout'
 const FRAME_GAP = 40
 const STORAGE_KEY = 'bryllen:pos:'
 const STORAGE_KEY_LEGACY = 'canvai:pos:'
+const SERVER_ENDPOINT = 'http://localhost:4748'
 
 function frameIdsKey(frames: CanvasFrame[]): string {
   return frames.map(f => f.id).join(',')
 }
 
-function loadPositions(key: string): Record<string, { x: number; y: number }> | null {
+function loadPositionsLocal(key: string): Record<string, { x: number; y: number }> | null {
   try {
     // Try new key first, fall back to legacy canvai key
     const raw = localStorage.getItem(STORAGE_KEY + key) || localStorage.getItem(STORAGE_KEY_LEGACY + key)
@@ -19,12 +20,35 @@ function loadPositions(key: string): Record<string, { x: number; y: number }> | 
   return null
 }
 
-function savePositions(key: string, frames: CanvasFrame[]) {
+function savePositionsLocal(key: string, frames: CanvasFrame[]) {
   if (frames.length === 0) return
   const positions: Record<string, { x: number; y: number }> = {}
   for (const f of frames) positions[f.id] = { x: f.x, y: f.y }
   try {
     localStorage.setItem(STORAGE_KEY + key, JSON.stringify(positions))
+  } catch {}
+}
+
+async function loadPositionsServer(project: string, page: string): Promise<Record<string, { x: number; y: number }> | null> {
+  try {
+    const res = await fetch(`${SERVER_ENDPOINT}/frame-positions?project=${encodeURIComponent(project)}&page=${encodeURIComponent(page)}`)
+    const data = await res.json()
+    return data.positions || null
+  } catch {
+    return null
+  }
+}
+
+async function savePositionsServer(project: string, page: string, frames: CanvasFrame[]) {
+  if (frames.length === 0) return
+  const positions: Record<string, { x: number; y: number }> = {}
+  for (const f of frames) positions[f.id] = { x: f.x, y: f.y }
+  try {
+    await fetch(`${SERVER_ENDPOINT}/frame-positions`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ project, page, positions }),
+    })
   } catch {}
 }
 
@@ -35,9 +59,15 @@ function inferColumns(frames: CanvasFrame[]): number {
   return Math.max(1, uniqueX.size)
 }
 
+export interface FramePersistenceConfig {
+  project: string
+  page: string
+}
+
 export function useFrames(
   sourceFrames: CanvasFrame[] = [],
   gridConfig?: { columns?: number; rowHeight?: number; gap?: number },
+  persistConfig?: FramePersistenceConfig,
 ) {
   const [frames, setFrames] = useState<CanvasFrame[]>(sourceFrames)
   const measuredHeightsRef = useRef<Record<string, number>>({})
@@ -48,6 +78,8 @@ export function useFrames(
   sourceFramesRef.current = sourceFrames
   const sourceKeyRef = useRef('')
   const effectiveConfigRef = useRef<{ columns?: number; rowHeight?: number; gap?: number }>({})
+  const persistConfigRef = useRef(persistConfig)
+  persistConfigRef.current = persistConfig
 
   const sourceKey = frameIdsKey(sourceFrames)
   sourceKeyRef.current = sourceKey
@@ -61,16 +93,36 @@ export function useFrames(
 
   // Sync when source frames actually change (page switch = different IDs)
   useEffect(() => {
-    const saved = loadPositions(sourceKey)
-    const base = sourceFramesRef.current
-    const merged = saved
-      ? base.map(f => saved[f.id] ? { ...f, x: saved[f.id].x, y: saved[f.id].y } : f)
-      : base
+    let cancelled = false
 
-    setFrames(merged)
-    measuredHeightsRef.current = {}
+    async function load() {
+      const base = sourceFramesRef.current
+      let saved: Record<string, { x: number; y: number }> | null = null
+
+      // Try server first if persist config available
+      if (persistConfigRef.current?.project && persistConfigRef.current?.page) {
+        saved = await loadPositionsServer(persistConfigRef.current.project, persistConfigRef.current.page)
+      }
+
+      // Fall back to localStorage
+      if (!saved) {
+        saved = loadPositionsLocal(sourceKey)
+      }
+
+      if (cancelled) return
+
+      const merged = saved
+        ? base.map(f => saved![f.id] ? { ...f, x: saved![f.id].x, y: saved![f.id].y } : f)
+        : base
+
+      setFrames(merged)
+      measuredHeightsRef.current = {}
+    }
+
+    load()
+    return () => { cancelled = true }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sourceKey])
+  }, [sourceKey, persistConfig?.project, persistConfig?.page])
 
   // Listen for frame resize events (works without onResize prop)
   useEffect(() => {
@@ -92,12 +144,18 @@ export function useFrames(
     return () => window.removeEventListener('bryllen:frame-resize', onFrameResize)
   }, [])
 
-  // Persist frame positions to localStorage (debounced)
+  // Persist frame positions (debounced) — server + localStorage fallback
   const persistRef = useRef<ReturnType<typeof setTimeout>>()
   useEffect(() => {
     clearTimeout(persistRef.current)
     persistRef.current = setTimeout(() => {
-      savePositions(sourceKeyRef.current, frames)
+      // Always save to localStorage as fallback
+      savePositionsLocal(sourceKeyRef.current, frames)
+
+      // Also save to server if config available
+      if (persistConfigRef.current?.project && persistConfigRef.current?.page) {
+        savePositionsServer(persistConfigRef.current.project, persistConfigRef.current.page, frames)
+      }
     }, 300)
   }, [frames])
 

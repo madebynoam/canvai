@@ -890,6 +890,54 @@ const httpServer = createServer(async (req, res) => {
       return
     }
 
+    // ── Frame positions routes ─────────────────────────────────────────────
+
+    // GET /frame-positions — load frame positions for a page
+    if (req.method === 'GET' && url.pathname === '/frame-positions') {
+      const project = url.searchParams.get('project')
+      const page = url.searchParams.get('page')
+
+      if (!project || !page) {
+        sendJson(res, 400, { error: 'project and page query params are required' })
+        return
+      }
+
+      const positionsFile = join(STORE_DIR, 'frame-positions', project, `${page}.json`)
+      if (!existsSync(positionsFile)) {
+        sendJson(res, 200, { positions: null })
+        return
+      }
+
+      try {
+        const positions = JSON.parse(readFileSync(positionsFile, 'utf8'))
+        sendJson(res, 200, { positions })
+      } catch {
+        sendJson(res, 200, { positions: null })
+      }
+      return
+    }
+
+    // PUT /frame-positions — save frame positions for a page
+    if (req.method === 'PUT' && url.pathname === '/frame-positions') {
+      const data = await parseBody(req)
+      const { project, page, positions } = data
+
+      if (!project || !page || !positions) {
+        sendJson(res, 400, { error: 'project, page, and positions are required' })
+        return
+      }
+
+      const positionsDir = join(STORE_DIR, 'frame-positions', project)
+      if (!existsSync(positionsDir)) {
+        mkdirSync(positionsDir, { recursive: true })
+      }
+
+      const positionsFile = join(positionsDir, `${page}.json`)
+      writeFileSync(positionsFile, JSON.stringify(positions, null, 2))
+      sendJson(res, 200, { saved: true })
+      return
+    }
+
     // ── Screenshot route ────────────────────────────────────────────────────
 
     if (req.method === 'GET' && url.pathname === '/screenshot') {
