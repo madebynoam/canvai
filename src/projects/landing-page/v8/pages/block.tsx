@@ -1,19 +1,19 @@
 import { useState } from 'react'
 import canvasLatest from '../../screenshots/canvas-latest.png'
 
-// ── Block — Playful Geometric ───────────────────────────────────────────────
-// Colorful geometric blocks, rounded corners, chunky shapes. Fun and
-// approachable without being childish. Fully interactive.
+// ── Block — Codex Teal/Green Tint (V8 Context) ────────────────────────────────
+// Based on Codex context: same structure but teal/green gradients.
+// Tabbed layout, card-based features, centered hero.
 
 const C = {
-  bg: 'oklch(0.985 0.010 280)',
-  bgYellow: 'oklch(0.920 0.120 95)',
-  bgBlue: 'oklch(0.850 0.120 250)',
-  bgPink: 'oklch(0.900 0.100 350)',
-  bgGreen: 'oklch(0.880 0.120 155)',
-  text: 'oklch(0.150 0.020 280)',
-  textSec: 'oklch(0.400 0.015 280)',
-  white: 'oklch(1.000 0 0)',
+  bg: 'oklch(0.985 0.010 180)',
+  bgGradient1: 'oklch(0.900 0.080 180)',
+  bgGradient2: 'oklch(0.870 0.100 160)',
+  bgCard: 'oklch(1.000 0 0)',
+  text: 'oklch(0.180 0.030 180)',
+  textSec: 'oklch(0.480 0.020 180)',
+  border: 'oklch(0.920 0.015 180)',
+  accent: 'oklch(0.500 0.150 180)',
 }
 
 const font = '"Inter", -apple-system, system-ui, sans-serif'
@@ -24,125 +24,163 @@ function useHover() {
   return [h, { onMouseEnter: () => setH(true), onMouseLeave: () => setH(false) }] as const
 }
 
-export function Block() {
-  const [activeBlock, setActiveBlock] = useState(0)
-  const [bh, bhB] = useHover()
+type Tab = 'canvas' | 'generate' | 'iterate'
+const tabs: { id: Tab; label: string }[] = [
+  { id: 'canvas', label: 'Canvas' },
+  { id: 'generate', label: 'Generate' },
+  { id: 'iterate', label: 'Iterate' },
+]
 
-  const blocks = [
-    { bg: C.bgYellow, title: 'Canvas', desc: 'Infinite surface for all your designs' },
-    { bg: C.bgBlue, title: 'Generate', desc: 'AI creates multiple directions' },
-    { bg: C.bgPink, title: 'Annotate', desc: 'Click and describe changes' },
-    { bg: C.bgGreen, title: 'Ship', desc: 'Export production React code' },
-  ]
+const tabContent: Record<Tab, { title: string; desc: string }> = {
+  canvas: { title: 'Infinite canvas', desc: 'See every design direction at once. Pan, zoom, compare. Everything visible.' },
+  generate: { title: 'AI generation', desc: 'Describe what you want. Get multiple genuinely different directions.' },
+  iterate: { title: 'Click to refine', desc: 'Click any element, describe the change. Watch it update.' },
+}
+
+export function Block() {
+  const [activeTab, setActiveTab] = useState<Tab>('canvas')
+  const [bh, bhB] = useHover()
+  const [ih, ihB] = useHover()
 
   return (
     <div style={{ background: C.bg, minHeight: '100%', overflow: 'auto', fontFamily: font, WebkitFontSmoothing: 'antialiased' }}>
-      {/* Nav */}
-      <nav style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '24px 48px',
+      {/* Hero with gradient */}
+      <div style={{
+        background: `linear-gradient(180deg, ${C.bgGradient1} 0%, ${C.bgGradient2} 50%, ${C.bg} 100%)`,
+        paddingBottom: 80,
       }}>
-        <div style={{
-          background: C.text, color: C.white, padding: '8px 16px',
-          borderRadius: 12, fontSize: 16, fontWeight: 700,
-        }}>bryllen</div>
-        <button {...bhB} style={{
-          border: 'none', background: C.text, color: C.white,
-          padding: '12px 28px', borderRadius: 100, fontSize: 14, fontWeight: 600,
-          cursor: 'default',
-          transform: bh ? 'scale(1.05) rotate(-2deg)' : 'scale(1)',
-          transition: `transform 0.2s ${spring}`,
-        }}>Get started ✦</button>
-      </nav>
-
-      {/* Hero with blocks */}
-      <section style={{ padding: '60px 48px 40px' }}>
-        <div style={{ display: 'flex', gap: 20, maxWidth: 1200, margin: '0 auto' }}>
-          {/* Main hero block */}
-          <div style={{
-            flex: '0 0 55%', background: C.bgYellow, borderRadius: 24, padding: 48,
-          }}>
-            <h1 style={{
-              fontSize: 48, fontWeight: 700, color: C.text,
-              lineHeight: 1.1, letterSpacing: '-0.02em', margin: '0 0 20px',
-            }}>
-              Design with AI ✨
-            </h1>
-            <p style={{
-              fontSize: 18, color: C.text, opacity: 0.7, maxWidth: 400,
-              lineHeight: 1.5, margin: 0, textWrap: 'pretty' as const,
-            }}>
-              An infinite canvas where you see every direction at once. Like Figma, but AI does the work.
-            </p>
-          </div>
-
-          {/* Side blocks */}
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 20 }}>
-            <div style={{
-              flex: 1, background: C.bgBlue, borderRadius: 24, padding: 24,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-              <span style={{ fontSize: 48 }}>🎨</span>
-            </div>
-            <div style={{
-              flex: 1, background: C.bgPink, borderRadius: 24, padding: 24,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-              <span style={{ fontSize: 48 }}>⚡</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Screenshot */}
-      <section style={{ padding: '20px 48px 60px', maxWidth: 1200, margin: '0 auto' }}>
-        <div style={{
-          borderRadius: 24, overflow: 'hidden', border: `4px solid ${C.text}`,
+        {/* Nav */}
+        <nav style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '20px 64px', maxWidth: 1100, margin: '0 auto',
         }}>
-          <img src={canvasLatest} alt="Canvas" style={{ width: '100%', display: 'block' }} />
+          <div style={{
+            width: 40, height: 40, borderRadius: '50%', background: C.accent,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: 'white', fontWeight: 700, fontSize: 14,
+          }}>B</div>
+          <div style={{ display: 'flex', gap: 32 }}>
+            {['Product', 'Docs', 'Pricing'].map(item => (
+              <span key={item} style={{ fontSize: 14, color: C.text, opacity: 0.7, cursor: 'default' }}>{item}</span>
+            ))}
+          </div>
+          <button {...bhB} style={{
+            border: 'none', background: C.bgCard, color: C.text,
+            padding: '10px 20px', borderRadius: 8, fontSize: 14, fontWeight: 500,
+            cursor: 'default', boxShadow: '0 2px 8px oklch(0.2 0.03 180 / 0.1)',
+            transform: bh ? 'scale(1.02)' : 'scale(1)',
+            transition: `transform 0.2s ${spring}`,
+          }}>Get started</button>
+        </nav>
+
+        {/* Hero text */}
+        <section style={{ padding: '80px 64px 60px', maxWidth: 800, margin: '0 auto', textAlign: 'center' as const }}>
+          <h1 style={{
+            fontSize: 52, fontWeight: 600, color: C.text,
+            lineHeight: 1.1, letterSpacing: '-0.03em', margin: '0 0 20px',
+            textWrap: 'balance' as const,
+          }}>
+            The best way to design with AI
+          </h1>
+          <p style={{
+            fontSize: 18, color: C.textSec, maxWidth: 500, margin: '0 auto',
+            lineHeight: 1.6, textWrap: 'pretty' as const,
+          }}>
+            An infinite canvas for Claude Code. Describe what you want, see every direction at once.
+          </p>
+        </section>
+
+        {/* Tabs */}
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 8 }}>
+          {tabs.map(t => (
+            <button
+              key={t.id}
+              onClick={() => setActiveTab(t.id)}
+              style={{
+                border: 'none',
+                background: activeTab === t.id ? C.bgCard : 'oklch(1 0 0 / 0.5)',
+                color: activeTab === t.id ? C.text : C.textSec,
+                padding: '10px 24px', borderRadius: 20, fontSize: 14, fontWeight: 500,
+                cursor: 'default',
+                boxShadow: activeTab === t.id ? '0 4px 12px oklch(0.2 0.03 180 / 0.15)' : 'none',
+                transition: 'all 0.2s ease',
+              }}
+            >{t.label}</button>
+          ))}
+        </div>
+      </div>
+
+      {/* Tab content card */}
+      <section style={{ padding: '0 64px', maxWidth: 1000, margin: '-40px auto 0' }}>
+        <div {...ihB} style={{
+          background: C.bgCard, borderRadius: 16, padding: 40,
+          boxShadow: ih
+            ? '0 24px 64px oklch(0.2 0.03 180 / 0.18)'
+            : '0 12px 40px oklch(0.2 0.02 180 / 0.1)',
+          transform: ih ? 'translateY(-4px)' : 'translateY(0)',
+          transition: `all 0.3s ${spring}`,
+        }}>
+          <div style={{ display: 'flex', gap: 40, alignItems: 'center' }}>
+            <div style={{ flex: '0 0 40%' }}>
+              <h3 style={{ fontSize: 24, fontWeight: 600, color: C.text, margin: '0 0 12px' }}>
+                {tabContent[activeTab].title}
+              </h3>
+              <p style={{ fontSize: 15, color: C.textSec, lineHeight: 1.6, margin: 0, textWrap: 'pretty' as const }}>
+                {tabContent[activeTab].desc}
+              </p>
+            </div>
+            <div style={{ flex: 1, borderRadius: 12, overflow: 'hidden', border: `1px solid ${C.border}` }}>
+              <img src={canvasLatest} alt="Bryllen canvas" style={{ width: '100%', display: 'block' }} />
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Interactive feature blocks */}
-      <section style={{ padding: '40px 48px 80px', maxWidth: 1200, margin: '0 auto' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
-          {blocks.map((b, i) => (
-            <div
-              key={i}
-              onClick={() => setActiveBlock(i)}
-              style={{
-                background: b.bg, borderRadius: 20, padding: 24,
-                cursor: 'default',
-                transform: activeBlock === i ? 'scale(1.02) rotate(-1deg)' : 'scale(1)',
-                boxShadow: activeBlock === i ? '0 8px 24px oklch(0.2 0.02 0 / 0.15)' : 'none',
-                transition: `all 0.2s ${spring}`,
-              }}
-            >
-              <h3 style={{ fontSize: 18, fontWeight: 700, color: C.text, margin: '0 0 8px' }}>{b.title}</h3>
-              <p style={{ fontSize: 13, color: C.text, opacity: 0.7, margin: 0, lineHeight: 1.4 }}>{b.desc}</p>
+      {/* Features */}
+      <section style={{ padding: '80px 64px', maxWidth: 1000, margin: '0 auto' }}>
+        <h2 style={{ fontSize: 28, fontWeight: 600, color: C.text, textAlign: 'center' as const, marginBottom: 48 }}>
+          Design the way you think
+        </h2>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }}>
+          {[
+            { icon: '◎', title: 'Describe', desc: 'Tell Bryllen what you want in plain words' },
+            { icon: '◇', title: 'Compare', desc: 'See multiple directions on the canvas' },
+            { icon: '→', title: 'Ship', desc: 'Export production React code' },
+          ].map(item => (
+            <div key={item.title} style={{
+              background: C.bgCard, borderRadius: 12, padding: 24,
+              border: `1px solid ${C.border}`,
+            }}>
+              <div style={{
+                width: 40, height: 40, borderRadius: 10,
+                background: `linear-gradient(135deg, ${C.bgGradient1}, ${C.bgGradient2})`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 18, color: C.text, marginBottom: 16,
+              }}>{item.icon}</div>
+              <h4 style={{ fontSize: 16, fontWeight: 600, color: C.text, margin: '0 0 8px' }}>{item.title}</h4>
+              <p style={{ fontSize: 14, color: C.textSec, margin: 0, lineHeight: 1.5, textWrap: 'pretty' as const }}>{item.desc}</p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* Bottom CTA */}
+      {/* CTA */}
       <section style={{
-        padding: '60px 48px', background: C.text, borderRadius: '32px 32px 0 0',
+        margin: '0 64px 64px', borderRadius: 16, padding: '48px 64px',
+        background: `linear-gradient(135deg, ${C.bgGradient1}, ${C.bgGradient2})`,
+        textAlign: 'center' as const,
       }}>
-        <div style={{ maxWidth: 600, margin: '0 auto', textAlign: 'center' as const }}>
-          <h2 style={{
-            fontSize: 36, fontWeight: 700, color: C.white,
-            margin: '0 0 16px',
-          }}>Ready to design?</h2>
-          <p style={{
-            fontSize: 16, color: C.white, opacity: 0.7, margin: '0 0 32px',
-          }}>Start building with Bryllen today</p>
-          <button style={{
-            border: 'none', background: C.bgYellow, color: C.text,
-            padding: '16px 40px', borderRadius: 100, fontSize: 16, fontWeight: 700,
-            cursor: 'default',
-          }}>Let's go →</button>
-        </div>
+        <h3 style={{ fontSize: 24, fontWeight: 600, color: C.text, margin: '0 0 12px' }}>
+          Try Bryllen today
+        </h3>
+        <p style={{ fontSize: 15, color: C.textSec, margin: '0 0 24px' }}>
+          Start designing with AI in minutes
+        </p>
+        <button style={{
+          border: 'none', background: C.bgCard, color: C.text,
+          padding: '12px 28px', borderRadius: 8, fontSize: 14, fontWeight: 600,
+          cursor: 'default', boxShadow: '0 4px 12px oklch(0.2 0.03 180 / 0.2)',
+        }}>Get started free</button>
       </section>
     </div>
   )
