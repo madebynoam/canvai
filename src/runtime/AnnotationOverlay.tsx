@@ -1183,7 +1183,7 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
 
       {/* Comment card — positioned near target element */}
       {cardVisible && target && (() => {
-        const cardWidth = 320
+        const cardWidth = 380
         const cardHeight = 220
         let top = target.rect.bottom + S.sm
         let left = target.rect.left

@@ -95,9 +95,36 @@ All directions on a single "All Directions" manifest page. Use `DirectionLabel` 
 
 Once chosen, generate all meaningful **variations × states** as frames. Columns = states, Rows = variations. Frame IDs: `<component>-<variation>-<state>`.
 
-## Standard frame widths
+## Before generating any frames (CRITICAL)
 
-Desktop: `1440` · Tablet: `768` · Mobile: `390`
+**Invoke `/design-taste` before writing any component or page code.** This skill ensures:
+- Bold aesthetic direction (not generic AI output)
+- Proper color and typography choices
+- Correct horizontal frame layout with no overlaps
+
+## Frame layout (HORIZONTAL, not vertical)
+
+**Always lay out frames horizontally.** Side-by-side comparison is Canvai's core value.
+
+### Standard widths
+- Desktop: `1440px`
+- Tablet: `768px`
+- Mobile: `390px`
+- Gap: `40px`
+
+### Calculate X positions
+```
+Frame 1: x = 0
+Frame 2: x = Frame1.width + 40
+Frame 3: x = Frame2.x + Frame2.width + 40
+```
+
+### Example: 5 desktop frames
+```
+x=0, x=1480, x=2960, x=4440, x=5920 (all width=1440)
+```
+
+**Never stack frames vertically unless explicitly requested.**
 
 ## Mandatory pages
 
@@ -116,7 +143,9 @@ import { TokenSwatch } from 'canvai/runtime'
 
 Components with internal navigation (tabs, sidebar) use React state inside one component. Don't split into separate frames — navigation must work.
 
-## Design language
+## Design language (Canvai runtime only)
+
+The rules below apply to **Canvai's own shell UI** (canvas, toolbar, sidebar), NOT to designs generated for designers. For generated designs, invoke `/design-taste`.
 
 Braun / Jony Ive aesthetic. For full palette tables, typography scale, spacing, border radius, spring presets, and feature inventory, see `DESIGN-REFERENCE.md`.
 
@@ -266,3 +295,4 @@ npx canvai context --project <name> --iteration <v>
 - `/canvai-share` — Build and deploy to GitHub Pages
 - `/canvai-close` — Stop dev servers
 - `/canvai-update` — Update canvai
+- `/design-taste` — **Invoke before generating any frames** — ensures distinctive, tasteful output
