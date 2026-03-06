@@ -158,6 +158,17 @@ Frames are auto-positioned using a **grid layout**. The `grid.columns` setting c
 }
 ```
 
+### CRITICAL: Add ALL frames in ONE manifest edit
+
+**WHY frames end up diagonal:** If you add frames one at a time (write Frame A → HMR → write Frame B → HMR), each new frame is positioned relative to the previous frame's adjusted position. Height changes between edits cause Y drift → diagonal cascade.
+
+**CORRECT:** Write ALL frame components first, THEN add them all to the manifest in a SINGLE edit:
+1. Create `DirA.tsx`, `DirB.tsx`, `DirC.tsx`
+2. ONE manifest edit that adds all three frames at once
+3. Canvas receives complete frame list, `layoutFrames()` positions them as a horizontal grid
+
+**WRONG:** Add DirA to manifest → wait → add DirB to manifest → wait → add DirC to manifest
+
 ### Manifest example (CORRECT — 3 frames, 3+ columns = horizontal)
 ```ts
 {
@@ -276,13 +287,22 @@ Drafts created on Save, visible in TopBar dropdown. "Apply" promotes to pending 
 
 Every annotation has a `mode` field: `'refine'`, `'ideate'`, or `'pick'`.
 
+**ALL MODES require the guard protocol.** Before generating or editing ANY frame:
+1. Read manifest (check frozen)
+2. List ALL UI elements needed
+3. Check components/index.ts — create missing components FIRST
+4. ONLY THEN proceed with the mode-specific workflow
+
 **Refine mode** (default):
+- **Run guard protocol first** (check frozen, list elements, verify components exist)
 - Edit the specific element the designer targeted
-- Make the requested change to existing code
+- Route visual changes through tokens (don't hardcode)
 - Result: updated component/token
 
 **Ideate mode** (generates new frames):
-- **FIRST: Invoke `/design-taste`** — this skill has mandatory layout rules
+- **Run guard protocol**: identify ALL UI elements needed for variations
+- **Create missing components** in v<N>/components/, add to barrel
+- THEN invoke `/design-taste` — this skill has mandatory layout rules
 - Generate the number of variations specified in the annotation (check the comment for `[IDEATE MODE: ... exactly N ...]`)
 - "Genuinely different" means different in **layout, hierarchy, interaction, or approach** — NOT just color or font variations
 - **LAY OUT FRAMES HORIZONTALLY** (increasing X, same Y) — see "Frame layout" section above
@@ -322,7 +342,10 @@ During ideation, multiple directions may have different component implementation
 - When `type: 'project'` is received (new project)
 - When `type: 'iteration'` includes design prompts
 
-**For ALL of the above: invoke `/design-taste` first, then generate frames HORIZONTALLY.**
+**For ALL of the above:**
+1. **Run guard protocol** — list ALL UI elements, create missing components
+2. Invoke `/design-taste`
+3. Generate frames HORIZONTALLY using the component library
 
 **Examples of "genuinely different":**
 - Dashboard: card-based vs. table-based vs. sidebar+main layout
@@ -345,7 +368,12 @@ During ideation, multiple directions may have different component implementation
 
 ### Processing project annotations (`type: 'project'`)
 
-Parse JSON comment `{ name, description, prompt }`, create project folder, generate initial design if prompted, resolve.
+1. Parse JSON comment `{ name, description, prompt }`
+2. Create project folder structure (v1/, manifest.ts, CHANGELOG.md)
+3. **Run guard protocol**: identify ALL UI elements from the prompt
+4. Create tokens.css, ALL required components, mandatory pages (Tokens, Components)
+5. Invoke `/design-taste`, generate initial frames
+6. Resolve with `--navigate V1`
 
 ## CLI Commands (for agent use)
 

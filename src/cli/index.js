@@ -619,7 +619,7 @@ async function startDev() {
   })
 
   // Start annotation HTTP server with the chosen port
-  const httpServerPath = join(__dirname, '..', 'mcp', 'http-server.js')
+  const httpServerPath = join(__dirname, '..', 'server', 'http-server.js')
   const httpSrv = spawn('node', [httpServerPath], {
     cwd,
     stdio: 'inherit',

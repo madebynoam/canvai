@@ -1,6 +1,6 @@
 {
   "name": "bryllen",
-  "version": "0.0.78",
+  "version": "0.0.79",
   "type": "module",
   "exports": {
     "./runtime": "./src/runtime/index.ts",
@@ -17,6 +17,7 @@
     "test:smoke": "bash scripts/smoke-test.sh"
   },
   "dependencies": {
+    "better-sqlite3": "^11.8.1",
     "@modelcontextprotocol/sdk": "^1.26.0",
     "lucide-react": "^0.564.0",
     "react": "^18.3.1",

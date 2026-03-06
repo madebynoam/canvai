@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.0.79 — SQLite Persistence
+
+- **Breaking**: Frame positions, viewports, and canvas background colors now stored in SQLite (`.bryllen/bryllen.db`) instead of scattered JSON files and localStorage
+- Added `better-sqlite3` dependency for reliable persistence
+- Created `src/server/db.js` with schema for `frame_positions`, `context_positions`, `viewports`, and `preferences`
+- Migrated all HTTP server endpoints to use SQLite:
+  - `GET/PUT /frame-positions` — frame position persistence
+  - `PUT /context-positions` — context image positions
+  - `GET/PUT /preferences/:key` — canvas bg, viewports
+- Removed localStorage fallback from `useFrames.ts` — single source of truth
+- Added async `loadCanvasBgAsync`/`saveCanvasBgAsync` and `loadViewportAsync` functions
+- Auto-migration: on server startup, imports existing `.bryllen/frame-positions/*.json` into SQLite and deletes old files
+- Renamed `src/mcp/` to `src/server/` (it was never MCP, just HTTP)
+
 ## 0.0.45 — Pick a Direction
 
 - Added "Pick" mode to annotation toggle — designers can now designate a frame as the "winner" from multiple directions

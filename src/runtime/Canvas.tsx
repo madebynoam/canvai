@@ -2,32 +2,58 @@ import { useRef, useState, useEffect, useCallback, createContext, useContext, us
 
 const MIN_ZOOM = 0.1
 const MAX_ZOOM = 5
-const VP_KEY = 'bryllen:vp:'
-const VP_KEY_LEGACY = 'canvai:vp:'
+const ENDPOINT = 'http://localhost:4748'
 
-function saveViewport(key: string, x: number, y: number, zoom: number) {
-  try { localStorage.setItem(VP_KEY + key, JSON.stringify({ x, y, zoom })) } catch {}
-}
+// Viewport and canvas background are stored in SQLite via HTTP server
+// These are async but we provide sync wrappers for backward compat
 
-function loadViewport(key: string): { x: number; y: number; zoom: number } | null {
+export async function saveCanvasBgAsync(project: string, color: string): Promise<void> {
   try {
-    // Try new key first, fall back to legacy canvai key
-    const raw = localStorage.getItem(VP_KEY + key) || localStorage.getItem(VP_KEY_LEGACY + key)
-    return raw ? JSON.parse(raw) : null
-  } catch { return null }
+    await fetch(`${ENDPOINT}/preferences/canvas-bg:${encodeURIComponent(project)}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value: color }),
+    })
+  } catch {}
 }
 
-const BG_KEY = 'bryllen:bg:'
-const BG_KEY_LEGACY = 'canvai:bg:'
+export async function loadCanvasBgAsync(project: string): Promise<string | null> {
+  try {
+    const res = await fetch(`${ENDPOINT}/preferences/canvas-bg:${encodeURIComponent(project)}`)
+    const data = await res.json()
+    return data.value || null
+  } catch {
+    return null
+  }
+}
 
+// Sync wrappers that fire-and-forget (for backward compat)
 export function saveCanvasBg(project: string, color: string) {
-  try { localStorage.setItem(BG_KEY + project, color) } catch {}
+  saveCanvasBgAsync(project, color)
 }
 
 export function loadCanvasBg(project: string): string | null {
+  // Can't do async in sync function - return null and let effect handle it
+  return null
+}
+
+function saveViewport(key: string, x: number, y: number, zoom: number) {
+  // Fire and forget to server
+  fetch(`${ENDPOINT}/preferences/viewport:${encodeURIComponent(key)}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ value: { x, y, zoom } }),
+  }).catch(() => {})
+}
+
+async function loadViewportAsync(key: string): Promise<{ x: number; y: number; zoom: number } | null> {
   try {
-    return localStorage.getItem(BG_KEY + project) || localStorage.getItem(BG_KEY_LEGACY + project)
-  } catch { return null }
+    const res = await fetch(`${ENDPOINT}/preferences/viewport:${encodeURIComponent(key)}`)
+    const data = await res.json()
+    return data.value || null
+  } catch {
+    return null
+  }
 }
 
 interface CanvasContextValue {
@@ -49,8 +75,6 @@ const CanvasContext = createContext<CanvasContextValue>({
 export function useCanvas() {
   return useContext(CanvasContext)
 }
-
-const ENDPOINT = 'http://localhost:4748'
 
 // Pending annotation data stored at Canvas level (survives page switches)
 export interface PendingAnnotation {
@@ -297,14 +321,17 @@ export function Canvas({ children, pageKey, hud, onImagePaste }: CanvasProps) {
     prevPageKeyRef.current = pageKey
 
     // Load saved viewport or default to origin (first visit)
-    const saved = pageKey ? loadViewport(pageKey) : null
-    const newPan = { x: saved?.x ?? 0, y: saved?.y ?? 0 }
-    const newZoom = saved?.zoom ?? zoomRef.current
+    async function loadAndApply() {
+      const saved = pageKey ? await loadViewportAsync(pageKey) : null
+      const newPan = { x: saved?.x ?? 0, y: saved?.y ?? 0 }
+      const newZoom = saved?.zoom ?? zoomRef.current
 
-    panRef.current = newPan
-    zoomRef.current = newZoom
-    applyTransform(newPan, newZoom)
-    commitState(newPan, newZoom)
+      panRef.current = newPan
+      zoomRef.current = newZoom
+      applyTransform(newPan, newZoom)
+      commitState(newPan, newZoom)
+    }
+    loadAndApply()
   }, [pageKey])
 
   // Save viewport on tab close

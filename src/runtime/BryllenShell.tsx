@@ -14,7 +14,7 @@ import { TourOverlay, isTourCompleted } from './TourOverlay'
 import { useNavMemory } from './useNavMemory'
 import { ZoomControl } from './ZoomControl'
 import { CanvasColorPicker, DEFAULT_CANVAS_COLOR } from './CanvasColorPicker'
-import { loadCanvasBg, saveCanvasBg } from './Canvas'
+import { loadCanvasBgAsync, saveCanvasBgAsync } from './Canvas'
 import { ActionButton } from './Menu'
 import { UpdateDialog } from './UpdateDialog'
 import { checkForUpdate, getDismissedVersion } from './versionCheck'
@@ -577,9 +577,14 @@ export function BryllenShell({ manifests, annotationEndpoint = 'http://localhost
   }, [activeProject?.project, iterationName, pageName, isContextPage, annotationEndpoint, showToast])
 
   const projectKey = activeProject?.project ?? ''
-  const [canvasBg, setCanvasBg] = useState(() => loadCanvasBg(projectKey) ?? DEFAULT_CANVAS_COLOR)
-  useEffect(() => { setCanvasBg(loadCanvasBg(projectKey) ?? DEFAULT_CANVAS_COLOR) }, [projectKey])
-  useEffect(() => { saveCanvasBg(projectKey, canvasBg) }, [projectKey, canvasBg])
+  const [canvasBg, setCanvasBg] = useState(DEFAULT_CANVAS_COLOR)
+  useEffect(() => {
+    loadCanvasBgAsync(projectKey).then(color => {
+      if (color) setCanvasBg(color)
+      else setCanvasBg(DEFAULT_CANVAS_COLOR)
+    })
+  }, [projectKey])
+  useEffect(() => { saveCanvasBgAsync(projectKey, canvasBg) }, [projectKey, canvasBg])
 
   // Empty state — no projects yet
   if (manifests.length === 0) {

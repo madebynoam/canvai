@@ -27,6 +27,15 @@ import {
   buildIssueBody,
   buildIssueTitle,
 } from './github.js'
+import {
+  initDb,
+  getFramePositions,
+  saveFramePositions,
+  getContextPositions,
+  saveContextPositions,
+  getPreference,
+  setPreference,
+} from './db.js'
 
 // --- Playwright (lazy) ---
 
@@ -67,6 +76,9 @@ process.on('exit', closeBrowser)
 
 const STORE_DIR = join(process.cwd(), '.bryllen')
 const STORE_FILE = join(STORE_DIR, 'annotations.json')
+
+// Initialize SQLite database
+initDb(STORE_DIR)
 
 function loadAnnotations() {
   try {
@@ -795,14 +807,8 @@ const httpServer = createServer(async (req, res) => {
         return statSync(fpath).isFile() && /\.(png|jpg|jpeg|gif|webp)$/i.test(f)
       })
 
-      // Load positions from positions.json if it exists
-      const positionsFile = join(contextDir, 'positions.json')
-      let positions = {}
-      if (existsSync(positionsFile)) {
-        try {
-          positions = JSON.parse(readFileSync(positionsFile, 'utf8'))
-        } catch {}
-      }
+      // Load positions from SQLite
+      const positions = getContextPositions(project, iteration, page) || {}
 
       const images = files.map(filename => ({
         filename,
@@ -815,32 +821,18 @@ const httpServer = createServer(async (req, res) => {
       return
     }
 
-    // PUT /context-positions — save context image positions (optionally per-page)
+    // PUT /context-positions — save context image positions (SQLite)
     if (req.method === 'PUT' && url.pathname === '/context-positions') {
-      let body = ''
-      req.on('data', chunk => { body += chunk })
-      req.on('end', async () => {
-        try {
-          const { project, iteration, page, positions } = JSON.parse(body)
-          if (!project || !iteration || !positions) {
-            sendJson(res, 400, { error: 'project, iteration, and positions are required' })
-            return
-          }
+      const data = await parseBody(req)
+      const { project, iteration, page, positions } = data
 
-          const contextDir = page
-            ? join(process.cwd(), 'src', 'projects', project, iteration, 'context', page)
-            : join(process.cwd(), 'src', 'projects', project, iteration, 'context')
-          if (!existsSync(contextDir)) {
-            mkdirSync(contextDir, { recursive: true })
-          }
+      if (!project || !iteration || !positions) {
+        sendJson(res, 400, { error: 'project, iteration, and positions are required' })
+        return
+      }
 
-          const positionsFile = join(contextDir, 'positions.json')
-          writeFileSync(positionsFile, JSON.stringify(positions, null, 2))
-          sendJson(res, 200, { saved: true })
-        } catch (err) {
-          sendJson(res, 500, { error: err.message })
-        }
-      })
+      saveContextPositions(project, iteration, page, positions)
+      sendJson(res, 200, { saved: true })
       return
     }
 
@@ -908,7 +900,7 @@ const httpServer = createServer(async (req, res) => {
       return
     }
 
-    // ── Frame positions routes ─────────────────────────────────────────────
+    // ── Frame positions routes (SQLite) ────────────────────────────────────
 
     // GET /frame-positions — load frame positions for a page
     if (req.method === 'GET' && url.pathname === '/frame-positions') {
@@ -920,44 +912,22 @@ const httpServer = createServer(async (req, res) => {
         return
       }
 
-      // Sanitize page name: replace slashes with double-underscore to match save
-      const safePage = page.replace(/\//g, '__')
-      const positionsFile = join(STORE_DIR, 'frame-positions', project, `${safePage}.json`)
-      if (!existsSync(positionsFile)) {
-        sendJson(res, 200, { positions: null })
-        return
-      }
-
-      try {
-        const data = JSON.parse(readFileSync(positionsFile, 'utf8'))
-        // Return full data including version
-        sendJson(res, 200, data)
-      } catch {
-        sendJson(res, 200, { positions: null })
-      }
+      const positions = getFramePositions(project, page)
+      sendJson(res, 200, { positions })
       return
     }
 
     // PUT /frame-positions — save frame positions for a page
     if (req.method === 'PUT' && url.pathname === '/frame-positions') {
       const data = await parseBody(req)
-      const { project, page, positions, version } = data
+      const { project, page, positions } = data
 
       if (!project || !page || !positions) {
         sendJson(res, 400, { error: 'project, page, and positions are required' })
         return
       }
 
-      // Sanitize page name: replace slashes with double-underscore to avoid nested paths
-      const safePage = page.replace(/\//g, '__')
-      const positionsDir = join(STORE_DIR, 'frame-positions', project)
-      if (!existsSync(positionsDir)) {
-        mkdirSync(positionsDir, { recursive: true })
-      }
-
-      const positionsFile = join(positionsDir, `${safePage}.json`)
-      // Store with version for cache invalidation
-      writeFileSync(positionsFile, JSON.stringify({ positions, version: version || 1 }, null, 2))
+      saveFramePositions(project, page, positions)
       sendJson(res, 200, { saved: true })
       return
     }
@@ -1051,6 +1021,26 @@ const httpServer = createServer(async (req, res) => {
         closeBrowser()
         sendJson(res, 500, { error: `Screenshot failed: ${err.message}` })
       }
+      return
+    }
+
+    // ── Preferences routes (SQLite) ───────────────────────────────────────
+
+    // GET /preferences/:key
+    const prefGetMatch = url.pathname.match(/^\/preferences\/(.+)$/)
+    if (req.method === 'GET' && prefGetMatch) {
+      const key = decodeURIComponent(prefGetMatch[1])
+      const value = getPreference(key)
+      sendJson(res, 200, { key, value })
+      return
+    }
+
+    // PUT /preferences/:key
+    if (req.method === 'PUT' && prefGetMatch) {
+      const key = decodeURIComponent(prefGetMatch[1])
+      const data = await parseBody(req)
+      setPreference(key, data.value)
+      sendJson(res, 200, { key, saved: true })
       return
     }
 
