@@ -9,21 +9,14 @@ Update everything in one shot — npm package, migrations, and Claude Code plugi
 
 ## Steps
 
-1. **Detect which package name is installed** (bryllen or legacy canvai):
+1. **Update the npm package** (pulls latest from GitHub + runs migrations):
    ```bash
-   node -e "console.log(require('fs').existsSync('node_modules/bryllen') ? 'bryllen' : 'canvai')"
+   npx bryllen update
    ```
-   Store the result — use this package name for all commands below.
 
-2. **Update the npm package** (pulls latest from GitHub + runs migrations):
+2. **Get the new version number** — read it from the installed package:
    ```bash
-   npx <package-name> update
-   ```
-   (Replace `<package-name>` with `bryllen` or `canvai` from step 1)
-
-3. **Get the new version number** — read it from the installed package:
-   ```bash
-   node -e "const pkg = require('fs').existsSync('node_modules/bryllen') ? 'bryllen' : 'canvai'; console.log(require('./node_modules/' + pkg + '/package.json').version)"
+   node -e "console.log(require('./node_modules/bryllen/package.json').version)"
    ```
 
 3. **Commit migration changes** — migrations modify consumer files (App.tsx, CLAUDE.md, settings.json, etc.). Commit them so there's a rollback point:
@@ -45,4 +38,4 @@ Update everything in one shot — npm package, migrations, and Claude Code plugi
 
 ## Why no `claude plugin update`?
 
-`claude plugin update` cannot run inside a Claude Code session (nested sessions crash). The git pull in step 2 already updates all plugin files on disk — the restart in step 3 picks them up.
+`claude plugin update` cannot run inside a Claude Code session (nested sessions crash). The git pull in step 4 already updates all plugin files on disk — the restart picks them up.

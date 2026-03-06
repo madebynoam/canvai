@@ -329,5 +329,5 @@ npx bryllen context --project <name> --iteration <v>
 - `/bryllen-design` — Start dev server and watch mode
 - `/bryllen-share` — Build and deploy to GitHub Pages
 - `/bryllen-close` — Stop dev servers
-- `/bryllen-update` — Update canvai
+- `/bryllen-update` — Update bryllen
 - `/design-taste` — **Invoke before generating any frames** — ensures distinctive, tasteful output
