@@ -72,7 +72,7 @@ function AnnotationBadge({ count, pendingCount, onClick }: { count: number; pend
       >
         {count}
       </div>
-      <span style={{ fontSize: T.ui, color: count > 0 ? A.accent : V.txtSec }}>
+      <span style={{ fontSize: T.ui, color: count > 0 ? A.accent : V.txtPri }}>
         annotations
       </span>
     </button>

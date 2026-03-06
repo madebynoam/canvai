@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.0.86
+
+- fix: annotations label now uses primary text color for better dark mode contrast
+
 ## 0.0.79 — SQLite Persistence
 
 - **Breaking**: Frame positions, viewports, and canvas background colors now stored in SQLite (`.bryllen/bryllen.db`) instead of scattered JSON files and localStorage
