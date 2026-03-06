@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { N, A, F, D, S, R, T, ICON, FONT } from './tokens'
+import { A, F, D, S, R, T, V, ICON, FONT } from './tokens'
 import { Wand2, Crosshair, Loader2, Trophy } from 'lucide-react'
 import { useMenu, MenuPanel } from './Menu'
 
@@ -36,7 +36,7 @@ function AnnotationBadge({ count, pendingCount, onClick }: { count: number; pend
         fontFamily: FONT,
         fontSize: T.ui,
         fontWeight: 500,
-        color: count > 0 ? A.accent : N.txtSec,
+        color: count > 0 ? A.accent : V.txtSec,
         cursor: 'default',
       }}
     >
@@ -61,7 +61,7 @@ function AnnotationBadge({ count, pendingCount, onClick }: { count: number; pend
           width: S.lg,
           height: S.lg,
           borderRadius: '50%',
-          backgroundColor: count > 0 ? A.accent : N.txtMuted,
+          backgroundColor: count > 0 ? A.accent : V.txtMuted,
           color: D.text,
           display: 'flex',
           alignItems: 'center',
@@ -72,7 +72,7 @@ function AnnotationBadge({ count, pendingCount, onClick }: { count: number; pend
       >
         {count}
       </div>
-      <span style={{ fontSize: T.ui, color: count > 0 ? A.accent : N.txtSec }}>
+      <span style={{ fontSize: T.ui, color: count > 0 ? A.accent : V.txtSec }}>
         annotations
       </span>
     </button>
@@ -118,7 +118,7 @@ function AnnotationRow({
           width: S.lg,
           height: S.lg,
           borderRadius: '50%',
-          backgroundColor: isResolved ? N.txtMuted : (annotation.type === 'pick' ? 'oklch(0.55 0.14 155)' : F.marker),
+          backgroundColor: isResolved ? V.txtMuted : (annotation.type === 'pick' ? 'oklch(0.55 0.14 155)' : F.marker),
           color: D.text,
           display: 'flex',
           alignItems: 'center',
@@ -136,7 +136,7 @@ function AnnotationRow({
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{
           fontSize: T.ui,
-          color: N.txtPri,
+          color: V.txtPri,
           fontWeight: 500,
           whiteSpace: 'nowrap',
           overflow: 'hidden',
@@ -144,7 +144,7 @@ function AnnotationRow({
         }}>
           {annotation.comment}
         </div>
-        <div style={{ fontSize: T.ui, color: N.txtSec, marginTop: 2 }}>
+        <div style={{ fontSize: T.ui, color: V.txtSec, marginTop: 2 }}>
           {annotation.type === 'iteration' ? 'Iteration request' : annotation.type === 'project' ? 'Project request' : annotation.type === 'pick' ? 'Picked this direction' : <>{annotation.componentName} &middot; {annotation.elementTag}</>}
         </div>
       </div>
@@ -164,12 +164,11 @@ function AnnotationRow({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: N.txtSec,
                 borderRadius: R.ui, cornerShape: 'squircle',
                 cursor: 'default',
               }}
             >
-              <Crosshair size={ICON.sm} strokeWidth={1.5} />
+              <Crosshair size={ICON.sm} strokeWidth={1.5} style={{ color: V.txtSec }} />
             </button>
           )}
           {showApply && (
@@ -234,7 +233,7 @@ function PendingRow({ annotation }: { annotation: Annotation }) {
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{
           fontSize: T.ui,
-          color: N.txtSec,
+          color: V.txtSec,
           fontWeight: 500,
           whiteSpace: 'nowrap',
           overflow: 'hidden',
@@ -242,7 +241,7 @@ function PendingRow({ annotation }: { annotation: Annotation }) {
         }}>
           {annotation.comment}
         </div>
-        <div style={{ fontSize: T.ui, color: N.txtSec, marginTop: 2 }}>
+        <div style={{ fontSize: T.ui, color: V.txtSec, marginTop: 2 }}>
           {annotation.type === 'iteration' ? 'Creating iteration\u2026' : annotation.type === 'project' ? 'Creating project\u2026' : 'Applying\u2026'}
         </div>
       </div>
@@ -345,9 +344,9 @@ export function AnnotationPanelWidget({ endpoint }: { endpoint: string }) {
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: `${S.sm}px ${S.md}px`,
-          borderBottom: `1px solid ${N.border}`,
+          borderBottom: `1px solid ${V.border}`,
         }}>
-          <span style={{ fontSize: T.ui, fontWeight: 600, color: N.txtPri }}>
+          <span style={{ fontSize: T.ui, fontWeight: 600, color: V.txtPri }}>
             Annotations
           </span>
         </div>
@@ -359,7 +358,7 @@ export function AnnotationPanelWidget({ endpoint }: { endpoint: string }) {
               padding: `${S.xl}px ${S.md}px`,
               textAlign: 'center',
               fontSize: T.ui,
-              color: N.txtSec,
+              color: V.txtSec,
               textWrap: 'pretty',
             }}>
               No annotations yet. Use the annotation tool to mark up elements.
@@ -385,7 +384,7 @@ export function AnnotationPanelWidget({ endpoint }: { endpoint: string }) {
             <>
               <div style={{
                 fontSize: T.ui,
-                color: N.txtSec,
+                color: V.txtSec,
                 fontWeight: 500,
                 padding: `${S.sm}px ${S.sm}px`,
                 marginTop: drafts.length > 0 ? S.xs : 0,
@@ -412,7 +411,7 @@ export function AnnotationPanelWidget({ endpoint }: { endpoint: string }) {
         {drafts.length > 0 && (
           <div style={{
             padding: `${S.sm}px ${S.sm}px`,
-            borderTop: `1px solid ${N.border}`,
+            borderTop: `1px solid ${V.border}`,
           }}>
             <button
               onClick={handleApplyAll}

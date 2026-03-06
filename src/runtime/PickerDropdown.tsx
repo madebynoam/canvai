@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { ChevronsUpDown, Check } from 'lucide-react'
-import { N, A, S, R, ICON, FONT } from './tokens'
+import { A, S, R, ICON, FONT, V } from './tokens'
 import { useMenu, MenuPanel, MenuRow } from './Menu'
 
 interface PickerDropdownProps<T> {
@@ -52,7 +52,7 @@ export function PickerDropdown<T>({
       >
         {triggerPrefix}
         {renderTriggerLabel(active)}
-        <ChevronsUpDown size={ICON.sm} strokeWidth={1.5} color={N.txtSec} style={{ flexShrink: 0 }} />
+        <ChevronsUpDown size={ICON.sm} strokeWidth={1.5} style={{ color: V.txtSec, flexShrink: 0 }} />
       </button>
 
       {/* Dropdown — instant show/hide per Emil Kowalski's principles */}
@@ -83,7 +83,7 @@ export function PickerDropdown<T>({
             )
           })}
           {footer && (
-            <div style={{ borderTop: `1px solid ${N.border}`, marginTop: S.xs, paddingTop: S.xs }}>
+            <div style={{ borderTop: `1px solid ${V.border}`, marginTop: S.xs, paddingTop: S.xs }}>
               {footer}
             </div>
           )}

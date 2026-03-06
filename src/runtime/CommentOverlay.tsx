@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { MessageSquare, X, Check, Send, MoreHorizontal, Pencil, Trash2, Copy, Github } from 'lucide-react'
-import { N, A, F, D, S, R, T, ICON, FONT } from './tokens'
+import { A, F, D, S, R, T, V, ICON, FONT } from './tokens'
 import { MenuPanel, MenuRow } from './Menu'
 import type { CanvasFrame } from './types'
 import type { CommentThread, CommentMessage, CommentAuthor, CommentPin } from './comment-types'
@@ -107,8 +107,9 @@ function HoverButton({ children, onClick, title, style }: {
       style={{
         width: 24, height: 24, borderRadius: R.ui, cornerShape: 'squircle', border: 'none',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        color: N.txtSec, backgroundColor: hovered ? 'rgba(0,0,0,0.06)' : 'transparent',
+        backgroundColor: hovered ? 'rgba(0,0,0,0.06)' : 'transparent',
         cursor: 'default', fontFamily: FONT,
+        color: V.txtSec,
         ...style,
       }}
     >
@@ -187,8 +188,8 @@ function ThreadMessage({ message, menuItems, onReact }: {
       <Avatar name={message.author.login} size={28} />
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: S.sm, marginBottom: 2 }}>
-          <span style={{ fontSize: T.ui, fontWeight: 600, color: N.txtPri }}>{message.author.name ?? message.author.login}</span>
-          <span style={{ fontSize: T.ui, color: N.txtSec }}>{timeAgo}</span>
+          <span style={{ fontSize: T.ui, fontWeight: 600, color: V.txtPri }}>{message.author.name ?? message.author.login}</span>
+          <span style={{ fontSize: T.ui, color: V.txtSec }}>{timeAgo}</span>
           <div style={{ flex: 1 }} />
           <div style={{
             opacity: hovered || menuOpen ? 1 : 0,
@@ -219,7 +220,7 @@ function ThreadMessage({ message, menuItems, onReact }: {
             )}
           </div>
         </div>
-        <div style={{ fontSize: T.ui, color: N.txtPri, lineHeight: 1.5, textWrap: 'pretty' } as React.CSSProperties}>
+        <div style={{ fontSize: T.ui, color: V.txtPri, lineHeight: 1.5, textWrap: 'pretty' } as React.CSSProperties}>
           {message.body}
         </div>
         {message.reactions.length > 0 && (
@@ -231,9 +232,9 @@ function ThreadMessage({ message, menuItems, onReact }: {
                 style={{
                   display: 'inline-flex', alignItems: 'center', gap: S.xs,
                   padding: `2px ${S.sm}px`, borderRadius: R.ui, cornerShape: 'squircle',
-                  border: `1px solid ${r.viewerHasReacted ? A.accent : N.border}`,
-                  backgroundColor: r.viewerHasReacted ? A.muted : N.card,
-                  fontSize: T.ui, color: r.viewerHasReacted ? A.accent : N.txtSec,
+                  border: `1px solid ${r.viewerHasReacted ? A.accent : V.border}`,
+                  backgroundColor: r.viewerHasReacted ? A.muted : V.card,
+                  fontSize: T.ui, color: r.viewerHasReacted ? A.accent : V.txtSec,
                   fontWeight: 500, fontFamily: FONT, cursor: 'default',
                 }}
               >
@@ -382,8 +383,8 @@ function AuthCard({ onClose, onSuccess }: {
 
   return (
     <div style={{
-      width: 260, backgroundColor: N.card, borderRadius: R.ui, cornerShape: 'squircle', padding: S.lg,
-      border: `1px solid ${N.border}`,
+      width: 260, backgroundColor: V.card, borderRadius: R.ui, cornerShape: 'squircle', padding: S.lg,
+      border: `1px solid ${V.border}`,
       boxShadow: '0 4px 24px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04)',
       display: 'flex', flexDirection: 'column', alignItems: 'center', gap: S.md,
       fontFamily: FONT,
@@ -397,11 +398,11 @@ function AuthCard({ onClose, onSuccess }: {
 
       {phase === 'signing-in' && (
         <>
-          <Github size={24} strokeWidth={1.5} color={N.txtPri} />
-          <div style={{ fontSize: T.ui, fontWeight: 600, color: N.txtPri, textAlign: 'center' }}>
+          <Github size={24} strokeWidth={1.5} style={{ color: V.txtPri }} />
+          <div style={{ fontSize: T.ui, fontWeight: 600, color: V.txtPri, textAlign: 'center' }}>
             Sign in with GitHub
           </div>
-          <div style={{ fontSize: T.ui, color: N.txtSec, textAlign: 'center', lineHeight: 1.5, textWrap: 'pretty' } as React.CSSProperties}>
+          <div style={{ fontSize: T.ui, color: V.txtSec, textAlign: 'center', lineHeight: 1.5, textWrap: 'pretty' } as React.CSSProperties}>
             Comments are backed by GitHub Issues. Sign in to post and reply.
           </div>
           {error && (
@@ -411,7 +412,7 @@ function AuthCard({ onClose, onSuccess }: {
             onClick={startDeviceFlow}
             style={{
               width: '100%', padding: `${S.sm}px ${S.lg}px`, borderRadius: R.ui, cornerShape: 'squircle', border: 'none',
-              backgroundColor: N.txtPri, color: D.text,
+              backgroundColor: V.txtPri, color: D.text,
               fontSize: T.ui, fontWeight: 500, fontFamily: FONT, cursor: 'default',
             }}
           >
@@ -422,26 +423,26 @@ function AuthCard({ onClose, onSuccess }: {
 
       {phase === 'code' && (
         <>
-          <div style={{ fontSize: T.ui, color: N.txtSec, textAlign: 'center', lineHeight: 1.5, textWrap: 'pretty' } as React.CSSProperties}>
+          <div style={{ fontSize: T.ui, color: V.txtSec, textAlign: 'center', lineHeight: 1.5, textWrap: 'pretty' } as React.CSSProperties}>
             Enter this code at{' '}
             <a
               href="https://github.com/login/device"
               target="_blank"
               rel="noreferrer"
-              style={{ fontWeight: 600, color: N.txtPri, textDecoration: 'none' }}
+              style={{ fontWeight: 600, color: V.txtPri, textDecoration: 'none' }}
             >
               github.com/login/device
             </a>
           </div>
           <div style={{
             padding: `${S.md}px ${S.xxl}px`, borderRadius: R.ui, cornerShape: 'squircle',
-            backgroundColor: N.canvas, border: `1px solid ${N.border}`,
-            fontFamily: MONO, fontSize: 20, fontWeight: 700, color: N.txtPri,
+            backgroundColor: V.canvas, border: `1px solid ${V.border}`,
+            fontFamily: MONO, fontSize: 20, fontWeight: 700, color: V.txtPri,
             letterSpacing: '0.1em', textAlign: 'center',
           }}>
             {userCode}
           </div>
-          <div style={{ fontSize: T.ui, color: N.txtSec, textAlign: 'center' }}>
+          <div style={{ fontSize: T.ui, color: V.txtSec, textAlign: 'center' }}>
             Waiting for authorization…
           </div>
         </>
@@ -1099,10 +1100,10 @@ export function CommentOverlay({ endpoint, frames, repo: repoProp, onCommentCoun
               ...pos,
               zIndex: 99999,
               width: 300,
-              background: N.card,
+              background: V.card,
               borderRadius: R.ui, cornerShape: 'squircle',
               padding: S.md,
-              border: `1px solid ${N.border}`,
+              border: `1px solid ${V.border}`,
               boxShadow: `0 ${S.xs}px ${S.xxl}px rgba(0,0,0,0.08), 0 1px ${S.xs}px rgba(0,0,0,0.04)`,
               fontFamily: FONT,
               display: 'flex',
@@ -1112,7 +1113,7 @@ export function CommentOverlay({ endpoint, frames, repo: repoProp, onCommentCoun
           >
             {/* Header */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ fontSize: T.ui, color: N.txtSec, letterSpacing: '0.02em' }}>
+              <div style={{ fontSize: T.ui, color: V.txtSec, letterSpacing: '0.02em' }}>
                 {target.componentName} &middot; {target.elementTag}
               </div>
               <HoverButton onClick={() => { setMode('idle'); setTarget(null); setCommentText('') }} title="Cancel">
@@ -1134,8 +1135,8 @@ export function CommentOverlay({ endpoint, frames, repo: repoProp, onCommentCoun
                 placeholder="Add a comment..."
                 style={{
                   flex: 1, minHeight: 64, padding: `${S.sm}px ${S.sm}px`, borderRadius: R.ui, cornerShape: 'squircle',
-                  backgroundColor: N.card, border: `1px solid ${N.border}`,
-                  fontSize: T.ui, color: commentText ? N.txtPri : N.txtSec,
+                  backgroundColor: V.card, border: `1px solid ${V.border}`,
+                  fontSize: T.ui, color: commentText ? V.txtPri : V.txtSec,
                   fontFamily: FONT, resize: 'vertical', outline: 'none', lineHeight: 1.5,
                   boxSizing: 'border-box',
                 }}
@@ -1148,8 +1149,8 @@ export function CommentOverlay({ endpoint, frames, repo: repoProp, onCommentCoun
                 onClick={() => { setMode('idle'); setTarget(null); setCommentText('') }}
                 style={{
                   padding: `${S.sm}px ${S.md}px`, borderRadius: R.ui, cornerShape: 'squircle',
-                  border: `1px solid ${N.border}`, backgroundColor: N.card,
-                  fontSize: T.ui, color: N.txtSec, fontFamily: FONT, cursor: 'default',
+                  border: `1px solid ${V.border}`, backgroundColor: V.card,
+                  fontSize: T.ui, color: V.txtSec, fontFamily: FONT, cursor: 'default',
                 }}
               >
                 Cancel
@@ -1160,7 +1161,7 @@ export function CommentOverlay({ endpoint, frames, repo: repoProp, onCommentCoun
                 style={{
                   padding: `${S.sm}px ${S.md}px`, borderRadius: R.ui, cornerShape: 'squircle', border: 'none',
                   backgroundColor: commentText.trim() && !posting ? A.accent : A.muted,
-                  color: commentText.trim() && !posting ? D.text : N.txtSec,
+                  color: commentText.trim() && !posting ? D.text : V.txtSec,
                   fontSize: T.ui, fontWeight: 500, fontFamily: FONT, cursor: 'default',
                 }}
               >
@@ -1182,10 +1183,10 @@ export function CommentOverlay({ endpoint, frames, repo: repoProp, onCommentCoun
               zIndex: 99999,
               width: 360,
               maxHeight: '70vh',
-              background: N.card,
+              background: V.card,
               borderRadius: R.ui, cornerShape: 'squircle',
               padding: S.lg,
-              border: `1px solid ${N.border}`,
+              border: `1px solid ${V.border}`,
               boxShadow: `0 4px 24px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04)`,
               fontFamily: FONT,
               display: 'flex',
@@ -1197,8 +1198,8 @@ export function CommentOverlay({ endpoint, frames, repo: repoProp, onCommentCoun
             {/* Header */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: S.sm }}>
-                <span style={{ fontSize: T.ui, fontWeight: 600, color: N.txtPri }}>Comment</span>
-                <span style={{ fontSize: T.ui, color: N.txtSec }}>
+                <span style={{ fontSize: T.ui, fontWeight: 600, color: V.txtPri }}>Comment</span>
+                <span style={{ fontSize: T.ui, color: V.txtSec }}>
                   {activeThread.messages.length > 1 ? `${activeThread.messages.length - 1} ${activeThread.messages.length - 1 === 1 ? 'reply' : 'replies'}` : ''}
                 </span>
               </div>
@@ -1227,8 +1228,8 @@ export function CommentOverlay({ endpoint, frames, repo: repoProp, onCommentCoun
 
             {/* Element context */}
             <div style={{
-              fontSize: T.ui, color: N.txtSec, letterSpacing: '0.02em',
-              padding: `${S.xs}px 0`, borderBottom: `1px solid ${N.border}`, flexShrink: 0,
+              fontSize: T.ui, color: V.txtSec, letterSpacing: '0.02em',
+              padding: `${S.xs}px 0`, borderBottom: `1px solid ${V.border}`, flexShrink: 0,
             }}>
               {activeThread.componentName} &middot; {activeThread.elementTag}
             </div>
@@ -1237,7 +1238,7 @@ export function CommentOverlay({ endpoint, frames, repo: repoProp, onCommentCoun
             {activeThread.annotationId && (
               <div style={{
                 padding: `${S.sm}px ${S.md}px`, borderRadius: R.ui, cornerShape: 'squircle',
-                backgroundColor: A.muted, border: `1px solid ${N.border}`,
+                backgroundColor: A.muted, border: `1px solid ${V.border}`,
                 display: 'flex', alignItems: 'center', gap: S.sm, flexShrink: 0,
               }}>
                 <Pencil size={ICON.sm} strokeWidth={1.5} color={A.accent} />
@@ -1251,11 +1252,11 @@ export function CommentOverlay({ endpoint, frames, repo: repoProp, onCommentCoun
             {activeThread.status === 'resolved' && (
               <div style={{
                 padding: `${S.sm}px ${S.md}px`, borderRadius: R.ui, cornerShape: 'squircle',
-                backgroundColor: `${F.resolved}22`, border: `1px solid ${N.border}`,
+                backgroundColor: `${F.resolved}22`, border: `1px solid ${V.border}`,
                 display: 'flex', alignItems: 'center', gap: S.sm, flexShrink: 0,
               }}>
                 <Check size={ICON.sm} strokeWidth={2} color={F.resolved} />
-                <span style={{ fontSize: T.ui, color: N.txtSec }}>Thread resolved</span>
+                <span style={{ fontSize: T.ui, color: V.txtSec }}>Thread resolved</span>
               </div>
             )}
 
@@ -1275,7 +1276,7 @@ export function CommentOverlay({ endpoint, frames, repo: repoProp, onCommentCoun
             {activeThread.status === 'open' && user && (
               <div style={{
                 display: 'flex', alignItems: 'center', gap: S.sm,
-                padding: `${S.sm}px 0 0`, borderTop: `1px solid ${N.border}`, flexShrink: 0,
+                padding: `${S.sm}px 0 0`, borderTop: `1px solid ${V.border}`, flexShrink: 0,
               }}>
                 <Avatar name={user.login} size={24} />
                 <input
@@ -1285,7 +1286,7 @@ export function CommentOverlay({ endpoint, frames, repo: repoProp, onCommentCoun
                   placeholder="Reply…"
                   style={{
                     flex: 1, padding: `${S.sm}px ${S.md}px`, borderRadius: R.pill,
-                    backgroundColor: N.card, fontSize: T.ui, color: replyText ? N.txtPri : N.txtSec,
+                    backgroundColor: V.card, fontSize: T.ui, color: replyText ? V.txtPri : V.txtSec,
                     border: 'none', outline: 'none', fontFamily: FONT,
                   }}
                 />
@@ -1294,8 +1295,8 @@ export function CommentOverlay({ endpoint, frames, repo: repoProp, onCommentCoun
                   disabled={!replyText.trim()}
                   style={{
                     width: 28, height: 28, borderRadius: '50%', border: 'none',
-                    backgroundColor: replyText.trim() ? A.accent : N.card,
-                    color: replyText.trim() ? D.text : N.txtSec,
+                    backgroundColor: replyText.trim() ? A.accent : V.card,
+                    color: replyText.trim() ? D.text : V.txtSec,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     cursor: 'default',
                   }}
@@ -1346,7 +1347,7 @@ export function CommentOverlay({ endpoint, frames, repo: repoProp, onCommentCoun
               <div style={{
                 position: 'absolute', top: -4, left: -4,
                 minWidth: S.lg, height: S.lg, borderRadius: R.ui, cornerShape: 'squircle',
-                backgroundColor: N.txtPri, color: D.text,
+                backgroundColor: V.txtPri, color: D.text,
                 fontSize: 9, fontWeight: 700, fontFamily: FONT,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 padding: `0 ${S.xs}px`, border: `2px solid ${D.text}`,
@@ -1396,7 +1397,7 @@ export function CommentOverlay({ endpoint, frames, repo: repoProp, onCommentCoun
             transform: 'translateX(-50%)',
             zIndex: 99999,
             padding: `${S.sm}px ${S.xxl}px`,
-            background: N.txtPri,
+            background: V.txtPri,
             color: D.text,
             borderRadius: R.pill,
             fontSize: T.ui,

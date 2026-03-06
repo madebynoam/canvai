@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { createPortal } from 'react-dom'
-import { N, A, D, S, R, T, FONT } from './tokens'
+import { A, D, S, R, T, V, FONT } from './tokens'
 import { ActionButton } from './Menu'
 
 const TOUR_KEY = 'bryllen:tour-completed'
@@ -214,9 +214,9 @@ export function TourOverlay({ onComplete }: TourOverlayProps) {
           top: cardTop,
           left: cardLeft,
           width: cardWidth,
-          background: N.card,
+          background: V.card,
           borderRadius: R.ui,
-          border: `1px solid ${N.border}`,
+          border: `1px solid ${V.border}`,
           boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08)',
           padding: S.lg,
           fontFamily: FONT,
@@ -238,7 +238,7 @@ export function TourOverlay({ onComplete }: TourOverlayProps) {
                 width: i === step ? 16 : 6,
                 height: 6,
                 borderRadius: R.pill,
-                background: i === step ? A.accent : N.border,
+                background: i === step ? A.accent : V.border,
                 transition: `all 200ms ${SPRING}`,
               }}
             />
@@ -250,7 +250,7 @@ export function TourOverlay({ onComplete }: TourOverlayProps) {
           margin: 0,
           fontSize: T.ui,
           fontWeight: 600,
-          color: N.txtPri,
+          color: V.txtPri,
           marginBottom: S.sm,
         }}>
           {currentStep.title}
@@ -260,7 +260,7 @@ export function TourOverlay({ onComplete }: TourOverlayProps) {
         <p style={{
           margin: 0,
           fontSize: T.ui,
-          color: N.txtSec,
+          color: V.txtSec,
           lineHeight: 1.5,
           marginBottom: S.lg,
           textWrap: 'pretty',
@@ -279,7 +279,7 @@ export function TourOverlay({ onComplete }: TourOverlayProps) {
             style={{
               border: 'none',
               background: 'transparent',
-              color: N.txtSec,
+              color: V.txtSec,
               fontSize: T.ui,
               fontFamily: FONT,
               cursor: 'default',

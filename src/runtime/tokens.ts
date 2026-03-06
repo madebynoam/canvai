@@ -22,6 +22,7 @@ export const N = {
   txtPri:     oklch(0.200, 0.005, 240),  // primary text
   txtSec:     oklch(0.450, 0.003, 240),  // secondary text
   txtMuted:   oklch(0.600, 0.002, 240),  // muted labels
+  txtTer:     oklch(0.700, 0.002, 240),  // tertiary text (hints, placeholders)
 }
 
 /* Accent — cool charcoal (h=240) */
@@ -101,3 +102,76 @@ export const ICON = {
 }
 
 export const FONT = '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif'
+
+/* ═══════════════════════════════════════════════════════
+   CSS Variables for Dark Mode Support
+   ═══════════════════════════════════════════════════════ */
+
+// CSS variable references (use these in components)
+export const V = {
+  chrome:     'var(--bryllen-chrome)',
+  canvas:     'var(--bryllen-canvas)',
+  card:       'var(--bryllen-card)',
+  active:     'var(--bryllen-active)',
+  border:     'var(--bryllen-border)',
+  txtPri:     'var(--bryllen-txt-pri)',
+  txtSec:     'var(--bryllen-txt-sec)',
+  txtMuted:   'var(--bryllen-txt-muted)',
+  txtTer:     'var(--bryllen-txt-ter)',
+  // Functional
+  comment:    'var(--bryllen-comment)',
+  resolved:   'var(--bryllen-resolved)',
+  // Accents
+  accent:     'var(--bryllen-accent)',
+  accentHover:'var(--bryllen-accent-hover)',
+  accentMuted:'var(--bryllen-accent-muted)',
+  accentStrong:'var(--bryllen-accent-strong)',
+  accentBorder:'var(--bryllen-accent-border)',
+  // Shadows
+  shadow:     'var(--bryllen-shadow)',
+  inset:      'var(--bryllen-inset)',
+}
+
+// Light theme values
+export const lightTheme: Record<string, string> = {
+  '--bryllen-chrome':       'oklch(0.980 0.002 240)',
+  '--bryllen-canvas':       'oklch(0.950 0.003 240)',
+  '--bryllen-card':         'oklch(0.995 0.001 240)',
+  '--bryllen-active':       'oklch(0.935 0.004 240)',
+  '--bryllen-border':       'oklch(0.900 0.003 240)',
+  '--bryllen-txt-pri':      'oklch(0.200 0.005 240)',
+  '--bryllen-txt-sec':      'oklch(0.450 0.003 240)',
+  '--bryllen-txt-muted':    'oklch(0.600 0.002 240)',
+  '--bryllen-txt-ter':      'oklch(0.700 0.002 240)',
+  '--bryllen-comment':      'oklch(0.280 0.005 240)',
+  '--bryllen-resolved':     'oklch(0.700 0.003 240)',
+  '--bryllen-accent':       'oklch(0.320 0.005 240)',
+  '--bryllen-accent-hover': 'oklch(0.420 0.004 240)',
+  '--bryllen-accent-muted': 'oklch(0.910 0.003 240)',
+  '--bryllen-accent-strong':'oklch(0.240 0.005 240)',
+  '--bryllen-accent-border':'oklch(0.700 0.004 240)',
+  '--bryllen-shadow':       '0 1px 3px rgba(0,0,0,0.08)',
+  '--bryllen-inset':        'inset 0 1px 2px rgba(0,0,0,0.04)',
+}
+
+// Dark theme values
+export const darkTheme: Record<string, string> = {
+  '--bryllen-chrome':       'oklch(0.180 0.002 240)',
+  '--bryllen-canvas':       'oklch(0.120 0.003 240)',
+  '--bryllen-card':         'oklch(0.220 0.002 240)',
+  '--bryllen-active':       'oklch(0.250 0.003 240)',
+  '--bryllen-border':       'oklch(0.300 0.003 240)',
+  '--bryllen-txt-pri':      'oklch(0.950 0.005 240)',
+  '--bryllen-txt-sec':      'oklch(0.700 0.003 240)',
+  '--bryllen-txt-muted':    'oklch(0.500 0.002 240)',
+  '--bryllen-txt-ter':      'oklch(0.400 0.002 240)',
+  '--bryllen-comment':      'oklch(0.850 0.005 240)',
+  '--bryllen-resolved':     'oklch(0.450 0.003 240)',
+  '--bryllen-accent':       'oklch(0.800 0.005 240)',
+  '--bryllen-accent-hover': 'oklch(0.700 0.004 240)',
+  '--bryllen-accent-muted': 'oklch(0.280 0.003 240)',
+  '--bryllen-accent-strong':'oklch(0.900 0.005 240)',
+  '--bryllen-accent-border':'oklch(0.450 0.004 240)',
+  '--bryllen-shadow':       '0 2px 8px rgba(0,0,0,0.3)',
+  '--bryllen-inset':        'inset 0 1px 2px rgba(0,0,0,0.2)',
+}

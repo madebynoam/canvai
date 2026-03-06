@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { SharePopover, type ShareStatus } from './SharePopover'
-import { N, S, R, T, FONT, DIM } from './tokens'
+import { S, R, T, FONT, DIM, V } from './tokens'
 
 interface ShareButtonProps {
   shareUrl?: string
@@ -160,8 +160,8 @@ export function ShareButton({ shareUrl, projectName, annotationEndpoint }: Share
           justifyContent: 'center',
           height: DIM.control,
           padding: `0 ${S.md}px`,
-          backgroundColor: status === 'shared' && shareUrl ? 'oklch(0.55 0.14 155)' : N.txtPri,
-          color: N.card,
+          backgroundColor: status === 'shared' && shareUrl ? 'oklch(0.55 0.14 155)' : V.txtPri,
+          color: V.card,
           border: 'none',
           borderRadius: R.ui,
           fontSize: T.ui,
@@ -194,8 +194,8 @@ export function ShareButton({ shareUrl, projectName, annotationEndpoint }: Share
             right: 0,
             marginTop: S.xs,
             width: 280,
-            backgroundColor: N.card,
-            border: `1px solid ${N.border}`,
+            backgroundColor: V.card,
+            border: `1px solid ${V.border}`,
             borderRadius: R.ui,
             boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
             padding: S.md,
@@ -203,25 +203,25 @@ export function ShareButton({ shareUrl, projectName, annotationEndpoint }: Share
             zIndex: 10001,
           }}
         >
-          <p style={{ fontSize: T.ui, color: N.txtSec, margin: `0 0 ${S.sm}px 0` }}>
+          <p style={{ fontSize: T.ui, color: V.txtSec, margin: `0 0 ${S.sm}px 0` }}>
             Enter this code on GitHub:
           </p>
           <div
             style={{
               padding: S.md,
-              backgroundColor: N.chrome,
+              backgroundColor: V.chrome,
               borderRadius: R.ui,
               textAlign: 'center',
               fontFamily: 'monospace',
               fontSize: 18,
               fontWeight: 700,
-              color: N.txtPri,
+              color: V.txtPri,
               letterSpacing: '0.1em',
             }}
           >
             {deviceFlow.user_code}
           </div>
-          <p style={{ fontSize: T.ui, color: N.txtSec, margin: `${S.sm}px 0 0 0`, textAlign: 'center' }}>
+          <p style={{ fontSize: T.ui, color: V.txtSec, margin: `${S.sm}px 0 0 0`, textAlign: 'center' }}>
             Waiting for authorization...
           </p>
         </div>

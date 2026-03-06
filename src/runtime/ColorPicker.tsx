@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { N, A, D, S, R, T, ICON, FONT } from './tokens'
+import { A, D, S, R, T, ICON, FONT, V } from './tokens'
 import {
   oklchToDisplayHex, hexToOklch, oklchToHsl, hslToOklch,
   oklchToSrgb, clampSrgb, isInGamut,
@@ -82,10 +82,10 @@ function FormatTab({ label, active, onClick }: {
         border: 'none', cursor: 'default',
         padding: `${S.xs}px ${S.sm}px`,
         borderRadius: R.ui, cornerShape: 'squircle',
-        backgroundColor: active ? N.card : hovered ? 'rgba(0,0,0,0.03)' : 'transparent',
+        backgroundColor: active ? V.card : hovered ? 'rgba(0,0,0,0.03)' : 'transparent',
         fontSize: T.ui, fontWeight: active ? 600 : 400,
         fontFamily: 'SF Mono, Monaco, Inconsolata, monospace',
-        color: active ? N.txtPri : N.txtSec,
+        color: active ? V.txtPri : V.txtSec,
         
         letterSpacing: '0.04em',
       }}
@@ -111,8 +111,8 @@ function NumericInput({ label, value, onChange, step = 1, min = 0, max = 360 }: 
   return (
     <label style={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1 }}>
       <span style={{
-        fontSize: T.ui, color: N.txtMuted, fontWeight: 600,
-         
+        fontSize: T.ui, color: V.txtMuted, fontWeight: 600,
+
       }}>{label}</span>
       <input
         type="text"
@@ -131,10 +131,10 @@ function NumericInput({ label, value, onChange, step = 1, min = 0, max = 360 }: 
         style={{
           width: '100%',
           padding: `${S.xs}px ${S.sm}px`,
-          border: `1px solid ${focused ? A.accent : N.border}`,
+          border: `1px solid ${focused ? A.accent : V.border}`,
           borderRadius: R.ui, cornerShape: 'squircle',
-          backgroundColor: N.canvas,
-          color: N.txtPri,
+          backgroundColor: V.canvas,
+          color: V.txtPri,
           fontSize: T.ui,
           fontFamily: 'SF Mono, Monaco, Inconsolata, monospace',
           fontVariantNumeric: 'tabular-nums',
@@ -156,8 +156,8 @@ function HexInput({ value, onChange }: {
   return (
     <label style={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1 }}>
       <span style={{
-        fontSize: T.ui, color: N.txtMuted, fontWeight: 600,
-         
+        fontSize: T.ui, color: V.txtMuted, fontWeight: 600,
+
       }}>Hex</span>
       <input
         type="text"
@@ -174,10 +174,10 @@ function HexInput({ value, onChange }: {
         style={{
           width: '100%',
           padding: `${S.xs}px ${S.sm}px`,
-          border: `1px solid ${focused ? A.accent : N.border}`,
+          border: `1px solid ${focused ? A.accent : V.border}`,
           borderRadius: R.ui, cornerShape: 'squircle',
-          backgroundColor: N.canvas,
-          color: N.txtPri,
+          backgroundColor: V.canvas,
+          color: V.txtPri,
           fontSize: T.ui,
           fontFamily: 'SF Mono, Monaco, Inconsolata, monospace',
           outline: 'none',
@@ -265,11 +265,11 @@ export function ColorPicker({ l: initL, c: initC, h: initH, onChange, onApply, o
   return (
     <div style={{
       width: 280,
-      background: N.card,
+      background: V.card,
       borderRadius: R.ui, cornerShape: 'squircle',
       padding: S.lg,
       boxShadow: `0 ${S.xs}px ${S.xxl}px rgba(0,0,0,0.08), 0 1px ${S.xs}px rgba(0,0,0,0.04)`,
-      border: `1px solid ${N.border}`,
+      border: `1px solid ${V.border}`,
       fontFamily: FONT,
     }}>
       {/* Color area */}
@@ -330,11 +330,11 @@ export function ColorPicker({ l: initL, c: initC, h: initH, onChange, onApply, o
           width: S.xxl, height: S.xxl,
           borderRadius: R.ui, cornerShape: 'squircle',
           backgroundColor: previewHex,
-          border: `1px solid ${N.border}`,
+          border: `1px solid ${V.border}`,
           flexShrink: 0,
         }} />
         <span style={{
-          fontSize: T.ui, color: N.txtSec,
+          fontSize: T.ui, color: V.txtSec,
           fontFamily: 'SF Mono, Monaco, Inconsolata, monospace',
         }}>
           {previewHex}
@@ -392,13 +392,13 @@ export function ColorPicker({ l: initL, c: initC, h: initH, onChange, onApply, o
       {/* OKLCH output (always visible) */}
       {format !== 'oklch' && (
         <div style={{
-          fontSize: T.ui, color: N.txtSec,
+          fontSize: T.ui, color: V.txtSec,
           fontFamily: 'SF Mono, Monaco, Inconsolata, monospace',
           marginBottom: S.md,
           padding: `${S.xs}px ${S.sm}px`,
-          backgroundColor: N.canvas,
+          backgroundColor: V.canvas,
           borderRadius: R.ui, cornerShape: 'squircle',
-          border: `1px solid ${N.border}`,
+          border: `1px solid ${V.border}`,
         }}>
           oklch({l.toFixed(3)} {c.toFixed(3)} {Math.round(h)})
         </div>
@@ -415,11 +415,11 @@ export function ColorPicker({ l: initL, c: initC, h: initH, onChange, onApply, o
               width: S.xxl, height: S.xxl, border: 'none',
               background: discardHover ? 'rgba(0,0,0,0.06)' : 'transparent',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              borderRadius: R.ui, cornerShape: 'squircle', color: N.txtSec, cursor: 'default',
+              borderRadius: R.ui, cornerShape: 'squircle', cursor: 'default',
             }}
             title="Discard change"
           >
-            <Trash2 size={ICON.md} strokeWidth={1.5} />
+            <Trash2 size={ICON.md} strokeWidth={1.5} style={{ color: V.txtSec }} />
           </button>
         )}
         <div style={{ flex: 1 }} />
@@ -430,8 +430,8 @@ export function ColorPicker({ l: initL, c: initC, h: initH, onChange, onApply, o
           style={{
             padding: `${S.sm}px ${S.md}px`,
             background: cancelHover ? 'rgba(0,0,0,0.03)' : 'transparent',
-            color: N.txtSec,
-            border: `1px solid ${N.border}`, borderRadius: R.ui, cornerShape: 'squircle',
+            color: V.txtSec,
+            border: `1px solid ${V.border}`, borderRadius: R.ui, cornerShape: 'squircle',
             fontSize: T.ui, fontWeight: 500, fontFamily: FONT, cursor: 'default',
           }}
         >

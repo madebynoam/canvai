@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { N, A, S, R, T, FONT } from './tokens'
+import { A, S, R, T, FONT, V } from './tokens'
 import { ColorPicker } from './ColorPicker'
 import { oklchToDisplayHex } from './colorUtils'
 import { useTokenOverride } from './Canvas'
@@ -80,7 +80,7 @@ export function TokenSwatch({ color, label, sublabel, oklch, tokenPath }: TokenS
             height: 32,
             borderRadius: R.ui, cornerShape: 'squircle',
             backgroundColor: displayColor,
-            border: `1px solid ${N.border}`,
+            border: `1px solid ${V.border}`,
           }} />
           {isPending && (
             <div style={{
@@ -89,13 +89,13 @@ export function TokenSwatch({ color, label, sublabel, oklch, tokenPath }: TokenS
               width: 8, height: 8,
               borderRadius: '50%',
               backgroundColor: A.accent,
-              border: `1.5px solid ${N.card}`,
+              border: `1.5px solid ${V.card}`,
             }} />
           )}
         </div>
         <div>
-          <div style={{ fontSize: T.ui, fontWeight: 500, color: N.txtPri }}>{label}</div>
-          {sublabel && <div style={{ fontSize: T.ui, color: N.txtSec }}>{sublabel}</div>}
+          <div style={{ fontSize: T.ui, fontWeight: 500, color: V.txtPri }}>{label}</div>
+          {sublabel && <div style={{ fontSize: T.ui, color: V.txtSec }}>{sublabel}</div>}
         </div>
       </div>
 

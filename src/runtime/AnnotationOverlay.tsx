@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { SquareMousePointer, Trash2, Pencil, Lightbulb, Check, Minus, Plus } from 'lucide-react'
-import { N, A, F, D, S, R, T, ICON, FONT } from './tokens'
+import { A, F, D, S, R, T, ICON, FONT, V } from './tokens'
 import { DialogCard, DialogActions, ActionButton } from './Menu'
 import type { CanvasFrame, CanvasComponentFrame, Connection } from './types'
 import { isCanvasImageFrame } from './types'
@@ -103,8 +103,8 @@ function ModeChip({ option, active, onClick }: {
           alignItems: 'center',
           justifyContent: 'center',
           color: active
-            ? (isPick ? '#fff' : N.txtPri)
-            : N.txtSec,
+            ? (isPick ? '#fff' : V.txtPri)
+            : V.txtSec,
           transition: 'background 0.1s ease-out',
         }}
       >
@@ -173,7 +173,7 @@ function VariationStepper({ count, onChange }: { count: number; onChange: (n: nu
             border: 'none',
             borderRadius: R.ui,
             background: count <= 1 ? 'transparent' : 'oklch(0.97 0.003 250)',
-            color: count <= 1 ? N.txtTer : N.txtSec,
+            color: count <= 1 ? V.txtTer : V.txtSec,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -189,7 +189,7 @@ function VariationStepper({ count, onChange }: { count: number; onChange: (n: nu
           fontSize: 12,
           fontWeight: 600,
           fontFamily: FONT,
-          color: N.txtPri,
+          color: V.txtPri,
         }}>
           {count}
         </span>
@@ -201,7 +201,7 @@ function VariationStepper({ count, onChange }: { count: number; onChange: (n: nu
             border: 'none',
             borderRadius: R.ui,
             background: count >= 10 ? 'transparent' : 'oklch(0.97 0.003 250)',
-            color: count >= 10 ? N.txtTer : N.txtSec,
+            color: count >= 10 ? V.txtTer : V.txtSec,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -1451,7 +1451,7 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
           <DialogCard width={cardWidth} style={{ position: 'fixed', top, left, zIndex: 99999, padding: S.lg }}>
             {/* Header: component·tag + delete icon (when re-editing) */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: S.sm }}>
-              <div style={{ fontSize: T.ui, color: N.txtSec, letterSpacing: '0.02em' }}>
+              <div style={{ fontSize: T.ui, color: V.txtSec, letterSpacing: '0.02em' }}>
                 {target.elementTag === 'multi-select'
                   ? <>Pick {target.frames?.length ?? 0} frames: {target.frames?.map(f => f.title.split('/').pop()).join(', ')}</>
                   : target.elementTag === 'connection'
@@ -1468,10 +1468,10 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
                   baseStyle={{
                     width: S.xxl, height: S.xxl, border: 'none', background: 'transparent',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    borderRadius: R.ui, cornerShape: 'squircle', color: N.txtSec,
+                    borderRadius: R.ui, cornerShape: 'squircle', color: V.txtSec,
                   }}
                 >
-                  <Trash2 size={ICON.md} strokeWidth={1.5} />
+                  <Trash2 size={ICON.md} strokeWidth={1.5} style={{ color: V.txtSec }} />
                 </HoverButton>
               )}
             </div>
@@ -1493,9 +1493,9 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
               style={{
                 width: '100%',
                 minHeight: 72,
-                background: N.canvas,
-                color: N.txtPri,
-                border: `1px solid ${N.border}`,
+                background: V.canvas,
+                color: V.txtPri,
+                border: `1px solid ${V.border}`,
                 borderRadius: R.ui, cornerShape: 'squircle',
                 padding: S.md,
                 fontSize: T.ui,

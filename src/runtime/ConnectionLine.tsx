@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { N, F, R } from './tokens'
+import { F, R, V } from './tokens'
 
 interface Point {
   x: number
@@ -71,9 +71,9 @@ export function ConnectionLine({
     ? F.marker
     : hovered
       ? F.marker
-      : N.txtSec
+      : V.txtSec
   const strokeOpacity = provisional ? 0.6 : hovered ? 1 : 0.8
-  const fillColor = provisional ? F.marker : hovered ? F.marker : N.txtSec
+  const fillColor = provisional ? F.marker : hovered ? F.marker : V.txtSec
 
   return (
     <g

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Plus, Minus, Maximize2 } from 'lucide-react'
-import { N, S, R, T, ICON, FONT } from './tokens'
+import { S, R, T, ICON, FONT, V } from './tokens'
 import { useCanvas } from './Canvas'
 
 function ZoomButton({ children, onClick, title }: {
@@ -24,7 +24,7 @@ function ZoomButton({ children, onClick, title }: {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        color: N.txtSec,
+        color: V.txtSec,
         borderRadius: R.ui, cornerShape: 'squircle',
         cursor: 'default',
         padding: 0,
@@ -44,8 +44,8 @@ export function ZoomControl() {
       display: 'flex',
       alignItems: 'center',
       gap: 0,
-      background: N.chrome,
-      border: `1px solid ${N.border}`,
+      background: V.chrome,
+      border: `1px solid ${V.border}`,
       borderRadius: R.ui, cornerShape: 'squircle',
       padding: 2,
       fontFamily: FONT,
@@ -60,7 +60,7 @@ export function ZoomControl() {
         textAlign: 'center',
         fontSize: T.ui,
         fontWeight: 500,
-        color: N.txtPri,
+        color: V.txtPri,
         fontVariantNumeric: 'tabular-nums',
         userSelect: 'none',
         letterSpacing: '-0.01em',
@@ -75,7 +75,7 @@ export function ZoomControl() {
       <div style={{
         width: 1,
         height: S.md,
-        backgroundColor: N.border,
+        backgroundColor: V.border,
         marginInline: 2,
       }} />
 

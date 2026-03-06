@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import { ArrowUp, Copy, Check } from 'lucide-react'
 import { Overlay, DialogCard, DialogActions, ActionButton } from './Menu'
-import { N, D, S, R, T, ICON, FONT } from './tokens'
+import { D, S, R, T, V, ICON, FONT } from './tokens'
 import { setDismissedVersion } from './versionCheck'
 
 interface UpdateDialogProps {
@@ -51,14 +51,14 @@ export function UpdateDialog({ open, onClose, currentVersion, latestVersion }: U
             <div style={{
               fontSize: T.ui,
               fontWeight: 600,
-              color: N.txtPri,
+              color: V.txtPri,
               fontFamily: FONT,
             }}>
               Update available
             </div>
             <div style={{
               fontSize: 12,
-              color: N.txtSec,
+              color: V.txtSec,
               fontFamily: FONT,
             }}>
               {currentVersion} → {latestVersion}
@@ -118,7 +118,7 @@ export function UpdateDialog({ open, onClose, currentVersion, latestVersion }: U
         {/* Instructions */}
         <div style={{
           fontSize: 12,
-          color: N.txtSec,
+          color: V.txtSec,
           fontFamily: FONT,
           lineHeight: 1.5,
           textWrap: 'pretty',

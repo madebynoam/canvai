@@ -1,7 +1,7 @@
 import { PickerDropdown } from './PickerDropdown'
 import { MenuRow } from './Menu'
 import { Plus } from 'lucide-react'
-import { A, N, D, S, T, ICON } from './tokens'
+import { A, D, S, T, ICON, V } from './tokens'
 
 interface ProjectPickerProps {
   projects: { project: string }[]
@@ -22,8 +22,8 @@ export function ProjectPicker({ projects, activeIndex, onSelect, forceOpen = fal
       footer={import.meta.env.DEV && onNewProject ? (
         <MenuRow
           onClick={onNewProject}
-          icon={<Plus size={ICON.md} strokeWidth={1.5} color={N.txtSec} />}
-          style={{ padding: `${S.sm}px ${S.sm}px`, fontSize: T.ui, color: N.txtSec }}
+          icon={<Plus size={ICON.md} strokeWidth={1.5} style={{ color: V.txtSec }} />}
+          style={{ padding: `${S.sm}px ${S.sm}px`, fontSize: T.ui, color: V.txtSec }}
         >
           New Project
         </MenuRow>
@@ -48,7 +48,7 @@ export function ProjectPicker({ projects, activeIndex, onSelect, forceOpen = fal
         </div>
       }
       renderTriggerLabel={(item) => (
-        <span style={{ fontSize: T.ui, fontWeight: 400, color: N.txtPri }}>
+        <span style={{ fontSize: T.ui, fontWeight: 400, color: V.txtPri }}>
           {item.project}
         </span>
       )}
@@ -59,8 +59,8 @@ export function ProjectPicker({ projects, activeIndex, onSelect, forceOpen = fal
               width: S.xl,
               height: S.xl,
               borderRadius: '50%',
-              backgroundColor: isActive ? A.accent : N.border,
-              color: isActive ? D.text : N.txtSec,
+              backgroundColor: isActive ? A.accent : V.border,
+              color: isActive ? D.text : V.txtSec,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -71,7 +71,7 @@ export function ProjectPicker({ projects, activeIndex, onSelect, forceOpen = fal
           >
             {item.project.charAt(0).toUpperCase()}
           </div>
-          <span style={{ fontSize: T.ui, color: N.txtPri }}>{item.project}</span>
+          <span style={{ fontSize: T.ui, color: V.txtPri }}>{item.project}</span>
         </div>
       )}
     />

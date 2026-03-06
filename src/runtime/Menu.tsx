@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, type CSSProperties, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
-import { N, A, D, S, R, T, ICON, FONT } from './tokens'
+import { A, D, S, R, T, ICON, FONT, V } from './tokens'
 
 /* ─── useMenu hook ───────────────────────────────────── */
 
@@ -76,9 +76,9 @@ export function MenuPanel({
   onBackdropClick,
 }: MenuPanelProps) {
   const panelStyle: CSSProperties = {
-    background: N.card,
+    background: V.card,
     borderRadius: R.ui, cornerShape: 'squircle',
-    border: `1px solid ${N.border}`,
+    border: `1px solid ${V.border}`,
     boxShadow: PANEL_SHADOW,
     padding: S.xs,
     fontFamily: FONT,
@@ -172,9 +172,9 @@ export function MenuRow({
         : 'transparent'
 
   const color = destructive
-    ? (hovered ? 'oklch(0.52 0.20 28)' : N.txtSec)
+    ? (hovered ? 'oklch(0.52 0.20 28)' : V.txtSec)
     : accent
-      ? N.txtPri
+      ? V.txtPri
       : undefined
 
   const sharedStyle: CSSProperties = {
@@ -191,7 +191,7 @@ export function MenuRow({
     textDecoration: 'none',
     ...(color ? { color } : {}),
     ...(accent ? { fontWeight: 500 } : {}),
-    ...(separator ? { borderTop: `1px solid ${N.border}`, marginTop: S.xs } : {}),
+    ...(separator ? { borderTop: `1px solid ${V.border}`, marginTop: S.xs } : {}),
     ...style,
   }
 
@@ -290,9 +290,9 @@ export function DialogCard({ title, width = 480, children, style }: DialogCardPr
   return (
     <div
       style={{
-        background: N.card,
+        background: V.card,
         borderRadius: R.ui, cornerShape: 'squircle',
-        border: `1px solid ${N.border}`,
+        border: `1px solid ${V.border}`,
         boxShadow: PANEL_SHADOW,
         padding: S.xxl,
         fontFamily: FONT,
@@ -304,7 +304,7 @@ export function DialogCard({ title, width = 480, children, style }: DialogCardPr
         <div style={{
           fontSize: T.ui,
           fontWeight: 600,
-          color: N.txtPri,
+          color: V.txtPri,
           marginBottom: S.lg,
           textWrap: 'pretty',
         }}>
@@ -348,8 +348,8 @@ export function ActionButton({ variant, disabled, onClick, children }: ActionBut
     ? (disabled ? A.muted : hovered ? A.hover : A.accent)
     : (hovered ? 'rgba(0, 0, 0, 0.03)' : 'transparent')
   const color = isPrimary
-    ? (disabled ? N.txtSec : D.text)
-    : N.txtSec
+    ? (disabled ? V.txtSec : D.text)
+    : V.txtSec
 
   return (
     <button
@@ -360,7 +360,7 @@ export function ActionButton({ variant, disabled, onClick, children }: ActionBut
         padding: `${S.sm}px ${S.md}px`,
         background: bg,
         color,
-        border: isPrimary ? 'none' : `1px solid ${N.border}`,
+        border: isPrimary ? 'none' : `1px solid ${V.border}`,
         borderRadius: R.ui, cornerShape: 'squircle',
         cursor: 'default',
         fontSize: T.ui,

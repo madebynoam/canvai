@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { N, S, R, T, ICON, FONT } from './tokens'
+import { S, R, T, ICON, FONT, V } from './tokens'
 
 /**
  * IterationPills — Pill strip with draggable highlight.
@@ -126,7 +126,7 @@ export function IterationPills({ items, activeIndex, onSelect }: IterationPillsP
       {needsSlide && (
         <button onClick={() => snapTo(active - 1)} style={{
           border: 'none', background: 'none', cursor: 'default', padding: 0,
-          color: active > 0 ? N.txtSec : N.border,
+          color: active > 0 ? V.txtSec : V.border,
           display: 'flex', alignItems: 'center',
           opacity: active > 0 ? 1 : 0.4,
         }}>
@@ -141,7 +141,7 @@ export function IterationPills({ items, activeIndex, onSelect }: IterationPillsP
           width: needsSlide ? VIEWPORT_W : 'auto',
           overflow: 'hidden',
           borderRadius: R.pill,
-          backgroundColor: N.card,
+          backgroundColor: V.card,
           padding: PAD,
           touchAction: 'none',
           userSelect: 'none',
@@ -164,7 +164,7 @@ export function IterationPills({ items, activeIndex, onSelect }: IterationPillsP
                 position: 'absolute', top: 0, left: 0,
                 width: PILL_W, height: '100%',
                 borderRadius: R.pill,
-                backgroundColor: N.card,
+                backgroundColor: V.card,
                 boxShadow: '0 1px 2px rgba(0,0,0,0.06)',
                 transform: `translateX(${getHighlightX(active)}px)`,
                 pointerEvents: 'none',
@@ -182,8 +182,8 @@ export function IterationPills({ items, activeIndex, onSelect }: IterationPillsP
                 padding: `${S.xs}px ${S.sm}px`, borderRadius: R.pill,
                 fontSize: T.ui, fontWeight: isActive ? 600 : 400,
                 fontFamily: FONT,
-                backgroundColor: !canDrag && isActive ? N.card : 'transparent',
-                color: isActive ? N.txtPri : N.txtMuted,
+                backgroundColor: !canDrag && isActive ? V.card : 'transparent',
+                color: isActive ? V.txtPri : V.txtMuted,
                 boxShadow: !canDrag && isActive ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
                 whiteSpace: 'nowrap', textAlign: 'center',
                 userSelect: 'none',
@@ -197,7 +197,7 @@ export function IterationPills({ items, activeIndex, onSelect }: IterationPillsP
       {needsSlide && (
         <button onClick={() => snapTo(active + 1)} style={{
           border: 'none', background: 'none', cursor: 'default', padding: 0,
-          color: active < items.length - 1 ? N.txtSec : N.border,
+          color: active < items.length - 1 ? V.txtSec : V.border,
           display: 'flex', alignItems: 'center',
           opacity: active < items.length - 1 ? 1 : 0.4,
         }}>
@@ -207,7 +207,7 @@ export function IterationPills({ items, activeIndex, onSelect }: IterationPillsP
 
       {needsSlide && (
         <span style={{
-          fontSize: T.ui, color: N.txtMuted,
+          fontSize: T.ui, color: V.txtMuted,
           fontVariantNumeric: 'tabular-nums',
           userSelect: 'none',
         }}>{active + 1}/{items.length}</span>

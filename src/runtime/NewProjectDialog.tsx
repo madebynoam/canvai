@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { X } from 'lucide-react'
 import { Overlay, DialogCard, DialogActions, ActionButton } from './Menu'
-import { N, D, S, R, T, FONT } from './tokens'
+import { D, S, R, T, V, FONT } from './tokens'
 
 interface PastedImage {
   id: string
@@ -19,9 +19,9 @@ interface NewProjectDialogProps {
 
 const inputStyle: React.CSSProperties = {
   width: '100%',
-  background: N.canvas,
-  color: N.txtPri,
-  border: `1px solid ${N.border}`,
+  background: V.canvas,
+  color: V.txtPri,
+  border: `1px solid ${V.border}`,
   borderRadius: R.ui,
   padding: S.md,
   fontSize: T.ui,
@@ -174,7 +174,7 @@ export function NewProjectDialog({ open, onClose, onSubmit, defaultName }: NewPr
             {/* Name field - hide when defaultName provided */}
             {!isPromptOnly && (
               <div>
-                <label style={{ display: 'block', fontSize: T.ui, color: N.txtSec, marginBottom: S.xs, fontWeight: 500 }}>
+                <label style={{ display: 'block', fontSize: T.ui, color: V.txtSec, marginBottom: S.xs, fontWeight: 500 }}>
                   Name
                 </label>
                 <input
@@ -189,7 +189,7 @@ export function NewProjectDialog({ open, onClose, onSubmit, defaultName }: NewPr
 
             {/* Description field */}
             <div>
-              <label style={{ display: 'block', fontSize: T.ui, color: N.txtSec, marginBottom: S.xs, fontWeight: 500 }}>
+              <label style={{ display: 'block', fontSize: T.ui, color: V.txtSec, marginBottom: S.xs, fontWeight: 500 }}>
                 What are you designing?
               </label>
               <textarea
@@ -204,9 +204,9 @@ export function NewProjectDialog({ open, onClose, onSubmit, defaultName }: NewPr
 
             {/* Inspiration images */}
             <div>
-              <label style={{ display: 'block', fontSize: T.ui, color: N.txtSec, marginBottom: S.xs, fontWeight: 500 }}>
+              <label style={{ display: 'block', fontSize: T.ui, color: V.txtSec, marginBottom: S.xs, fontWeight: 500 }}>
                 Inspiration
-                <span style={{ fontWeight: 400, marginLeft: S.xs, color: N.txtTer }}>
+                <span style={{ fontWeight: 400, marginLeft: S.xs, color: V.txtTer }}>
                   (paste images)
                 </span>
               </label>
@@ -218,11 +218,11 @@ export function NewProjectDialog({ open, onClose, onSubmit, defaultName }: NewPr
                 </div>
               ) : (
                 <div style={{
-                  border: `1px dashed ${N.border}`,
+                  border: `1px dashed ${V.border}`,
                   borderRadius: R.ui,
                   padding: S.lg,
                   textAlign: 'center',
-                  color: N.txtTer,
+                  color: V.txtTer,
                   fontSize: T.ui,
                   fontFamily: FONT,
                 }}>

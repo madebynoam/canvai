@@ -19,7 +19,8 @@ import { ActionButton } from './Menu'
 import { UpdateDialog } from './UpdateDialog'
 import { checkForUpdate, getDismissedVersion } from './versionCheck'
 import { VERSION } from './version'
-import { N, D, E, S, T, R, FONT, DIM } from './tokens'
+import { D, E, S, T, R, FONT, DIM, V } from './tokens'
+import { ThemeProvider, useTheme } from './useTheme'
 import type { ProjectManifest, CanvasImageFrame } from './types'
 
 interface BryllenShellProps {
@@ -125,13 +126,13 @@ function Toast({ message, onDone }: { message: string; onDone: () => void }) {
         left: '50%',
         zIndex: 99999,
         padding: `${S.sm}px ${S.xxl}px`,
-        background: N.txtPri,
-        color: D.text,
+        background: V.txtPri,
+        color: V.card,
         borderRadius: R.pill,
         fontSize: T.ui,
         fontWeight: 500,
         fontFamily: FONT,
-        boxShadow: `0 2px ${S.md}px rgba(0, 0, 0, 0.12)`,
+        boxShadow: V.shadow,
         transform: `translateX(-50%) translateY(${entering ? '12px' : '0'})`,
         opacity: entering || exiting ? 0 : 1,
         transition: entering
@@ -213,6 +214,24 @@ const ContextImageContent = memo(function ContextImageContent({
 export function BryllenShell({ manifests, annotationEndpoint = 'http://localhost:4748' }: BryllenShellProps) {
   // URL routing takes precedence, then localStorage fallback
   const urlState = parseUrl(manifests)
+  const initialProjectIndex = urlState?.projectIdx ?? loadProjectIndex(manifests.length)
+  const initialProject = manifests[initialProjectIndex]?.project ?? ''
+
+  return (
+    <ThemeProvider project={initialProject} endpoint={annotationEndpoint}>
+      <BryllenShellInner manifests={manifests} annotationEndpoint={annotationEndpoint} urlState={urlState} />
+    </ThemeProvider>
+  )
+}
+
+interface BryllenShellInnerProps {
+  manifests: ProjectManifest[]
+  annotationEndpoint: string
+  urlState: { projectIdx: number; iterationIdx: number; pageIdx: number } | null
+}
+
+function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenShellInnerProps) {
+  const { cssVars } = useTheme()
   const [activeProjectIndex, setActiveProjectIndex] = useState(() => urlState?.projectIdx ?? loadProjectIndex(manifests.length))
   const [urlIterationIdx] = useState(() => urlState?.iterationIdx)
   const [urlPageIdx] = useState(() => urlState?.pageIdx)
@@ -590,42 +609,43 @@ export function BryllenShell({ manifests, annotationEndpoint = 'http://localhost
   if (manifests.length === 0) {
     return (
       <div id="bryllen-root" style={{
+        ...cssVars,
         width: '100vw',
         height: '100vh',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: N.canvas,
+        backgroundColor: V.canvas,
         fontFamily: FONT,
-      }}>
+      } as React.CSSProperties}>
         <div style={{
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           gap: S.lg,
           padding: S.xxl,
-          background: N.card,
-          border: `1px solid ${N.border}`,
+          background: V.card,
+          border: `1px solid ${V.border}`,
           borderRadius: R.ui, cornerShape: 'squircle',
           maxWidth: 400,
           textAlign: 'center',
-        }}>
+        } as React.CSSProperties}>
           <h2 style={{
             fontSize: T.ui,
             fontWeight: 600,
-            color: N.txtPri,
+            color: V.txtPri,
             margin: 0,
             textWrap: 'pretty',
-          }}>
+          } as React.CSSProperties}>
             Start a new project
           </h2>
           <p style={{
             fontSize: T.ui,
-            color: N.txtSec,
+            color: V.txtSec,
             margin: 0,
             lineHeight: 1.5,
             textWrap: 'pretty',
-          }}>
+          } as React.CSSProperties}>
             Describe what you're designing and the agent will set it up
           </p>
           <ActionButton variant="primary" onClick={() => setProjectDialogOpen(true)}>
@@ -645,7 +665,7 @@ export function BryllenShell({ manifests, annotationEndpoint = 'http://localhost
   }
 
   return (
-    <div id="bryllen-root" style={{ width: '100vw', height: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <div id="bryllen-root" style={{ ...cssVars, width: '100vw', height: '100vh', display: 'flex', flexDirection: 'column' } as React.CSSProperties}>
       <TopBar
         projects={manifests}
         activeProjectIndex={activeProjectIndex}
@@ -674,7 +694,7 @@ export function BryllenShell({ manifests, annotationEndpoint = 'http://localhost
           collapsed={!sidebarOpen}
         />
 
-        <div className={iterClass} style={{ flex: 1, backgroundColor: N.chrome, padding: `${E.insetTop}px ${E.inset}px ${E.inset}px` }}>
+        <div className={iterClass} style={{ flex: 1, backgroundColor: V.chrome, padding: `${E.insetTop}px ${E.inset}px ${E.inset}px` }}>
           <div style={{
             width: '100%',
             height: '100%',

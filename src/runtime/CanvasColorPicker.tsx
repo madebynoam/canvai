@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState } from 'react'
 import { Check, Palette } from 'lucide-react'
-import { N, A, S, R, ICON, FONT } from './tokens'
+import { A, S, R, ICON, FONT, V } from './tokens'
 
 interface CanvasColorPreset {
   name: string
@@ -41,7 +41,7 @@ function ColorDot({ preset, isActive, onSelect }: {
         borderRadius: '50%',
         border: isActive
           ? `2px solid ${A.accent}`
-          : `1px solid ${isDark ? 'rgba(255,255,255,0.12)' : N.border}`,
+          : `1px solid ${isDark ? 'rgba(255,255,255,0.12)' : V.border}`,
         background: preset.value,
         cursor: 'default',
         padding: 0,
@@ -100,8 +100,8 @@ export function CanvasColorPicker({
           width: 28,
           height: 28,
           borderRadius: '50%',
-          border: `1px solid ${N.border}`,
-          background: N.chrome,
+          border: `1px solid ${V.border}`,
+          background: V.chrome,
           cursor: 'default',
           padding: 0,
           display: 'flex',
@@ -109,7 +109,7 @@ export function CanvasColorPicker({
           justifyContent: 'center',
         }}
       >
-        <Palette size={ICON.md} strokeWidth={1.5} color={N.txtSec} />
+        <Palette size={ICON.md} strokeWidth={1.5} style={{ color: V.txtSec }} />
       </button>
 
       {open && (
@@ -121,8 +121,8 @@ export function CanvasColorPicker({
             right: 36,
             transform: 'translateY(-50%)',
             transformOrigin: 'center right',
-            background: N.chrome,
-            border: `1px solid ${N.border}`,
+            background: V.chrome,
+            border: `1px solid ${V.border}`,
             borderRadius: R.ui, cornerShape: 'squircle',
             padding: S.sm,
             fontFamily: FONT,

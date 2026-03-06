@@ -5,7 +5,7 @@ import { AnnotationPanelWidget } from './AnnotationPanel'
 import { ShareButton } from './ShareButton'
 import { PanelLeft, Plus, ArrowUp } from 'lucide-react'
 import { MenuRow } from './Menu'
-import { N, A, D, S, R, T, ICON, FONT, DIM } from './tokens'
+import { A, D, S, R, T, ICON, FONT, DIM, V } from './tokens'
 import type { IterationManifest } from './types'
 
 interface TopBarProps {
@@ -63,7 +63,7 @@ export function TopBar({
         justifyContent: 'space-between',
         height: DIM.topbar,
         padding: `0 ${S.md}px`,
-        backgroundColor: N.chrome,
+        backgroundColor: V.chrome,
         fontFamily: FONT,
         flexShrink: 0,
       }}
@@ -80,7 +80,7 @@ export function TopBar({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: sidebarOpen ? N.txtPri : N.txtSec,
+            color: sidebarOpen ? V.txtPri : V.txtSec,
             borderRadius: R.ui, cornerShape: 'squircle',
             cursor: 'default',
           }}
@@ -97,14 +97,14 @@ export function TopBar({
 
         {iterations.length > 0 && (
           <div data-tour-id="iteration-picker" style={{ display: 'flex', alignItems: 'center', gap: S.xs }}>
-            <span style={{ fontSize: T.ui, color: N.border, userSelect: 'none' }}>/</span>
+            <span style={{ fontSize: T.ui, color: V.border, userSelect: 'none' }}>/</span>
             <PickerDropdown
               items={reversedIterations}
               activeIndex={reversedActiveIndex}
               onSelect={(i) => onSelectIteration(iterations.length - 1 - i)}
               width={280}
               renderTriggerLabel={(item) => (
-                <span style={{ fontSize: T.ui, fontWeight: 400, color: N.txtPri }}>
+                <span style={{ fontSize: T.ui, fontWeight: 400, color: V.txtPri }}>
                   {item.name}
                 </span>
               )}
@@ -113,7 +113,7 @@ export function TopBar({
                   <span style={{
                     fontSize: T.ui,
                     fontWeight: 400,
-                    color: N.txtPri,
+                    color: V.txtPri,
                   }}>
                     {item.name}
                   </span>
@@ -121,7 +121,7 @@ export function TopBar({
                     <span style={{
                       fontSize: T.ui,
                       fontWeight: 400,
-                      color: N.txtSec,
+                      color: V.txtSec,
                       display: '-webkit-box',
                       WebkitLineClamp: 2,
                       WebkitBoxOrient: 'vertical',
@@ -136,8 +136,8 @@ export function TopBar({
               footer={import.meta.env.DEV && onNewIteration ? (
                 <MenuRow
                   onClick={onNewIteration}
-                  icon={<Plus size={ICON.md} strokeWidth={1.5} color={N.txtSec} />}
-                  style={{ padding: `${S.sm}px ${S.sm}px`, fontSize: T.ui, color: N.txtSec }}
+                  icon={<Plus size={ICON.md} strokeWidth={1.5} style={{ color: V.txtSec }} />}
+                  style={{ padding: `${S.sm}px ${S.sm}px`, fontSize: T.ui, color: V.txtSec }}
                 >
                   New Iteration
                 </MenuRow>
@@ -198,9 +198,9 @@ export function TopBar({
                 minWidth: S.lg,
                 height: S.lg,
                 borderRadius: R.ui, cornerShape: 'squircle',
-                backgroundColor: N.card,
-                border: `1px solid ${N.border}`,
-                color: N.txtSec,
+                backgroundColor: V.card,
+                border: `1px solid ${V.border}`,
+                color: V.txtSec,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -211,7 +211,7 @@ export function TopBar({
             >
               {commentCount}
             </div>
-            <span style={{ fontSize: T.ui, color: N.txtSec }}>comments</span>
+            <span style={{ fontSize: T.ui, color: V.txtSec }}>comments</span>
           </div>
         )}
 

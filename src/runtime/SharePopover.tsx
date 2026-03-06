@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Check, Copy, ExternalLink, Github, Loader2, RefreshCw, X } from 'lucide-react'
-import { N, S, R, T, FONT, ICON } from './tokens'
+import { S, R, T, V, FONT, ICON } from './tokens'
 
 export type ShareStatus = 'checking' | 'needs-auth' | 'idle' | 'sharing' | 'shared'
 
@@ -72,8 +72,8 @@ export function SharePopover({
         right: 0,
         marginTop: S.xs,
         width: 280,
-        backgroundColor: N.card,
-        border: `1px solid ${N.border}`,
+        backgroundColor: V.card,
+        border: `1px solid ${V.border}`,
         borderRadius: R.ui,
         boxShadow: '0 4px 12px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.04)',
         fontFamily: FONT,
@@ -88,10 +88,10 @@ export function SharePopover({
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: `${S.sm}px ${S.md}px`,
-          borderBottom: `1px solid ${N.border}`,
+          borderBottom: `1px solid ${V.border}`,
         }}
       >
-        <span style={{ fontSize: T.ui, fontWeight: 600, color: N.txtPri }}>
+        <span style={{ fontSize: T.ui, fontWeight: 600, color: V.txtPri }}>
           Share
         </span>
         <button
@@ -105,18 +105,17 @@ export function SharePopover({
             background: 'transparent',
             border: 'none',
             borderRadius: R.ui,
-            color: N.txtSec,
             cursor: 'default',
           }}
         >
-          <X size={ICON.md} strokeWidth={1.5} />
+          <X size={ICON.md} strokeWidth={1.5} style={{ color: V.txtSec }} />
         </button>
       </div>
 
       {/* Content */}
       <div style={{ padding: S.md }}>
         {status === 'checking' && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: S.sm, color: N.txtSec }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: S.sm, color: V.txtSec }}>
             <Loader2 size={ICON.md} strokeWidth={1.5} style={{ animation: 'spin 1s linear infinite' }} />
             <span style={{ fontSize: T.ui }}>Checking authentication...</span>
           </div>
@@ -124,7 +123,7 @@ export function SharePopover({
 
         {status === 'needs-auth' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: S.md }}>
-            <p style={{ fontSize: T.ui, color: N.txtSec, margin: 0, lineHeight: 1.5 }}>
+            <p style={{ fontSize: T.ui, color: V.txtSec, margin: 0, lineHeight: 1.5 }}>
               Sign in with GitHub to deploy your project to GitHub Pages.
             </p>
             <button
@@ -135,8 +134,8 @@ export function SharePopover({
                 justifyContent: 'center',
                 gap: S.sm,
                 padding: `${S.sm}px ${S.md}px`,
-                backgroundColor: N.txtPri,
-                color: N.card,
+                backgroundColor: V.txtPri,
+                color: V.card,
                 border: 'none',
                 borderRadius: R.ui,
                 fontSize: T.ui,
@@ -159,10 +158,10 @@ export function SharePopover({
                   alt={authUser.login}
                   style={{ width: 20, height: 20, borderRadius: R.pill }}
                 />
-                <span style={{ fontSize: T.ui, color: N.txtSec }}>{authUser.login}</span>
+                <span style={{ fontSize: T.ui, color: V.txtSec }}>{authUser.login}</span>
               </div>
             )}
-            <p style={{ fontSize: T.ui, color: N.txtSec, margin: 0, lineHeight: 1.5 }}>
+            <p style={{ fontSize: T.ui, color: V.txtSec, margin: 0, lineHeight: 1.5 }}>
               Deploy this project to GitHub Pages and get a shareable link.
             </p>
             <button
@@ -173,8 +172,8 @@ export function SharePopover({
                 justifyContent: 'center',
                 gap: S.sm,
                 padding: `${S.sm}px ${S.md}px`,
-                backgroundColor: N.txtPri,
-                color: N.card,
+                backgroundColor: V.txtPri,
+                color: V.card,
                 border: 'none',
                 borderRadius: R.ui,
                 fontSize: T.ui,
@@ -188,7 +187,7 @@ export function SharePopover({
         )}
 
         {status === 'sharing' && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: S.sm, color: N.txtSec }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: S.sm, color: V.txtSec }}>
             <Loader2 size={ICON.md} strokeWidth={1.5} style={{ animation: 'spin 1s linear infinite' }} />
             <span style={{ fontSize: T.ui }}>Deploying...</span>
           </div>
@@ -202,9 +201,9 @@ export function SharePopover({
                 alignItems: 'center',
                 gap: S.sm,
                 padding: S.sm,
-                backgroundColor: N.chrome,
+                backgroundColor: V.chrome,
                 borderRadius: R.ui,
-                border: `1px solid ${N.border}`,
+                border: `1px solid ${V.border}`,
               }}
             >
               <input
@@ -216,7 +215,7 @@ export function SharePopover({
                   border: 'none',
                   background: 'transparent',
                   fontSize: T.ui,
-                  color: N.txtPri,
+                  color: V.txtPri,
                   outline: 'none',
                   fontFamily: 'monospace',
                 }}
@@ -232,8 +231,8 @@ export function SharePopover({
                   justifyContent: 'center',
                   gap: S.xs,
                   padding: `${S.sm}px ${S.md}px`,
-                  backgroundColor: copied ? 'oklch(0.55 0.14 155)' : N.txtPri,
-                  color: N.card,
+                  backgroundColor: copied ? 'oklch(0.55 0.14 155)' : V.txtPri,
+                  color: V.card,
                   border: 'none',
                   borderRadius: R.ui,
                   fontSize: T.ui,
@@ -252,9 +251,9 @@ export function SharePopover({
                   alignItems: 'center',
                   justifyContent: 'center',
                   padding: `${S.sm}px ${S.md}px`,
-                  backgroundColor: N.chrome,
-                  color: N.txtPri,
-                  border: `1px solid ${N.border}`,
+                  backgroundColor: V.chrome,
+                  color: V.txtPri,
+                  border: `1px solid ${V.border}`,
                   borderRadius: R.ui,
                   fontSize: T.ui,
                   fontWeight: 500,
@@ -273,8 +272,8 @@ export function SharePopover({
                 gap: S.sm,
                 padding: `${S.sm}px ${S.md}px`,
                 backgroundColor: 'transparent',
-                color: N.txtSec,
-                border: `1px solid ${N.border}`,
+                color: V.txtSec,
+                border: `1px solid ${V.border}`,
                 borderRadius: R.ui,
                 fontSize: T.ui,
                 fontWeight: 500,

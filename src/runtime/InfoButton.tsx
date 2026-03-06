@@ -1,8 +1,9 @@
 import { useRef, useEffect, useState } from 'react'
-import { SlidersHorizontal, ExternalLink } from 'lucide-react'
-import { N, S, T, ICON, FONT } from './tokens'
+import { SlidersHorizontal, ExternalLink, Sun, Moon, Monitor } from 'lucide-react'
+import { S, T, ICON, FONT, V } from './tokens'
 import { useMenu, MenuPanel, MenuRow } from './Menu'
 import { resetTourCompleted } from './TourOverlay'
+import { useTheme, type ThemeMode } from './useTheme'
 
 const GITHUB_URL = 'https://github.com/madebynoam/bryllen'
 
@@ -11,6 +12,16 @@ export function InfoButton() {
   const [triggerHover, setTriggerHover] = useState(false)
   const triggerRef = useRef<HTMLButtonElement>(null)
   const [rect, setRect] = useState<DOMRect | null>(null)
+  const { mode, setMode } = useTheme()
+
+  // Theme cycling: system → light → dark → system
+  const cycleTheme = () => {
+    const next: ThemeMode = mode === 'system' ? 'light' : mode === 'light' ? 'dark' : 'system'
+    setMode(next)
+  }
+
+  const ThemeIcon = mode === 'dark' ? Moon : mode === 'light' ? Sun : Monitor
+  const themeLabel = mode === 'system' ? 'System' : mode === 'light' ? 'Light' : 'Dark'
 
   // Measure trigger position on open
   useEffect(() => {
@@ -26,13 +37,13 @@ export function InfoButton() {
         onClick={() => setOpen(o => !o)}
         onMouseEnter={() => setTriggerHover(true)}
         onMouseLeave={() => setTriggerHover(false)}
-        title="About bryllen"
+        title="Settings"
         style={{
           width: 28,
           height: 28,
           borderRadius: '50%',
           border: 'none',
-          background: triggerHover ? 'rgba(0,0,0,0.06)' : N.card,
+          background: triggerHover ? V.active : V.card,
           cursor: 'default',
           padding: 0,
           display: 'flex',
@@ -40,7 +51,7 @@ export function InfoButton() {
           justifyContent: 'center',
         }}
       >
-        <SlidersHorizontal size={ICON.md} strokeWidth={1.5} color={N.txtSec} />
+        <SlidersHorizontal size={ICON.md} strokeWidth={1.5} style={{ color: V.txtSec }} />
       </button>
       {open && rect && (
         <MenuPanel
@@ -49,10 +60,25 @@ export function InfoButton() {
           width={160}
           zIndex={1000}
         >
+          {/* Theme selector */}
+          <MenuRow
+            onClick={cycleTheme}
+            style={{
+              gap: S.sm,
+              padding: `${S.xs}px ${S.sm}px`,
+              fontSize: T.ui,
+              color: V.txtSec,
+            }}
+          >
+            <ThemeIcon size={ICON.sm} strokeWidth={1.5} style={{ color: V.txtSec }} />
+            <span style={{ flex: 1 }}>Theme: {themeLabel}</span>
+          </MenuRow>
+          {/* Divider */}
+          <div style={{ height: 1, background: V.border, margin: `${S.xs}px 0` }} />
           {/* Version — static, not interactive */}
           <div style={{
             padding: `${S.xs}px ${S.sm}px`,
-            fontSize: T.ui, color: N.txtSec,
+            fontSize: T.ui, color: V.txtMuted,
             fontFamily: FONT,
             userSelect: 'none',
           }}>
@@ -66,7 +92,7 @@ export function InfoButton() {
             style={{
               padding: `${S.xs}px ${S.sm}px`,
               fontSize: T.ui,
-              color: N.txtSec,
+              color: V.txtSec,
             }}
           >
             Relaunch tour
@@ -77,11 +103,11 @@ export function InfoButton() {
               gap: S.sm,
               padding: `${S.xs}px ${S.sm}px`,
               fontSize: T.ui,
-              color: N.txtSec,
+              color: V.txtSec,
             }}
           >
             <span style={{ flex: 1 }}>GitHub</span>
-            <ExternalLink size={ICON.sm} strokeWidth={1.5} color={N.txtSec} />
+            <ExternalLink size={ICON.sm} strokeWidth={1.5} style={{ color: V.txtSec }} />
           </MenuRow>
         </MenuPanel>
       )}

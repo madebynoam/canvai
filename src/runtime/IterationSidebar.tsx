@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Palette, Layers, Images } from 'lucide-react'
-import { N, S, R, T, ICON, FONT, DIM } from './tokens'
+import { S, R, T, ICON, FONT, DIM, V } from './tokens'
 import { InfoButton } from './InfoButton'
 
 interface IterationSidebarProps {
@@ -16,7 +16,7 @@ function SectionHeader({ children }: { children: React.ReactNode }) {
   return (
     <div style={{
       padding: `0 ${S.md}px`, marginBottom: S.xs,
-      fontSize: T.ui, fontWeight: 500, color: N.txtMuted,
+      fontSize: T.ui, fontWeight: 500, color: V.txtMuted,
     }}>
       {children}
     </div>
@@ -45,11 +45,11 @@ function SidebarRow({ children, icon, active, onClick }: {
         padding: `0 ${S.sm}px`,
         margin: `0 ${S.xs}px`,
         borderRadius: R.ui, cornerShape: 'squircle',
-        backgroundColor: active ? N.active : hovered ? 'rgba(0,0,0,0.03)' : 'transparent',
+        backgroundColor: active ? V.active : hovered ? 'rgba(0,0,0,0.03)' : 'transparent',
         fontFamily: FONT, textAlign: 'left',
         fontSize: T.ui,
         fontWeight: 400,
-        color: N.txtPri,
+        color: V.txtPri,
         cursor: 'default',
       }}
     >
@@ -78,9 +78,9 @@ export function IterationSidebar({ iterationName, pages, activePageIndex, onSele
   })
 
   const iconForSystem = (name: string) => {
-    if (name === 'Tokens') return <Palette size={ICON.sm} strokeWidth={1.5} style={{ color: N.txtMuted, flexShrink: 0 }} />
-    if (name === 'Components') return <Layers size={ICON.sm} strokeWidth={1.5} style={{ color: N.txtMuted, flexShrink: 0 }} />
-    if (name === 'Context') return <Images size={ICON.sm} strokeWidth={1.5} style={{ color: N.txtMuted, flexShrink: 0 }} />
+    if (name === 'Tokens') return <Palette size={ICON.sm} strokeWidth={1.5} style={{ color: V.txtMuted, flexShrink: 0 }} />
+    if (name === 'Components') return <Layers size={ICON.sm} strokeWidth={1.5} style={{ color: V.txtMuted, flexShrink: 0 }} />
+    if (name === 'Context') return <Images size={ICON.sm} strokeWidth={1.5} style={{ color: V.txtMuted, flexShrink: 0 }} />
     return null
   }
 
@@ -89,7 +89,7 @@ export function IterationSidebar({ iterationName, pages, activePageIndex, onSele
       data-tour-id="sidebar"
       style={{
         width: collapsed ? 0 : DIM.sidebar,
-        backgroundColor: N.chrome,
+        backgroundColor: V.chrome,
         padding: `${S.md}px 0`,
         display: 'flex',
         flexDirection: 'column',
@@ -117,7 +117,7 @@ export function IterationSidebar({ iterationName, pages, activePageIndex, onSele
 
       {/* Divider */}
       {systemPages.length > 0 && iterPages.length > 0 && (
-        <div style={{ height: 1, backgroundColor: N.border, margin: `0 ${S.md}px` }} />
+        <div style={{ height: 1, backgroundColor: V.border, margin: `0 ${S.md}px` }} />
       )}
 
       {/* Iteration pages section */}
