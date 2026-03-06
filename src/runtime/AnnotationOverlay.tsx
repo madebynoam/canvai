@@ -647,50 +647,19 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
       const frameId = frameEl.getAttribute('data-frame-id') ?? ''
       const frame = frames.find(f => f.id === frameId)
 
-      // If it's a context image, start drag for potential connection
-      if (frame && isCanvasImageFrame(frame)) {
-        const center = getFrameCenter(frameId)
-        if (center) {
-          setDragState({
-            fromFrameId: frameId,
-            fromPoint: center,
-            startPoint: { x: e.clientX, y: e.clientY },
-            currentPoint: { x: e.clientX, y: e.clientY },
-            lockedTargets: [],
-          })
-          setHighlight(null)
-          return
-        }
+      // Start drag for ALL frames (not just images) — enables multi-select
+      const center = getFrameCenter(frameId)
+      if (center) {
+        setDragState({
+          fromFrameId: frameId,
+          fromPoint: center,
+          startPoint: { x: e.clientX, y: e.clientY },
+          currentPoint: { x: e.clientX, y: e.clientY },
+          lockedTargets: [],
+        })
+        setHighlight(null)
+        return
       }
-
-      // Regular frame click — target the specific element
-      const isImage = frame && isCanvasImageFrame(frame)
-      const componentName = isImage
-        ? 'Context Image'
-        : (frame as CanvasComponentFrame)?.component?.displayName ?? (frame as CanvasComponentFrame)?.component?.name ?? 'Unknown'
-      const props = isImage
-        ? { src: frame.src }
-        : (frame as CanvasComponentFrame)?.props ?? {}
-
-      const boundary = frameEl.hasAttribute('data-frame-content') ? frameEl : frameEl.querySelector('[data-frame-content]')
-      const selector = boundary ? buildSelector(el, boundary) : el.tagName.toLowerCase()
-
-      const text = (el.textContent ?? '').trim().slice(0, 100)
-
-      setTarget({
-        frameId,
-        componentName,
-        props,
-        selector,
-        elementTag: el.tagName.toLowerCase(),
-        elementClasses: el.className?.toString() ?? '',
-        elementText: text,
-        computedStyles: getStyleSubset(el),
-        rect: el.getBoundingClientRect(),
-      })
-      setHighlight(null)
-      setComment('')
-      setMode('commenting')
     } else {
       // Clicked on empty canvas — canvas-level note
       const cp = screenToCanvas(e.clientX, e.clientY)
@@ -796,19 +765,34 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
     const dist = Math.sqrt(dx * dx + dy * dy)
 
     if (dist < 10) {
-      // It was a click, not a drag — open single image annotation
+      // It was a click, not a drag — open annotation dialog for this frame
       const frame = frames.find(f => f.id === dragState.fromFrameId)
-      if (frame && isCanvasImageFrame(frame)) {
-        const frameEl = document.querySelector(`[data-frame-id="${dragState.fromFrameId}"]`)
+      const frameEl = document.querySelector(`[data-frame-id="${dragState.fromFrameId}"]`)
+
+      if (frame) {
+        const isImage = isCanvasImageFrame(frame)
+        const componentName = isImage
+          ? 'Context Image'
+          : (frame as CanvasComponentFrame)?.component?.displayName ?? (frame as CanvasComponentFrame)?.component?.name ?? 'Unknown'
+        const props = isImage
+          ? { src: frame.src }
+          : (frame as CanvasComponentFrame)?.props ?? {}
+
+        // For component frames, try to get the clicked element for selector
+        const contentEl = frameEl?.querySelector('[data-frame-content]') ?? frameEl
+        const clickedEl = document.elementFromPoint(dragState.startPoint.x, dragState.startPoint.y)
+        const targetEl = clickedEl?.closest('[data-frame-id]') === frameEl ? clickedEl : contentEl
+        const selector = contentEl && targetEl ? buildSelector(targetEl as Element, contentEl as Element) : ''
+
         setTarget({
           frameId: dragState.fromFrameId,
-          componentName: 'Context Image',
-          props: { src: frame.src },
-          selector: 'img',
-          elementTag: 'img',
+          componentName,
+          props,
+          selector: isImage ? 'img' : selector,
+          elementTag: isImage ? 'img' : (targetEl?.tagName.toLowerCase() ?? 'div'),
           elementClasses: '',
-          elementText: '',
-          computedStyles: {},
+          elementText: (targetEl?.textContent ?? '').trim().slice(0, 100),
+          computedStyles: targetEl ? getStyleSubset(targetEl as Element) : {},
           rect: frameEl?.getBoundingClientRect() ?? new DOMRect(e.clientX, e.clientY, 0, 0),
         })
         setComment('')
