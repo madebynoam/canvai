@@ -63,6 +63,33 @@ import { Werkstatt } from './v7/pages/werkstatt'
 import { Playful } from './v7/pages/playful'
 import { Palette } from './v7/pages/palette'
 import { Mosaic } from './v7/pages/mosaic'
+// V8 — Bryllen rebrand (all pages updated with new name)
+import { Specimen as Specimen8 } from './v8/pages/specimen'
+import { Raster as Raster8 } from './v8/pages/raster'
+import { Folio as Folio8 } from './v8/pages/folio'
+import { Datum as Datum8 } from './v8/pages/datum'
+import { Plinth as Plinth8 } from './v8/pages/plinth'
+import { Tract as Tract8 } from './v8/pages/tract'
+import { Axis as Axis8 } from './v8/pages/axis'
+import { Void as Void8 } from './v8/pages/void_'
+import { Codex as Codex8 } from './v8/pages/codex'
+import { Gauge as Gauge8 } from './v8/pages/gauge'
+import { Plank as Plank8 } from './v8/pages/plank'
+import { Verso as Verso8 } from './v8/pages/verso'
+import { Module as Module8 } from './v8/pages/module'
+import { Proof as Proof8 } from './v8/pages/proof'
+import { Cipher as Cipher8 } from './v8/pages/cipher'
+import { Narrative as Narrative8 } from './v8/pages/narrative'
+import { Statement as Statement8 } from './v8/pages/statement'
+import { Vision as Vision8 } from './v8/pages/vision'
+import { FyllaLight as FyllaLight8 } from './v8/pages/fylla-light'
+import { FyllaDark as FyllaDark8 } from './v8/pages/fylla-dark'
+import { Studio as Studio8 } from './v8/pages/studio'
+import { Atelier as Atelier8 } from './v8/pages/atelier'
+import { Werkstatt as Werkstatt8 } from './v8/pages/werkstatt'
+import { Playful as Playful8 } from './v8/pages/playful'
+import { Palette as Palette8 } from './v8/pages/palette'
+import { Mosaic as Mosaic8 } from './v8/pages/mosaic'
 import type { ProjectManifest } from '../../runtime/types'
 
 const manifest: ProjectManifest = {
@@ -442,6 +469,7 @@ const manifest: ProjectManifest = {
     },
     {
       name: 'V7',
+      frozen: true,
       pages: [
         {
           name: 'Playful Inspired',
@@ -562,6 +590,74 @@ const manifest: ProjectManifest = {
             { id: 'v7-vapor', title: 'Vapor', component: Vapor, width: 1440, height: 2400 },
             { id: 'v7-grid', title: 'Grid', component: Grid, width: 1440, height: 2400 },
             { id: 'v7-type', title: 'Type', component: Type, width: 1440, height: 2400 },
+          ],
+        },
+      ],
+    },
+    {
+      name: 'V8',
+      description: 'Bryllen rebrand — all pages updated with new product name',
+      pages: [
+        {
+          name: 'Bryllen — Featured',
+          grid: { columns: 5, columnWidth: 1440, rowHeight: 2400, gap: 40 },
+          frames: [
+            { id: 'v8-specimen', title: 'Specimen — Swiss Type Catalog', component: Specimen8, width: 1440, height: 2400 },
+            { id: 'v8-raster', title: 'Raster — Visible Modular Grid', component: Raster8, width: 1440, height: 2400 },
+            { id: 'v8-folio', title: 'Folio — Editorial Magazine', component: Folio8, width: 1440, height: 2400 },
+            { id: 'v8-datum', title: 'Datum — Stats-First Hero', component: Datum8, width: 1440, height: 2400 },
+            { id: 'v8-plinth', title: 'Plinth — Product Shrine', component: Plinth8, width: 1440, height: 2400 },
+          ],
+        },
+        {
+          name: 'Playful Inspired',
+          grid: { columns: 3, columnWidth: 1440, rowHeight: 2400, gap: 40 },
+          frames: [
+            { id: 'v8-playful', title: 'Playful — Retro-modern, Colorful Icons', component: Playful8, width: 1440, height: 2400 },
+            { id: 'v8-palette', title: 'Palette — Bold Color Blocks, Chunky', component: Palette8, width: 1440, height: 2400 },
+            { id: 'v8-mosaic', title: 'Mosaic — Grid-heavy, Pastel Tones', component: Mosaic8, width: 1440, height: 2400 },
+          ],
+        },
+        {
+          name: 'Studio Inspired',
+          grid: { columns: 3, columnWidth: 1440, rowHeight: 2400, gap: 40 },
+          frames: [
+            { id: 'v8-studio', title: 'Studio — Overlapping Cards, Bold Orange', component: Studio8, width: 1440, height: 2400 },
+            { id: 'v8-atelier', title: 'Atelier — Warm Minimal, Serif Editorial', component: Atelier8, width: 1440, height: 2400 },
+            { id: 'v8-werkstatt', title: 'Werkstatt — Geometric Bold, Black/Orange', component: Werkstatt8, width: 1440, height: 2400 },
+          ],
+        },
+        {
+          name: 'Context Inspired',
+          grid: { columns: 3, columnWidth: 1440, rowHeight: 2400, gap: 40 },
+          frames: [
+            { id: 'v8-narrative', title: 'Narrative — Grid Editorial, Blue Verticals', component: Narrative8, width: 1440, height: 2400 },
+            { id: 'v8-statement', title: 'Statement — Minimal Typography, Warm', component: Statement8, width: 1440, height: 2400 },
+            { id: 'v8-vision', title: 'Vision — Real Imagery, Bright Future', component: Vision8, width: 1440, height: 2400 },
+          ],
+        },
+        {
+          name: 'FYLLA Variations',
+          grid: { columns: 2, columnWidth: 1440, rowHeight: 2400, gap: 40 },
+          frames: [
+            { id: 'v8-fylla-light', title: 'Fylla Light — Cream Serif Editorial', component: FyllaLight8, width: 1440, height: 2400 },
+            { id: 'v8-fylla-dark', title: 'Fylla Dark — Charcoal Serif Editorial', component: FyllaDark8, width: 1440, height: 2400 },
+          ],
+        },
+        {
+          name: 'Rams × Brockmann',
+          grid: { columns: 5, columnWidth: 1440, rowHeight: 2400, gap: 40 },
+          frames: [
+            { id: 'v8-tract', title: 'Tract — Alternating Bands', component: Tract8, width: 1440, height: 2400 },
+            { id: 'v8-axis', title: 'Axis — Center-Divided', component: Axis8, width: 1440, height: 2400 },
+            { id: 'v8-void', title: 'Void — Radical Whitespace', component: Void8, width: 1440, height: 2400 },
+            { id: 'v8-codex', title: 'Codex — Table of Contents', component: Codex8, width: 1440, height: 2400 },
+            { id: 'v8-gauge', title: 'Gauge — Instrument Panel', component: Gauge8, width: 1440, height: 2400 },
+            { id: 'v8-plank', title: 'Plank — Full-Bleed Bands', component: Plank8, width: 1440, height: 2400 },
+            { id: 'v8-verso', title: 'Verso — Dark/Light Hard Split', component: Verso8, width: 1440, height: 2400 },
+            { id: 'v8-module', title: 'Module — Brockmann 6-Column', component: Module8, width: 1440, height: 2400 },
+            { id: 'v8-proof', title: 'Proof — Typography as Design', component: Proof8, width: 1440, height: 2400 },
+            { id: 'v8-cipher', title: 'Cipher — Terminal Aesthetic', component: Cipher8, width: 1440, height: 2400 },
           ],
         },
       ],

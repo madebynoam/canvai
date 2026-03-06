@@ -356,7 +356,7 @@ export function BryllenShell({ manifests, annotationEndpoint = 'http://localhost
     }
   }, [annotationEndpoint, showToast, promptRequest])
 
-  // SSE listener for prompt-requested events (from agent's /bryllen-new without prompt)
+  // SSE listener for prompt-requested and navigate events
   useEffect(() => {
     if (typeof window === 'undefined') return
 
@@ -380,11 +380,22 @@ export function BryllenShell({ manifests, annotationEndpoint = 'http://localhost
             }
             setPromptRequest({ id: String(data.id), projectName })
           }
+        } else if (data.type === 'navigate' && data.iteration) {
+          // Navigate to a specific iteration (e.g., after creating a new one)
+          const iterations = activeProject?.iterations ?? []
+          const targetIdx = iterations.findIndex(it =>
+            it.name.toLowerCase() === data.iteration.toLowerCase()
+          )
+          if (targetIdx >= 0) {
+            setActiveIterationIndex(targetIdx)
+            // Navigate to first page of that iteration
+            setActivePageIndex(0)
+          }
         }
       } catch { /* ignore parse errors */ }
     }
     return () => source.close()
-  }, [annotationEndpoint])
+  }, [annotationEndpoint, activeProject?.iterations, setActiveIterationIndex, setActivePageIndex])
 
   const { iterationIndex: activeIterationIndex, pageIndex: activePageIndex, setIteration: setActiveIterationIndex, setPage: setActivePageIndex } = useNavMemory(
     activeProject?.project ?? '',

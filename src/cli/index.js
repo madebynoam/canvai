@@ -86,14 +86,20 @@ async function watchAnnotations() {
 }
 
 async function resolveAnnotation() {
-  const id = process.argv[3]
+  const args = process.argv.slice(3)
+  const id = args.find(a => !a.startsWith('--'))
   if (!id) {
-    console.error('Usage: bryllen resolve <id>')
+    console.error('Usage: bryllen resolve <id> [--navigate <iteration>]')
     process.exit(1)
   }
 
+  // Parse --navigate flag
+  const navIdx = args.indexOf('--navigate')
+  const navigate = navIdx !== -1 && args[navIdx + 1] ? args[navIdx + 1] : null
+
   try {
-    const result = await httpPost(`/annotations/${id}/resolve`)
+    const body = navigate ? { navigate } : {}
+    const result = await httpPostJson(`/annotations/${id}/resolve`, body)
     if (result.error) {
       console.error(JSON.stringify({ error: `Annotation #${id} not found` }))
       process.exit(1)
@@ -702,7 +708,7 @@ switch (command) {
     console.log('')
     console.log('Annotation commands (for Claude Code agent):')
     console.log('  bryllen watch [--timeout N]  Wait for annotation (default 15s)')
-    console.log('  bryllen resolve <id>         Mark annotation as resolved')
+    console.log('  bryllen resolve <id> [--navigate <iter>]  Mark resolved, optionally navigate UI')
     console.log('  bryllen progress <id> <msg>  Update progress shown on canvas')
     console.log('  bryllen pending              List pending annotations')
     console.log('  bryllen list                 List all annotations')

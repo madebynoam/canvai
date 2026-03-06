@@ -79,6 +79,10 @@ Each iteration owns a complete token set scoped under `.iter-v<N>`. No cascade a
 - Creating: freeze current (`frozen: true`), `cp -r v<N>/ v<N+1>/`, rename scope, add to manifest with `frozen: false`.
 - Frozen iterations are immutable. No exceptions.
 - No cross-iteration imports. Each `v<N>/` is self-contained.
+- **After creating a new iteration**, resolve with `--navigate` to auto-switch the UI:
+  ```bash
+  npx bryllen resolve <id> --navigate V8
+  ```
 
 ## Before any edit (guard protocol)
 
@@ -301,6 +305,9 @@ npx bryllen watch [--timeout N]
 
 # Mark annotation as resolved (auto-commits)
 npx bryllen resolve <id>
+
+# Mark resolved AND navigate UI to a specific iteration
+npx bryllen resolve <id> --navigate V8
 
 # Update progress shown on canvas (designer sees this)
 npx bryllen progress <id> "Reading file..."

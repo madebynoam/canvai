@@ -1,10 +1,10 @@
-# Canvai Landing Page
+# Bryllen Landing Page
 
-This is the marketing landing page for **Canvai** — an infinite canvas for Claude Code.
+This is the marketing landing page for **Bryllen** — an infinite canvas for Claude Code.
 
 ## Jobs to Be Done
 
-Canvai is hired for four jobs:
+Bryllen is hired for four jobs:
 1. **Explore** — See multiple directions at once → Canvas shows options
 2. **Iterate** — Describe changes in words → Click → Type → Applied
 3. **Decide** — Grab the file → Cmd+Shift+Click → Finder
@@ -14,8 +14,8 @@ The code was never a mockup. Explore → Decide → Ship. No handoff.
 
 ## Product Brief
 
-**What is Canvai?**
-An infinite, zoomable canvas where designers work with Claude Code to generate real React components. Unlike tools that produce mockups, Canvai outputs production-ready code that renders live.
+**What is Bryllen?**
+An infinite, zoomable canvas where designers work with Claude Code to generate real React components. Unlike tools that produce mockups, Bryllen outputs production-ready code that renders live.
 
 **Key Features:**
 - Infinite canvas with pan/zoom

@@ -221,7 +221,7 @@ function autoCommit(annotation) {
   }
 }
 
-function resolveAnnotation(id) {
+function resolveAnnotation(id, navigateTo = null) {
   const annotation = annotations.get(id)
   if (annotation) {
     annotation.status = 'resolved'
@@ -230,6 +230,10 @@ function resolveAnnotation(id) {
     // Notify all SSE clients
     for (const client of sseClients) {
       client.write(`data: ${JSON.stringify({ type: 'resolved', id })}\n\n`)
+      // If navigation requested (e.g., after creating a new iteration), send navigate event
+      if (navigateTo) {
+        client.write(`data: ${JSON.stringify({ type: 'navigate', iteration: navigateTo })}\n\n`)
+      }
     }
     // Auto-commit project changes
     autoCommit(annotation)
@@ -428,14 +432,28 @@ const httpServer = createServer(async (req, res) => {
     }
 
     // POST /annotations/:id/resolve — mark resolved
+    // Body can include { navigate: "V8" } to trigger UI navigation
     const resolveMatch = url.pathname.match(/^\/annotations\/(.+)\/resolve$/)
     if (req.method === 'POST' && resolveMatch) {
-      const annotation = resolveAnnotation(resolveMatch[1])
-      if (annotation) {
-        sendJson(res, 200, annotation)
-      } else {
-        sendJson(res, 404, { error: 'Annotation not found' })
-      }
+      let navigateTo = null
+      // Parse optional body for navigation
+      let body = ''
+      req.on('data', chunk => { body += chunk })
+      req.on('end', () => {
+        try {
+          if (body) {
+            const parsed = JSON.parse(body)
+            navigateTo = parsed.navigate || null
+          }
+        } catch { /* ignore parse errors */ }
+
+        const annotation = resolveAnnotation(resolveMatch[1], navigateTo)
+        if (annotation) {
+          sendJson(res, 200, annotation)
+        } else {
+          sendJson(res, 404, { error: 'Annotation not found' })
+        }
+      })
       return
     }
 
