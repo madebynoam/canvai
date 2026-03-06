@@ -157,20 +157,20 @@ function VariationStepper({ count, onChange }: { count: number; onChange: (n: nu
         }}
       >
         <button
-          onClick={() => onChange(Math.max(3, count - 1))}
+          onClick={() => onChange(Math.max(1, count - 1))}
           style={{
             width: 22,
             height: 22,
             border: 'none',
             borderRadius: R.ui,
-            background: count <= 3 ? 'transparent' : 'oklch(0.97 0.003 250)',
-            color: count <= 3 ? N.txtTer : N.txtSec,
+            background: count <= 1 ? 'transparent' : 'oklch(0.97 0.003 250)',
+            color: count <= 1 ? N.txtTer : N.txtSec,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             cursor: 'default',
           }}
-          disabled={count <= 3}
+          disabled={count <= 1}
         >
           <Minus size={12} strokeWidth={2} />
         </button>
