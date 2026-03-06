@@ -356,6 +356,12 @@ export function BryllenShell({ manifests, annotationEndpoint = 'http://localhost
     }
   }, [annotationEndpoint, showToast, promptRequest])
 
+  const { iterationIndex: activeIterationIndex, pageIndex: activePageIndex, setIteration: setActiveIterationIndex, setPage: setActivePageIndex } = useNavMemory(
+    activeProject?.project ?? '',
+    activeProject?.iterations ?? [],
+    { iterationIdx: urlIterationIdx, pageIdx: urlPageIdx },
+  )
+
   // SSE listener for prompt-requested and navigate events
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -396,12 +402,6 @@ export function BryllenShell({ manifests, annotationEndpoint = 'http://localhost
     }
     return () => source.close()
   }, [annotationEndpoint, activeProject?.iterations, setActiveIterationIndex, setActivePageIndex])
-
-  const { iterationIndex: activeIterationIndex, pageIndex: activePageIndex, setIteration: setActiveIterationIndex, setPage: setActivePageIndex } = useNavMemory(
-    activeProject?.project ?? '',
-    activeProject?.iterations ?? [],
-    { iterationIdx: urlIterationIdx, pageIdx: urlPageIdx },
-  )
 
   const activeIteration = activeProject?.iterations?.[activeIterationIndex]
   const iterClass = activeIteration ? `iter-${activeIteration.name.toLowerCase()}` : ''
