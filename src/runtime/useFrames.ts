@@ -6,16 +6,32 @@ const FRAME_GAP = 40
 const STORAGE_KEY = 'bryllen:pos:'
 const STORAGE_KEY_LEGACY = 'canvai:pos:'
 const SERVER_ENDPOINT = 'http://localhost:4748'
+// Layout version - increment to invalidate old saved positions
+const LAYOUT_VERSION = 2
 
 function frameIdsKey(frames: CanvasFrame[]): string {
   return frames.map(f => f.id).join(',')
 }
 
+interface StoredPositions {
+  version: number
+  positions: Record<string, { x: number; y: number }>
+}
+
 function loadPositionsLocal(key: string): Record<string, { x: number; y: number }> | null {
   try {
-    // Try new key first, fall back to legacy canvai key
-    const raw = localStorage.getItem(STORAGE_KEY + key) || localStorage.getItem(STORAGE_KEY_LEGACY + key)
-    if (raw) return JSON.parse(raw)
+    const raw = localStorage.getItem(STORAGE_KEY + key)
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      // Check version - ignore old positions from broken layout
+      if (parsed.version === LAYOUT_VERSION) {
+        return parsed.positions
+      }
+      // Old format or old version - clear it
+      localStorage.removeItem(STORAGE_KEY + key)
+    }
+    // Also clear legacy keys
+    localStorage.removeItem(STORAGE_KEY_LEGACY + key)
   } catch {}
   return null
 }
@@ -25,7 +41,8 @@ function savePositionsLocal(key: string, frames: CanvasFrame[]) {
   const positions: Record<string, { x: number; y: number }> = {}
   for (const f of frames) positions[f.id] = { x: f.x, y: f.y }
   try {
-    localStorage.setItem(STORAGE_KEY + key, JSON.stringify(positions))
+    const data: StoredPositions = { version: LAYOUT_VERSION, positions }
+    localStorage.setItem(STORAGE_KEY + key, JSON.stringify(data))
   } catch {}
 }
 
@@ -33,7 +50,11 @@ async function loadPositionsServer(project: string, page: string): Promise<Recor
   try {
     const res = await fetch(`${SERVER_ENDPOINT}/frame-positions?project=${encodeURIComponent(project)}&page=${encodeURIComponent(page)}`)
     const data = await res.json()
-    return data.positions || null
+    // Check version - ignore old positions from broken layout
+    if (data.version === LAYOUT_VERSION) {
+      return data.positions || null
+    }
+    return null
   } catch {
     return null
   }
@@ -47,7 +68,7 @@ async function savePositionsServer(project: string, page: string, frames: Canvas
     await fetch(`${SERVER_ENDPOINT}/frame-positions`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ project, page, positions }),
+      body: JSON.stringify({ project, page, positions, version: LAYOUT_VERSION }),
     })
   } catch {}
 }

@@ -929,8 +929,9 @@ const httpServer = createServer(async (req, res) => {
       }
 
       try {
-        const positions = JSON.parse(readFileSync(positionsFile, 'utf8'))
-        sendJson(res, 200, { positions })
+        const data = JSON.parse(readFileSync(positionsFile, 'utf8'))
+        // Return full data including version
+        sendJson(res, 200, data)
       } catch {
         sendJson(res, 200, { positions: null })
       }
@@ -940,7 +941,7 @@ const httpServer = createServer(async (req, res) => {
     // PUT /frame-positions — save frame positions for a page
     if (req.method === 'PUT' && url.pathname === '/frame-positions') {
       const data = await parseBody(req)
-      const { project, page, positions } = data
+      const { project, page, positions, version } = data
 
       if (!project || !page || !positions) {
         sendJson(res, 400, { error: 'project, page, and positions are required' })
@@ -955,7 +956,8 @@ const httpServer = createServer(async (req, res) => {
       }
 
       const positionsFile = join(positionsDir, `${safePage}.json`)
-      writeFileSync(positionsFile, JSON.stringify(positions, null, 2))
+      // Store with version for cache invalidation
+      writeFileSync(positionsFile, JSON.stringify({ positions, version: version || 1 }, null, 2))
       sendJson(res, 200, { saved: true })
       return
     }
