@@ -1,36 +1,35 @@
 import { useRef, useEffect, useState } from 'react'
 import { Check, Palette } from 'lucide-react'
 import { A, S, R, ICON, FONT, V } from './tokens'
+import { useTheme } from './useTheme'
 
 interface CanvasColorPreset {
   name: string
   value: string
 }
 
-// True neutral grays — 9 evenly spaced from near-white to near-black
-const presets: CanvasColorPreset[] = [
-  { name: '98', value: 'oklch(0.98 0 0)' },
-  { name: '92', value: 'oklch(0.92 0 0)' },
-  { name: '85', value: 'oklch(0.85 0 0)' },
-  { name: '75', value: 'oklch(0.75 0 0)' },
-  { name: '60', value: 'oklch(0.60 0 0)' },
-  { name: '45', value: 'oklch(0.45 0 0)' },
-  { name: '30', value: 'oklch(0.30 0 0)' },
-  { name: '20', value: 'oklch(0.20 0 0)' },
-  { name: '12', value: 'oklch(0.12 0 0)' },
+// Light mode presets (Figma/Framer/Sketch inspired)
+const lightPresets: CanvasColorPreset[] = [
+  { name: 'White', value: 'oklch(0.99 0 0)' },      // Clean/minimal
+  { name: 'Figma', value: 'oklch(0.96 0 0)' },      // #F5F5F5
+  { name: 'Warm', value: 'oklch(0.92 0 0)' },       // Softer gray
 ]
 
-export const DEFAULT_CANVAS_COLOR = 'oklch(0.92 0 0)'
+// Dark mode presets
+const darkPresets: CanvasColorPreset[] = [
+  { name: 'Deep', value: 'oklch(0.12 0 0)' },       // Near black
+  { name: 'Figma', value: 'oklch(0.20 0 0)' },      // #1E1E1E
+  { name: 'Soft', value: 'oklch(0.28 0 0)' },       // Elevated dark
+]
 
-function ColorDot({ preset, isActive, onSelect }: {
+export const DEFAULT_CANVAS_COLOR = 'oklch(0.96 0 0)'
+
+function ColorDot({ preset, isActive, isDarkTheme, onSelect }: {
   preset: CanvasColorPreset
   isActive: boolean
+  isDarkTheme: boolean
   onSelect: () => void
 }) {
-  // Parse lightness from name (it's the L value)
-  const lightness = parseInt(preset.name, 10)
-  const isDark = lightness <= 45
-
   return (
     <button
       onClick={onSelect}
@@ -41,7 +40,7 @@ function ColorDot({ preset, isActive, onSelect }: {
         borderRadius: '50%',
         border: isActive
           ? `2px solid ${A.accent}`
-          : `1px solid ${isDark ? 'rgba(255,255,255,0.12)' : V.border}`,
+          : `1px solid ${isDarkTheme ? 'rgba(255,255,255,0.12)' : V.border}`,
         background: preset.value,
         cursor: 'default',
         padding: 0,
@@ -55,7 +54,7 @@ function ColorDot({ preset, isActive, onSelect }: {
         <Check
           size={10}
           strokeWidth={2.5}
-          color={isDark ? 'rgba(255,255,255,0.8)' : A.accent}
+          color={isDarkTheme ? 'rgba(255,255,255,0.8)' : A.accent}
         />
       )}
     </button>
@@ -74,6 +73,9 @@ export function CanvasColorPicker({
   const [open, setOpen] = useState(false)
   const popoverRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
+  const { resolved } = useTheme()
+  const isDarkTheme = resolved === 'dark'
+  const presets = isDarkTheme ? darkPresets : lightPresets
 
   // Close on click outside
   useEffect(() => {
@@ -126,7 +128,9 @@ export function CanvasColorPicker({
             borderRadius: R.ui, cornerShape: 'squircle',
             padding: S.sm,
             fontFamily: FONT,
-            boxShadow: '0 4px 12px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.04)',
+            boxShadow: isDarkTheme
+              ? '0 4px 12px rgba(0,0,0,0.3), 0 1px 3px rgba(0,0,0,0.2)'
+              : '0 4px 12px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.04)',
             zIndex: 10,
             display: 'flex',
             flexDirection: 'row',
@@ -138,6 +142,7 @@ export function CanvasColorPicker({
               key={preset.name}
               preset={preset}
               isActive={activeColor === preset.value}
+              isDarkTheme={isDarkTheme}
               onSelect={() => {
                 onSelect(preset.value)
                 setOpen(false)
