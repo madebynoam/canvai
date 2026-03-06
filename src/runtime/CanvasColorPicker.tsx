@@ -9,14 +9,14 @@ interface CanvasColorPreset {
 }
 
 // Light mode presets (Figma/Framer/Sketch inspired)
-const lightPresets: CanvasColorPreset[] = [
+export const lightPresets: CanvasColorPreset[] = [
   { name: 'White', value: 'oklch(0.99 0 0)' },      // Clean/minimal
   { name: 'Figma', value: 'oklch(0.96 0 0)' },      // #F5F5F5
   { name: 'Warm', value: 'oklch(0.92 0 0)' },       // Softer gray
 ]
 
 // Dark mode presets
-const darkPresets: CanvasColorPreset[] = [
+export const darkPresets: CanvasColorPreset[] = [
   { name: 'Deep', value: 'oklch(0.12 0 0)' },       // Near black
   { name: 'Figma', value: 'oklch(0.20 0 0)' },      // #1E1E1E
   { name: 'Soft', value: 'oklch(0.28 0 0)' },       // Elevated dark

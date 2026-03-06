@@ -13,7 +13,7 @@ import { NewProjectDialog } from './NewProjectDialog'
 import { TourOverlay, isTourCompleted } from './TourOverlay'
 import { useNavMemory } from './useNavMemory'
 import { ZoomControl } from './ZoomControl'
-import { CanvasColorPicker, DEFAULT_CANVAS_COLOR } from './CanvasColorPicker'
+import { CanvasColorPicker, DEFAULT_CANVAS_COLOR, lightPresets, darkPresets } from './CanvasColorPicker'
 import { loadCanvasBgAsync, saveCanvasBgAsync } from './Canvas'
 import { ActionButton } from './Menu'
 import { UpdateDialog } from './UpdateDialog'
@@ -231,7 +231,7 @@ interface BryllenShellInnerProps {
 }
 
 function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenShellInnerProps) {
-  const { cssVars } = useTheme()
+  const { cssVars, resolved: currentTheme } = useTheme()
 
   // Apply CSS vars to document root so portals inherit them
   useEffect(() => {
@@ -620,6 +620,20 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
     if (!canvasBgLoadedRef.current) return
     saveCanvasBgAsync(projectKey, canvasBg)
   }, [projectKey, canvasBg])
+
+  // Map canvas color to equivalent index when theme changes
+  const prevThemeRef = useRef(currentTheme)
+  useEffect(() => {
+    if (prevThemeRef.current === currentTheme) return
+    const wasLight = prevThemeRef.current === 'light'
+    const fromPresets = wasLight ? lightPresets : darkPresets
+    const toPresets = wasLight ? darkPresets : lightPresets
+    const idx = fromPresets.findIndex(p => p.value === canvasBg)
+    if (idx !== -1 && toPresets[idx]) {
+      setCanvasBg(toPresets[idx].value)
+    }
+    prevThemeRef.current = currentTheme
+  }, [currentTheme, canvasBg])
 
   // Empty state — no projects yet
   if (manifests.length === 0) {
