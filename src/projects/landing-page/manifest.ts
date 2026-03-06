@@ -79,6 +79,11 @@ import { CodexGallery } from './v8/pages/codex-gallery'
 import { DocsManual } from './v8/pages/docs-manual'
 import { DocsTerminal } from './v8/pages/docs-terminal'
 import { DocsGuide } from './v8/pages/docs-guide'
+import { Pulse } from './v8/pages/pulse'
+import { Slate } from './v8/pages/slate'
+import { Ivory } from './v8/pages/ivory'
+import { Neon } from './v8/pages/neon'
+import { Block } from './v8/pages/block'
 import { Gauge as Gauge8 } from './v8/pages/gauge'
 import { Plank as Plank8 } from './v8/pages/plank'
 import { Verso as Verso8 } from './v8/pages/verso'
@@ -685,6 +690,17 @@ const manifest: ProjectManifest = {
             { id: 'v8-system-docs-manual', title: 'Docs — Book Style', component: DocsManual, width: 1440, height: 900 },
             { id: 'v8-system-docs-terminal', title: 'Docs — Terminal', component: DocsTerminal, width: 1440, height: 900 },
             { id: 'v8-system-docs-guide', title: 'Docs — Modern Sidebar', component: DocsGuide, width: 1440, height: 900 },
+          ],
+        },
+        {
+          name: 'Context-Inspired Variations',
+          grid: { columns: 5, columnWidth: 1440, rowHeight: 2000, gap: 40 },
+          frames: [
+            { id: 'v8-pulse', title: 'Pulse — Soft Blue Floating Cards', component: Pulse, width: 1440, height: 2000 },
+            { id: 'v8-slate', title: 'Slate — Dark Industrial', component: Slate, width: 1440, height: 2000 },
+            { id: 'v8-ivory', title: 'Ivory — Warm Serif Editorial', component: Ivory, width: 1440, height: 2000 },
+            { id: 'v8-neon', title: 'Neon — Extreme Minimal', component: Neon, width: 1440, height: 2000 },
+            { id: 'v8-block', title: 'Block — Playful Geometric', component: Block, width: 1440, height: 2000 },
           ],
         },
       ],
