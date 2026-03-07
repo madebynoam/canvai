@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { A, F, D, S, R, T, V, ICON, FONT } from './tokens'
 import { Wand2, Crosshair, Loader2, Trophy } from 'lucide-react'
 import { useMenu, MenuPanel } from './Menu'
@@ -254,9 +254,34 @@ function PendingRow({ annotation }: { annotation: Annotation }) {
 function useAnnotationPanel(endpoint: string) {
   const { open, setOpen, containerRef } = useMenu()
   const [annotations, setAnnotations] = useState<Annotation[]>([])
+  const [autoApply, setAutoApply] = useState(() => {
+    try { return localStorage.getItem('bryllen-auto-apply') === 'true' } catch { return false }
+  })
+  const prevDraftIdsRef = useRef<Set<string>>(new Set())
 
   const drafts = annotations.filter(a => a.status === 'draft')
   const pending = annotations.filter(a => a.status === 'pending')
+
+  // Persist auto-apply preference
+  useEffect(() => {
+    try { localStorage.setItem('bryllen-auto-apply', String(autoApply)) } catch {}
+  }, [autoApply])
+
+  // Auto-apply new drafts when auto mode is on
+  useEffect(() => {
+    if (!autoApply) {
+      prevDraftIdsRef.current = new Set(drafts.map(d => d.id))
+      return
+    }
+    const currentIds = new Set(drafts.map(d => d.id))
+    const newDrafts = drafts.filter(d => !prevDraftIdsRef.current.has(d.id))
+    prevDraftIdsRef.current = currentIds
+
+    // Apply each new draft
+    for (const draft of newDrafts) {
+      fetch(`${endpoint}/annotations/${draft.id}/apply`, { method: 'POST' }).catch(() => {})
+    }
+  }, [drafts, autoApply, endpoint])
 
   // Fetch annotations on mount + poll every 3s
   useEffect(() => {
@@ -320,13 +345,13 @@ function useAnnotationPanel(endpoint: string) {
     } catch { /* selector may not match */ }
   }, [annotations])
 
-  return { open, setOpen, annotations, drafts, pending, containerRef, handleApplyAll, handleApplyOne, handleNavigate }
+  return { open, setOpen, annotations, drafts, pending, containerRef, handleApplyAll, handleApplyOne, handleNavigate, autoApply, setAutoApply }
 }
 
 /* ─── AnnotationPanelWidget ───────────────────────────── */
 
 export function AnnotationPanelWidget({ endpoint }: { endpoint: string }) {
-  const { open, setOpen, annotations, drafts, pending, containerRef, handleApplyAll, handleApplyOne, handleNavigate } = useAnnotationPanel(endpoint)
+  const { open, setOpen, annotations, drafts, pending, containerRef, handleApplyAll, handleApplyOne, handleNavigate, autoApply, setAutoApply } = useAnnotationPanel(endpoint)
 
   const resolved = annotations.filter(a => a.status === 'resolved')
 
@@ -349,6 +374,26 @@ export function AnnotationPanelWidget({ endpoint }: { endpoint: string }) {
           <span style={{ fontSize: T.ui, fontWeight: 600, color: V.txtPri }}>
             Annotations
           </span>
+          {/* Auto-apply toggle */}
+          <button
+            onClick={() => setAutoApply(a => !a)}
+            title={autoApply ? 'Auto-apply on' : 'Auto-apply off'}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: S.xs,
+              padding: `${S.xs}px ${S.sm}px`,
+              border: 'none',
+              borderRadius: R.ui,
+              background: autoApply ? A.accent : 'transparent',
+              color: autoApply ? D.text : V.txtSec,
+              fontSize: T.ui,
+              fontWeight: 500,
+              cursor: 'default',
+            }}
+          >
+            Auto
+          </button>
         </div>
 
         {/* List */}
