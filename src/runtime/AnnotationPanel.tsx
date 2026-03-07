@@ -357,7 +357,18 @@ export function AnnotationPanelWidget({ endpoint }: { endpoint: string }) {
 
   return (
     <div ref={containerRef} style={{ position: 'relative', fontFamily: FONT }}>
-      <style>{`@keyframes bryllen-spin { to { transform: rotate(360deg) } }`}</style>
+      <style>{`
+        @keyframes bryllen-spin { to { transform: rotate(360deg) } }
+        @keyframes bryllen-check-pop {
+          0% { transform: scale(1); }
+          50% { transform: scale(1.15); }
+          100% { transform: scale(1); }
+        }
+        @keyframes bryllen-check-draw {
+          0% { stroke-dashoffset: 12; }
+          100% { stroke-dashoffset: 0; }
+        }
+      `}</style>
       <AnnotationBadge count={drafts.length + pending.length} pendingCount={pending.length} onClick={() => setOpen(o => !o)} />
 
       {/* Dropdown — instant show/hide */}
@@ -395,10 +406,21 @@ export function AnnotationPanelWidget({ endpoint }: { endpoint: string }) {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              transition: 'all 150ms ease-out',
+              animation: autoApply ? 'bryllen-check-pop 200ms ease-out' : 'none',
             }}>
               {autoApply && (
                 <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                  <path d="M2 5L4 7L8 3" stroke={D.text} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path
+                    d="M2 5L4 7L8 3"
+                    stroke={D.text}
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeDasharray="12"
+                    strokeDashoffset="0"
+                    style={{ animation: 'bryllen-check-draw 200ms ease-out' }}
+                  />
                 </svg>
               )}
             </div>
