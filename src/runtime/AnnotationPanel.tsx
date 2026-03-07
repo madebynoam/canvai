@@ -375,7 +375,8 @@ export function AnnotationPanelWidget({ endpoint }: { endpoint: string }) {
             Annotations
           </span>
           {/* Auto-apply checkbox */}
-          <label
+          <div
+            onClick={() => setAutoApply(a => !a)}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -385,14 +386,24 @@ export function AnnotationPanelWidget({ endpoint }: { endpoint: string }) {
               color: V.txtSec,
             }}
           >
-            <input
-              type="checkbox"
-              checked={autoApply}
-              onChange={e => setAutoApply(e.target.checked)}
-              style={{ margin: 0, cursor: 'default' }}
-            />
-            Auto apply
-          </label>
+            <div style={{
+              width: 14,
+              height: 14,
+              borderRadius: 3,
+              border: `1px solid ${autoApply ? A.accent : V.border}`,
+              background: autoApply ? A.accent : 'transparent',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+              {autoApply && (
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                  <path d="M2 5L4 7L8 3" stroke={D.text} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              )}
+            </div>
+            <span>Auto apply</span>
+          </div>
         </div>
 
         {/* List */}
