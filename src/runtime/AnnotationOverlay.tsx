@@ -1145,6 +1145,7 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
     for (const item of items) {
       if (item.type.startsWith('image/')) {
         e.preventDefault()
+        e.stopPropagation()
         const file = item.getAsFile()
         if (!file) return
         const reader = new FileReader()
