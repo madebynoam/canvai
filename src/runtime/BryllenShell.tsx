@@ -513,8 +513,30 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
   // Token panel state
   const [tokenPanelOpen, setTokenPanelOpen] = useState(false)
 
+  // Frame status state
+  const [frameStatuses, setFrameStatuses] = useState<Record<string, FrameStatus>>({})
+  const [visibleStatuses, setVisibleStatuses] = useState<Set<FrameStatus>>(
+    new Set(['none', 'starred', 'approved', 'rejected'])
+  )
+
   // Frame selection state (multi-select)
   const [selectedFrameIds, setSelectedFrameIds] = useState<Set<string>>(new Set())
+
+  // Handle frame status change
+  const handleFrameStatusChange = useCallback((frameId: string, status: FrameStatus) => {
+    if (!activeProject?.project) return
+    setFrameStatuses(prev => ({ ...prev, [frameId]: status }))
+    // Save to backend
+    fetch(`${annotationEndpoint}/frame-status`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        project: activeProject.project,
+        frameId,
+        status,
+      }),
+    }).catch(() => {})
+  }, [activeProject?.project, annotationEndpoint])
 
   // Keyboard shortcuts: Escape to clear selection, S/A/R/N for batch status change, Backspace/Delete to remove
   useEffect(() => {
@@ -631,12 +653,6 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
     dragStartStateRef.current = null
   }, [selectedFrameIds])
 
-  // Frame status state
-  const [frameStatuses, setFrameStatuses] = useState<Record<string, FrameStatus>>({})
-  const [visibleStatuses, setVisibleStatuses] = useState<Set<FrameStatus>>(
-    new Set(['none', 'starred', 'approved', 'rejected'])
-  )
-
   // Toggle a status in the visible set
   const toggleStatusVisibility = useCallback((status: FrameStatus) => {
     setVisibleStatuses(prev => {
@@ -660,22 +676,6 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
       .then(r => r.json())
       .then(data => setFrameStatuses(data.statuses || {}))
       .catch(() => setFrameStatuses({}))
-  }, [activeProject?.project, annotationEndpoint])
-
-  // Handle frame status change
-  const handleFrameStatusChange = useCallback((frameId: string, status: FrameStatus) => {
-    if (!activeProject?.project) return
-    setFrameStatuses(prev => ({ ...prev, [frameId]: status }))
-    // Save to backend
-    fetch(`${annotationEndpoint}/frame-status`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        project: activeProject.project,
-        frameId,
-        status,
-      }),
-    }).catch(() => {})
   }, [activeProject?.project, annotationEndpoint])
 
   const persistConfig = activeProject?.project

@@ -133,7 +133,7 @@ These rules are enforced by the agent. Do not remove this file.
 Canvai is hired for four jobs:
 1. **Explore** — See multiple directions at once (canvas shows options)
 2. **Iterate** — Describe changes in words (click → type → applied)
-3. **Decide** — Grab the file (Cmd+Shift+Click → Finder)
+3. **Decide** — Pick the best direction (ship the code)
 4. **Share** — Get feedback (share button → link)
 
 The code was never a mockup. Explore → Decide → Ship. No handoff.
