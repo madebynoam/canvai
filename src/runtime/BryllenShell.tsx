@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef, memo, useMemo } from 'react'
-import { X, Info, Star, Check, ChevronDown } from 'lucide-react'
+import { X, Star, Check } from 'lucide-react'
 import { Canvas } from './Canvas'
 import { Frame } from './Frame'
 import { useFrames } from './useFrames'
@@ -59,26 +59,27 @@ function buildUrl(project: string): string {
   return `/${encodeURIComponent(project)}`
 }
 
-/* ── Frame Status Filter Dropdown ── */
+/* ── Frame Status Filter (Toggle Chips) ── */
 
 interface StatusFilterProps {
-  value: FrameStatus | 'all'
-  onChange: (value: FrameStatus | 'all') => void
-  counts: Record<FrameStatus | 'all', number>
+  visibleStatuses: Set<FrameStatus>
+  onToggle: (status: FrameStatus) => void
+  counts: Record<FrameStatus, number>
 }
 
-const STATUS_FILTER_OPTIONS: Array<{ value: FrameStatus | 'all'; label: string; icon?: typeof Star; fill?: string; stroke?: string }> = [
-  { value: 'all', label: 'All' },
+const STATUS_CHIPS: Array<{ value: FrameStatus; label: string; icon: typeof Star; fill: string; stroke: string }> = [
+  { value: 'none', label: 'None', icon: Star, fill: 'none', stroke: '#999' },
   { value: 'starred', label: 'Starred', icon: Star, fill: '#F59E0B', stroke: '#F59E0B' },
   { value: 'approved', label: 'Approved', icon: Check, fill: 'none', stroke: '#10B981' },
   { value: 'rejected', label: 'Rejected', icon: X, fill: 'none', stroke: '#EF4444' },
 ]
 
-function FilterDropdownItem({ opt, selected, onClick, count }: {
-  opt: typeof STATUS_FILTER_OPTIONS[number]
-  selected: boolean
+function StatusFilterChip({ chip, active, onClick, count, disabled }: {
+  chip: typeof STATUS_CHIPS[number]
+  active: boolean
   onClick: () => void
   count: number
+  disabled: boolean
 }) {
   const [hovered, setHovered] = useState(false)
   return (
@@ -86,108 +87,61 @@ function FilterDropdownItem({ opt, selected, onClick, count }: {
       onClick={onClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      disabled={disabled}
       style={{
         display: 'flex',
         alignItems: 'center',
-        gap: 8,
-        width: '100%',
-        padding: '6px 10px',
-        background: hovered ? 'rgba(0,0,0,0.08)' : selected ? 'rgba(0,0,0,0.05)' : 'none',
-        border: 'none',
-        borderRadius: 4,
-        cursor: 'default',
+        gap: 4,
+        padding: '4px 8px',
+        background: active ? V.card : 'transparent',
+        border: `1px solid ${active ? V.border : 'transparent'}`,
+        borderRadius: R.ui, cornerShape: 'squircle',
+        cursor: disabled ? 'not-allowed' : 'default',
         fontSize: T.ui,
         fontFamily: FONT,
-        color: V.txtPri,
-        transition: 'background 0.1s ease',
-      }}
+        color: active ? V.txtPri : V.txtSec,
+        opacity: disabled ? 0.5 : hovered ? 0.8 : 1,
+        transition: 'all 0.15s ease',
+        boxShadow: active ? V.shadow : 'none',
+      } as React.CSSProperties}
     >
-      {opt.icon ? <opt.icon size={14} fill={opt.fill} stroke={opt.stroke} strokeWidth={2} /> : <span style={{ width: 14 }} />}
-      <span style={{ flex: 1, textAlign: 'left' }}>{opt.label}</span>
-      <span style={{ color: V.txtSec }}>{count}</span>
+      <chip.icon
+        size={12}
+        fill={active ? chip.fill : 'none'}
+        stroke={active ? chip.stroke : V.txtSec}
+        strokeWidth={2}
+      />
+      <span>{chip.label}</span>
+      <span style={{ color: V.txtSec, fontSize: T.ui - 1 }}>({count})</span>
     </button>
   )
 }
 
-function StatusFilter({ value, onChange, counts }: StatusFilterProps) {
-  const [open, setOpen] = useState(false)
-
-  // Close on outside click (with delay to avoid catching the opening click)
-  useEffect(() => {
-    if (!open) return
-    const handleClick = () => setOpen(false)
-    // Delay adding listener to next tick so opening click doesn't trigger close
-    const timer = setTimeout(() => {
-      window.addEventListener('click', handleClick)
-    }, 0)
-    return () => {
-      clearTimeout(timer)
-      window.removeEventListener('click', handleClick)
-    }
-  }, [open])
-
-  const current = STATUS_FILTER_OPTIONS.find(o => o.value === value) ?? STATUS_FILTER_OPTIONS[0]
-
-  const handleButtonClick = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    e.preventDefault()
-    setOpen(o => !o)
-  }
+function StatusFilter({ visibleStatuses, onToggle, counts }: StatusFilterProps) {
+  // Prevent unchecking the last remaining status
+  const activeCount = visibleStatuses.size
 
   return (
-    <div style={{ position: 'relative', pointerEvents: 'auto' }}>
-      <button
-        onClick={handleButtonClick}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 6,
-          padding: '6px 10px',
-          background: V.card,
-          border: `1px solid ${V.border}`,
-          borderRadius: R.ui, cornerShape: 'squircle',
-          fontSize: T.ui,
-          fontFamily: FONT,
-          color: V.txtPri,
-          cursor: 'default',
-          boxShadow: V.shadow,
-        } as React.CSSProperties}
-      >
-        {current.icon && <current.icon size={14} fill={current.fill} stroke={current.stroke} strokeWidth={2} />}
-        <span>{current.label}</span>
-        <span style={{ color: V.txtSec }}>({counts[value]})</span>
-        <ChevronDown size={12} style={{ marginLeft: 2, color: V.txtSec }} />
-      </button>
-      {open && (
-        <div
-          onClick={e => e.stopPropagation()}
-          onPointerDown={e => e.stopPropagation()}
-          style={{
-            position: 'absolute',
-            top: '100%',
-            left: 0,
-            marginTop: 4,
-            background: V.card,
-            border: `1px solid ${V.border}`,
-            borderRadius: R.ui, cornerShape: 'squircle',
-            boxShadow: V.shadow,
-            padding: 4,
-            zIndex: 1000,
-            minWidth: 140,
-            pointerEvents: 'auto',
-          } as React.CSSProperties}
-        >
-          {STATUS_FILTER_OPTIONS.map(opt => (
-            <FilterDropdownItem
-              key={opt.value}
-              opt={opt}
-              selected={value === opt.value}
-              onClick={() => { onChange(opt.value); setOpen(false) }}
-              count={counts[opt.value]}
-            />
-          ))}
-        </div>
-      )}
+    <div style={{
+      display: 'flex',
+      alignItems: 'center',
+      gap: 4,
+      padding: 4,
+      background: 'oklch(0.5 0 0 / 0.1)',
+      borderRadius: R.ui, cornerShape: 'squircle',
+      pointerEvents: 'auto',
+      backdropFilter: 'blur(8px)',
+    } as React.CSSProperties}>
+      {STATUS_CHIPS.map(chip => (
+        <StatusFilterChip
+          key={chip.value}
+          chip={chip}
+          active={visibleStatuses.has(chip.value)}
+          onClick={() => onToggle(chip.value)}
+          count={counts[chip.value]}
+          disabled={visibleStatuses.has(chip.value) && activeCount === 1}
+        />
+      ))}
     </div>
   )
 }
@@ -559,9 +513,145 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
   // Token panel state
   const [tokenPanelOpen, setTokenPanelOpen] = useState(false)
 
+  // Frame selection state (multi-select)
+  const [selectedFrameIds, setSelectedFrameIds] = useState<Set<string>>(new Set())
+
+  // Keyboard shortcuts: Escape to clear selection, S/A/R/N for batch status change, Backspace/Delete to remove
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if typing in an input
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
+
+      if (e.key === 'Escape' && selectedFrameIds.size > 0) {
+        setSelectedFrameIds(new Set())
+        return
+      }
+
+      // Actions requiring selection
+      if (selectedFrameIds.size === 0) return
+
+      // Delete selected frames with Backspace or Delete
+      if (e.key === 'Backspace' || e.key === 'Delete') {
+        e.preventDefault()
+        for (const frameId of selectedFrameIds) {
+          removeFrame(frameId)
+        }
+        setSelectedFrameIds(new Set())
+        return
+      }
+
+      // Batch status change shortcuts
+      const statusMap: Record<string, FrameStatus> = {
+        's': 'starred',
+        'a': 'approved',
+        'r': 'rejected',
+        'n': 'none',
+      }
+      const status = statusMap[e.key.toLowerCase()]
+      if (status) {
+        e.preventDefault()
+        for (const frameId of selectedFrameIds) {
+          handleFrameStatusChange(frameId, status)
+        }
+        setSelectedFrameIds(new Set()) // Clear selection after action
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [selectedFrameIds, handleFrameStatusChange, removeFrame])
+
+  // Handle frame selection (shift+click toggles)
+  const handleFrameSelect = useCallback((frameId: string, shiftKey: boolean) => {
+    if (shiftKey) {
+      setSelectedFrameIds(prev => {
+        const next = new Set(prev)
+        if (next.has(frameId)) {
+          next.delete(frameId)
+        } else {
+          next.add(frameId)
+        }
+        return next
+      })
+    } else {
+      // Regular click clears selection
+      setSelectedFrameIds(new Set())
+    }
+  }, [])
+
+  // Clear selection when clicking canvas background
+  const handleCanvasClick = useCallback(() => {
+    setSelectedFrameIds(new Set())
+  }, [])
+
+  // Multi-select drag state: tracks the starting positions when a drag begins
+  const dragStartStateRef = useRef<{
+    draggedFrameId: string
+    startPositions: Record<string, { x: number; y: number }>
+  } | null>(null)
+
+  // Handle frame move with multi-select support
+  const handleFrameMove = useCallback((id: string, newX: number, newY: number) => {
+    if (selectedFrameIds.has(id) && selectedFrameIds.size > 1) {
+      // Check if this is the start of a new drag
+      if (!dragStartStateRef.current || dragStartStateRef.current.draggedFrameId !== id) {
+        // Record starting positions for all selected frames
+        const startPositions: Record<string, { x: number; y: number }> = {}
+        for (const frame of frames) {
+          if (selectedFrameIds.has(frame.id)) {
+            startPositions[frame.id] = { x: frame.x, y: frame.y }
+          }
+        }
+        dragStartStateRef.current = { draggedFrameId: id, startPositions }
+      }
+
+      // Calculate delta from the dragged frame's original position
+      const dragState = dragStartStateRef.current
+      const originalPos = dragState.startPositions[id]
+      if (originalPos) {
+        const dx = newX - originalPos.x
+        const dy = newY - originalPos.y
+        // Move all selected frames by the same delta from their start positions
+        for (const frameId of selectedFrameIds) {
+          const startPos = dragState.startPositions[frameId]
+          if (startPos) {
+            updateFrame(frameId, { x: startPos.x + dx, y: startPos.y + dy })
+          }
+        }
+      }
+    } else {
+      // Single frame move (normal behavior)
+      dragStartStateRef.current = null // Clear multi-select drag state
+      updateFrame(id, { x: newX, y: newY })
+    }
+  }, [selectedFrameIds, frames, updateFrame])
+
+  // Clear drag state when pointer up (via Frame's onSelect which fires after drag)
+  // Also clear when selection changes
+  useEffect(() => {
+    dragStartStateRef.current = null
+  }, [selectedFrameIds])
+
   // Frame status state
   const [frameStatuses, setFrameStatuses] = useState<Record<string, FrameStatus>>({})
-  const [statusFilter, setStatusFilter] = useState<FrameStatus | 'all'>('all')
+  const [visibleStatuses, setVisibleStatuses] = useState<Set<FrameStatus>>(
+    new Set(['none', 'starred', 'approved', 'rejected'])
+  )
+
+  // Toggle a status in the visible set
+  const toggleStatusVisibility = useCallback((status: FrameStatus) => {
+    setVisibleStatuses(prev => {
+      const next = new Set(prev)
+      if (next.has(status)) {
+        // Don't allow unchecking the last one
+        if (next.size > 1) {
+          next.delete(status)
+        }
+      } else {
+        next.add(status)
+      }
+      return next
+    })
+  }, [])
 
   // Load frame statuses when project changes
   useEffect(() => {
@@ -591,12 +681,11 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
   const persistConfig = activeProject?.project
     ? { project: activeProject.project, page: 'canvas' }
     : undefined
-  const { frames, updateFrame, handleResize } = useFrames(layoutedFrames, activeProject?.grid, persistConfig)
+  const { frames, updateFrame, removeFrame, handleResize } = useFrames(layoutedFrames, activeProject?.grid, persistConfig)
 
   // Calculate status counts for filter
   const statusCounts = useMemo(() => {
-    const counts: Record<FrameStatus | 'all', number> = {
-      all: frames.length,
+    const counts: Record<FrameStatus, number> = {
       none: 0,
       starred: 0,
       approved: 0,
@@ -861,9 +950,10 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
             <Canvas
               pageKey={`${activeProject?.project ?? ''}-canvas`}
               onImagePaste={handleImagePaste}
+              onCanvasClick={handleCanvasClick}
               hud={<>
                 <div style={{ position: 'absolute', top: 12, left: 12, zIndex: 5 }}>
-                  <StatusFilter value={statusFilter} onChange={setStatusFilter} counts={statusCounts} />
+                  <StatusFilter visibleStatuses={visibleStatuses} onToggle={toggleStatusVisibility} counts={statusCounts} />
                 </div>
                 <div style={{ position: 'absolute', top: 12, right: 12, zIndex: 5, display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <CanvasColorPicker activeColor={canvasBg} onSelect={setCanvasBg} />
@@ -878,7 +968,7 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
             >
               {/* Render component frames */}
               {frames
-                .filter(frame => statusFilter === 'all' || frameStatuses[frame.id] === statusFilter || (statusFilter === 'none' && !frameStatuses[frame.id]))
+                .filter(frame => visibleStatuses.has(frameStatuses[frame.id] || 'none'))
                 .map(frame => (
                 <Frame
                   key={frame.id}
@@ -888,10 +978,12 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
                   y={frame.y}
                   width={frame.width}
                   height={frame.height}
-                  onMove={(id, newX, newY) => updateFrame(id, { x: newX, y: newY })}
+                  onMove={handleFrameMove}
                   onResize={handleResize}
                   status={frameStatuses[frame.id] || 'none'}
                   onStatusChange={handleFrameStatusChange}
+                  selected={selectedFrameIds.has(frame.id)}
+                  onSelect={handleFrameSelect}
                 >
                   {'component' in frame && <frame.component {...(frame.props ?? {})} />}
                 </Frame>

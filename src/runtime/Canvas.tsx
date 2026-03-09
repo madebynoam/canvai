@@ -116,9 +116,11 @@ interface CanvasProps {
   hud?: React.ReactNode
   /** Called when user pastes an image — receives base64 dataUrl, filename, and viewport center position */
   onImagePaste?: (dataUrl: string, filename: string, viewportCenter: { x: number; y: number }) => void
+  /** Called when user clicks on the canvas background (not on a frame) */
+  onCanvasClick?: () => void
 }
 
-export function Canvas({ children, pageKey, hud, onImagePaste }: CanvasProps) {
+export function Canvas({ children, pageKey, hud, onImagePaste, onCanvasClick }: CanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
   const [pan, setPan] = useState({ x: 0, y: 0 })
@@ -217,6 +219,9 @@ export function Canvas({ children, pageKey, hud, onImagePaste }: CanvasProps) {
   const wheelIdleRef = useRef<ReturnType<typeof setTimeout>>()
   const pageKeyRef = useRef(pageKey)
   pageKeyRef.current = pageKey
+  const onCanvasClickRef = useRef(onCanvasClick)
+  onCanvasClickRef.current = onCanvasClick
+  const dragDistanceRef = useRef(0)
 
   useEffect(() => {
     const container = containerRef.current
@@ -277,15 +282,19 @@ export function Canvas({ children, pageKey, hud, onImagePaste }: CanvasProps) {
       isDraggingRef.current = true
       dragStartRef.current = { x: e.clientX, y: e.clientY }
       panStartRef.current = { x: panRef.current.x, y: panRef.current.y }
+      dragDistanceRef.current = 0
       container!.setPointerCapture(e.pointerId)
       container!.style.cursor = 'default'
     }
 
     function handlePointerMove(e: PointerEvent) {
       if (!isDraggingRef.current) return
+      const dx = e.clientX - dragStartRef.current.x
+      const dy = e.clientY - dragStartRef.current.y
+      dragDistanceRef.current = Math.sqrt(dx * dx + dy * dy)
       const newPan = {
-        x: panStartRef.current.x + (e.clientX - dragStartRef.current.x),
-        y: panStartRef.current.y + (e.clientY - dragStartRef.current.y),
+        x: panStartRef.current.x + dx,
+        y: panStartRef.current.y + dy,
       }
       panRef.current = newPan
       applyTransform(newPan, zoomRef.current)
@@ -293,12 +302,17 @@ export function Canvas({ children, pageKey, hud, onImagePaste }: CanvasProps) {
 
     function handlePointerUp() {
       if (!isDraggingRef.current) return
+      const wasClick = dragDistanceRef.current < 5 // Less than 5px = click, not drag
       isDraggingRef.current = false
       container!.style.cursor = 'default'
       commitState(panRef.current, zoomRef.current)
       // Save viewport at end of drag
       if (pageKeyRef.current) {
         saveViewport(pageKeyRef.current, panRef.current.x, panRef.current.y, zoomRef.current)
+      }
+      // If it was a click (not a drag), notify parent to clear selection
+      if (wasClick && onCanvasClickRef.current) {
+        onCanvasClickRef.current()
       }
     }
 

@@ -18,6 +18,8 @@ interface FrameProps {
   onResize?: (id: string, height: number) => void
   status?: FrameStatus
   onStatusChange?: (id: string, status: FrameStatus) => void
+  selected?: boolean
+  onSelect?: (id: string, shiftKey: boolean) => void
 }
 
 const STATUS_ICONS: Record<FrameStatus, { icon: typeof Star; fill: string; stroke: string }> = {
@@ -65,7 +67,7 @@ function DropdownItem({ selected, onClick, icon: Icon, fill, stroke, label }: {
   )
 }
 
-export function Frame({ id, title, x, y, width, height, children, onMove, onResize, status = 'none', onStatusChange }: FrameProps) {
+export function Frame({ id, title, x, y, width, height, children, onMove, onResize, status = 'none', onStatusChange, selected = false, onSelect }: FrameProps) {
   const { zoom } = useCanvas()
   const frameRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
@@ -73,15 +75,18 @@ export function Frame({ id, title, x, y, width, height, children, onMove, onResi
   const isDraggingRef = useRef(false)
   const dragStartRef = useRef({ x: 0, y: 0 })
   const frameStartRef = useRef({ x: 0, y: 0 })
+  const dragDistanceRef = useRef(0)
   const onMoveRef = useRef(onMove)
   const zoomRef = useRef(zoom)
   const idRef = useRef(id)
+  const onSelectRef = useRef(onSelect)
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 })
 
   onMoveRef.current = onMove
   zoomRef.current = zoom
   idRef.current = id
+  onSelectRef.current = onSelect
   const onResizeRef = useRef(onResize)
   onResizeRef.current = onResize
 
@@ -112,18 +117,26 @@ export function Frame({ id, title, x, y, width, height, children, onMove, onResi
     isDraggingRef.current = true
     dragStartRef.current = { x: e.clientX, y: e.clientY }
     frameStartRef.current = { x, y }
+    dragDistanceRef.current = 0
+    const shiftKeyAtStart = e.shiftKey
 
     function handleWindowMove(ev: PointerEvent) {
       if (!isDraggingRef.current) return
       const dx = (ev.clientX - dragStartRef.current.x) / zoomRef.current
       const dy = (ev.clientY - dragStartRef.current.y) / zoomRef.current
+      dragDistanceRef.current = Math.sqrt(dx * dx + dy * dy)
       onMoveRef.current?.(idRef.current, frameStartRef.current.x + dx, frameStartRef.current.y + dy)
     }
 
     function handleWindowUp() {
+      const wasClick = dragDistanceRef.current < 5 // Less than 5px = click, not drag
       isDraggingRef.current = false
       window.removeEventListener('pointermove', handleWindowMove)
       window.removeEventListener('pointerup', handleWindowUp)
+      // Call onSelect on click (not drag)
+      if (wasClick && onSelectRef.current) {
+        onSelectRef.current(idRef.current, shiftKeyAtStart)
+      }
     }
 
     window.addEventListener('pointermove', handleWindowMove)
@@ -163,6 +176,12 @@ export function Frame({ id, title, x, y, width, height, children, onMove, onResi
   const [statusHovered, setStatusHovered] = useState(false)
   const iconSize = 12 / zoom
 
+  // Selection ring style
+  const selectionRingStyle = selected ? {
+    boxShadow: '0 0 0 2px oklch(65% 0.2 250)', // blue selection ring
+    borderRadius: 4,
+  } : {}
+
   return (
     <div
       ref={frameRef}
@@ -172,6 +191,7 @@ export function Frame({ id, title, x, y, width, height, children, onMove, onResi
         left: x,
         top: y,
         width,
+        ...selectionRingStyle,
       }}
     >
       <div
