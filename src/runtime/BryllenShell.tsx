@@ -567,6 +567,36 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
     startPositions: Record<string, { x: number; y: number }>
   } | null>(null)
 
+  // Toggle a status in the visible set
+  const toggleStatusVisibility = useCallback((status: FrameStatus) => {
+    setVisibleStatuses(prev => {
+      const next = new Set(prev)
+      if (next.has(status)) {
+        // Don't allow unchecking the last one
+        if (next.size > 1) {
+          next.delete(status)
+        }
+      } else {
+        next.add(status)
+      }
+      return next
+    })
+  }, [])
+
+  // Load frame statuses when project changes
+  useEffect(() => {
+    if (!activeProject?.project) return
+    fetch(`${annotationEndpoint}/frame-status?project=${encodeURIComponent(activeProject.project)}`)
+      .then(r => r.json())
+      .then(data => setFrameStatuses(data.statuses || {}))
+      .catch(() => setFrameStatuses({}))
+  }, [activeProject?.project, annotationEndpoint])
+
+  const persistConfig = activeProject?.project
+    ? { project: activeProject.project, page: 'canvas' }
+    : undefined
+  const { frames, updateFrame, removeFrame, handleResize } = useFrames(layoutedFrames, activeProject?.grid, persistConfig)
+
   // Handle frame move with multi-select support
   const handleFrameMove = useCallback((id: string, newX: number, newY: number) => {
     if (selectedFrameIds.has(id) && selectedFrameIds.size > 1) {
@@ -608,36 +638,6 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
   useEffect(() => {
     dragStartStateRef.current = null
   }, [selectedFrameIds])
-
-  // Toggle a status in the visible set
-  const toggleStatusVisibility = useCallback((status: FrameStatus) => {
-    setVisibleStatuses(prev => {
-      const next = new Set(prev)
-      if (next.has(status)) {
-        // Don't allow unchecking the last one
-        if (next.size > 1) {
-          next.delete(status)
-        }
-      } else {
-        next.add(status)
-      }
-      return next
-    })
-  }, [])
-
-  // Load frame statuses when project changes
-  useEffect(() => {
-    if (!activeProject?.project) return
-    fetch(`${annotationEndpoint}/frame-status?project=${encodeURIComponent(activeProject.project)}`)
-      .then(r => r.json())
-      .then(data => setFrameStatuses(data.statuses || {}))
-      .catch(() => setFrameStatuses({}))
-  }, [activeProject?.project, annotationEndpoint])
-
-  const persistConfig = activeProject?.project
-    ? { project: activeProject.project, page: 'canvas' }
-    : undefined
-  const { frames, updateFrame, removeFrame, handleResize } = useFrames(layoutedFrames, activeProject?.grid, persistConfig)
 
   // Keyboard shortcuts: Escape to clear selection, S/A/R/N for batch status change, Backspace/Delete to remove
   useEffect(() => {
