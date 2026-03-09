@@ -1,25 +1,16 @@
 import { useState } from 'react'
 import { ProjectPicker } from './ProjectPicker'
-import { PickerDropdown } from './PickerDropdown'
 import { AnnotationPanelWidget } from './AnnotationPanel'
 import { ShareButton } from './ShareButton'
-import { PanelLeft, Plus, ArrowUp } from 'lucide-react'
-import { MenuRow } from './Menu'
+import { ArrowUp } from 'lucide-react'
 import { A, D, S, R, T, ICON, FONT, DIM, V } from './tokens'
-import type { IterationManifest } from './types'
 
 interface TopBarProps {
   projects: { project: string }[]
   activeProjectIndex: number
   onSelectProject: (index: number) => void
-  iterations: IterationManifest[]
-  activeIterationIndex: number
-  onSelectIteration: (index: number) => void
   annotationEndpoint: string
   commentCount?: number
-  sidebarOpen: boolean
-  onToggleSidebar: () => void
-  onNewIteration?: () => void
   onNewProject?: () => void
   shareUrl?: string
   projectName: string
@@ -27,23 +18,13 @@ interface TopBarProps {
   onUpdateClick?: () => void
 }
 
-function SidebarIcon() {
-  return <PanelLeft size={ICON.lg} strokeWidth={1.5} />
-}
-
 
 export function TopBar({
   projects,
   activeProjectIndex,
   onSelectProject,
-  iterations,
-  activeIterationIndex,
-  onSelectIteration,
   annotationEndpoint,
   commentCount = 0,
-  sidebarOpen,
-  onToggleSidebar,
-  onNewIteration,
   onNewProject,
   shareUrl,
   projectName,
@@ -51,9 +32,6 @@ export function TopBar({
   onUpdateClick,
 }: TopBarProps) {
   const [updateHovered, setUpdateHovered] = useState(false)
-  // Reverse so newest iteration is on top
-  const reversedIterations = [...iterations].reverse()
-  const reversedActiveIndex = iterations.length - 1 - activeIterationIndex
 
   return (
     <div
@@ -68,83 +46,14 @@ export function TopBar({
         flexShrink: 0,
       }}
     >
-      {/* Left section: sidebar toggle → project picker → separator → iteration picker */}
+      {/* Left section: project picker */}
       <div style={{ display: 'flex', alignItems: 'center', gap: S.xs, flex: '0 0 auto' }}>
-        <button
-          onClick={onToggleSidebar}
-          style={{
-            width: DIM.control,
-            height: DIM.control,
-            border: 'none',
-            background: 'transparent',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: sidebarOpen ? V.txtPri : V.txtSec,
-            borderRadius: R.ui, cornerShape: 'squircle',
-            cursor: 'default',
-          }}
-          title={sidebarOpen ? 'Hide sidebar' : 'Show sidebar'}
-        >
-          <SidebarIcon />
-        </button>
         <ProjectPicker
           projects={projects}
           activeIndex={activeProjectIndex}
           onSelect={onSelectProject}
           onNewProject={onNewProject}
         />
-
-        {iterations.length > 0 && (
-          <div data-tour-id="iteration-picker" style={{ display: 'flex', alignItems: 'center', gap: S.xs }}>
-            <span style={{ fontSize: T.ui, color: V.border, userSelect: 'none' }}>/</span>
-            <PickerDropdown
-              items={reversedIterations}
-              activeIndex={reversedActiveIndex}
-              onSelect={(i) => onSelectIteration(iterations.length - 1 - i)}
-              width={280}
-              renderTriggerLabel={(item) => (
-                <span style={{ fontSize: T.ui, fontWeight: 400, color: V.txtPri }}>
-                  {item.name}
-                </span>
-              )}
-              renderRow={(item) => (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  <span style={{
-                    fontSize: T.ui,
-                    fontWeight: 400,
-                    color: V.txtPri,
-                  }}>
-                    {item.name}
-                  </span>
-                  {item.description && (
-                    <span style={{
-                      fontSize: T.ui,
-                      fontWeight: 400,
-                      color: V.txtSec,
-                      display: '-webkit-box',
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical',
-                      overflow: 'hidden',
-                      lineHeight: '1.4',
-                    }}>
-                      {item.description}
-                    </span>
-                  )}
-                </div>
-              )}
-              footer={import.meta.env.DEV && onNewIteration ? (
-                <MenuRow
-                  onClick={onNewIteration}
-                  icon={<Plus size={ICON.md} strokeWidth={1.5} style={{ color: V.txtSec }} />}
-                  style={{ padding: `${S.sm}px ${S.sm}px`, fontSize: T.ui, color: V.txtSec }}
-                >
-                  New Iteration
-                </MenuRow>
-              ) : undefined}
-            />
-          </div>
-        )}
       </div>
 
       {/* Right section — annotation UI hidden in production builds */}

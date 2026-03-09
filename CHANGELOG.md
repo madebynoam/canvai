@@ -1,5 +1,39 @@
 # Changelog
 
+## 0.0.105 — Flatten to Project → Canvas
+
+Simplified hierarchy from 4 levels (Project → Iteration → Page → Frame) to 2 levels (Project → Canvas with Frames).
+
+**Backwards compatible**: Old manifests with `iterations` structure still work — BryllenShell flattens them automatically.
+
+- **Fixed frame status dropdown**: Click star to pick star/check/x (was clipped by overflow:hidden, now uses portal)
+- **Flat manifest structure**: `ProjectManifest` now has direct `frames[]` array instead of nested `iterations[].pages[].frames[]`
+- **Removed iterations and pages**: No more iteration picker, no page sidebar — all frames on one infinite canvas
+- **Removed Pick mode**: Frame status dropdown (starred/approved/rejected) will replace Pick for marking decisions
+- **Added GridConfig**: Configurable layout with `columns`, `columnWidth`, `rowHeight`, `gap`
+- **Added frame_status table**: SQLite storage for frame status (none/starred/approved/rejected)
+- **Added /frame-status API**: GET and PUT endpoints for frame status
+- **Migration 0.0.105**: Flattens old iteration/page structure to flat frames array
+- **Deleted files**: IterationSidebar.tsx, NewIterationDialog.tsx, useNavMemory.ts
+- **Simplified BryllenShell**: Removed iteration/page state, simplified URL routing to just `/:project`
+- **Updated TopBar**: Removed iteration picker, kept project picker
+- **Updated AnnotationOverlay**: Removed Pick from annotation modes (now just Refine/Ideate)
+- **Updated layout.ts**: `layoutFrames(frames, grid)` signature, added `layoutProject(manifest)` helper
+- **Updated templates.js**: New projects get flat `frames[]` manifest
+
+## 0.0.103 — Per-Project SQLite Annotation Storage
+
+- **Breaking**: Annotations now stored in per-project SQLite databases (`src/projects/<name>/.bryllen/annotations.db`)
+- Projects now have unique IDs (UUID) generated at creation time
+- Switching projects no longer mixes annotations — each project is fully isolated
+- Annotations persist across server restarts
+- Migration 0.0.103: adds `id` field to existing project manifests
+- Old `annotations.json` files are cleaned up on server startup
+- Added `projectId` query param to all annotation API endpoints
+- SSE events scoped to project for better multi-project support
+- Added `projectManifest` template function with UUID generation
+- Added per-project annotation database functions to `src/server/db.js`
+
 ## 0.0.87
 
 - **fix: persistence race condition** — canvas color and frame positions were being overwritten on mount before the saved values could load. Added load-complete guards to prevent saving until initial fetch completes.

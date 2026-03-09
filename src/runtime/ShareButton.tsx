@@ -163,7 +163,7 @@ export function ShareButton({ shareUrl, projectName, annotationEndpoint }: Share
           backgroundColor: status === 'shared' && shareUrl ? 'oklch(0.55 0.14 155)' : V.txtPri,
           color: V.card,
           border: 'none',
-          borderRadius: R.ui,
+          borderRadius: R.ui, cornerShape: 'squircle',
           fontSize: T.ui,
           fontWeight: 500,
           fontFamily: FONT,

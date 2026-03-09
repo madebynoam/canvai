@@ -1,17 +1,14 @@
-import { useState, useEffect, useCallback, useRef, memo } from 'react'
-import { X } from 'lucide-react'
+import { useState, useEffect, useCallback, useRef, memo, useMemo } from 'react'
+import { X, Info, Star, Check, ChevronDown } from 'lucide-react'
 import { Canvas } from './Canvas'
 import { Frame } from './Frame'
 import { useFrames } from './useFrames'
 import { layoutFrames } from './layout'
 import { TopBar } from './TopBar'
-import { IterationSidebar } from './IterationSidebar'
 import { AnnotationOverlay } from './AnnotationOverlay'
 import { CommentOverlay } from './CommentOverlay'
-import { NewIterationDialog } from './NewIterationDialog'
 import { NewProjectDialog } from './NewProjectDialog'
 import { TourOverlay, isTourCompleted } from './TourOverlay'
-import { useNavMemory } from './useNavMemory'
 import { ZoomControl } from './ZoomControl'
 import { CanvasColorPicker, DEFAULT_CANVAS_COLOR, lightPresets, darkPresets } from './CanvasColorPicker'
 import { loadCanvasBgAsync, saveCanvasBgAsync } from './Canvas'
@@ -19,10 +16,11 @@ import { ActionButton } from './Menu'
 import { UpdateDialog } from './UpdateDialog'
 import { checkForUpdate, getDismissedVersion } from './versionCheck'
 import { VERSION } from './version'
+import { InfoButton } from './InfoButton'
 import { D, E, S, T, R, FONT, DIM, V } from './tokens'
 import { ThemeProvider, useTheme } from './useTheme'
 import { TokenPanel, TokenPanelToggle } from './TokenPanel'
-import type { ProjectManifest, CanvasImageFrame } from './types'
+import type { ProjectManifest, CanvasImageFrame, FrameStatus, ManifestFrame, CanvasFrame } from './types'
 
 interface BryllenShellProps {
   manifests: ProjectManifest[]
@@ -42,8 +40,8 @@ function loadProjectIndex(max: number): number {
   return 0
 }
 
-// URL routing: /:project/:iteration/:page
-function parseUrl(manifests: ProjectManifest[]): { projectIdx: number; iterationIdx: number; pageIdx: number } | null {
+// URL routing: /:project
+function parseUrl(manifests: ProjectManifest[]): { projectIdx: number } | null {
   const path = window.location.pathname
   if (path === '/' || path === '') return null
 
@@ -54,30 +52,144 @@ function parseUrl(manifests: ProjectManifest[]): { projectIdx: number; iteration
   const projectIdx = manifests.findIndex(m => m.project === projectName)
   if (projectIdx < 0) return null
 
-  const project = manifests[projectIdx]
-  let iterationIdx = (project.iterations?.length ?? 1) - 1 // default to latest
-  let pageIdx = 0
-
-  if (parts[1]) {
-    const iterName = decodeURIComponent(parts[1])
-    const idx = project.iterations?.findIndex(i => i.name.toLowerCase() === iterName.toLowerCase()) ?? -1
-    if (idx >= 0) iterationIdx = idx
-  }
-
-  if (parts[2]) {
-    const pageName = decodeURIComponent(parts[2])
-    const iteration = project.iterations?.[iterationIdx]
-    const idx = iteration?.pages?.findIndex(p => p.name.toLowerCase() === pageName.toLowerCase()) ?? -1
-    if (idx >= 0) {
-      pageIdx = idx
-    }
-  }
-
-  return { projectIdx, iterationIdx, pageIdx }
+  return { projectIdx }
 }
 
-function buildUrl(project: string, iteration: string, page: string): string {
-  return `/${encodeURIComponent(project)}/${encodeURIComponent(iteration)}/${encodeURIComponent(page)}`
+function buildUrl(project: string): string {
+  return `/${encodeURIComponent(project)}`
+}
+
+/* ── Frame Status Filter Dropdown ── */
+
+interface StatusFilterProps {
+  value: FrameStatus | 'all'
+  onChange: (value: FrameStatus | 'all') => void
+  counts: Record<FrameStatus | 'all', number>
+}
+
+const STATUS_FILTER_OPTIONS: Array<{ value: FrameStatus | 'all'; label: string; icon?: typeof Star; fill?: string; stroke?: string }> = [
+  { value: 'all', label: 'All' },
+  { value: 'starred', label: 'Starred', icon: Star, fill: '#F59E0B', stroke: '#F59E0B' },
+  { value: 'approved', label: 'Approved', icon: Check, fill: 'none', stroke: '#10B981' },
+  { value: 'rejected', label: 'Rejected', icon: X, fill: 'none', stroke: '#EF4444' },
+]
+
+function FilterDropdownItem({ opt, selected, onClick, count }: {
+  opt: typeof STATUS_FILTER_OPTIONS[number]
+  selected: boolean
+  onClick: () => void
+  count: number
+}) {
+  const [hovered, setHovered] = useState(false)
+  return (
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+        width: '100%',
+        padding: '6px 10px',
+        background: hovered ? 'rgba(0,0,0,0.08)' : selected ? 'rgba(0,0,0,0.05)' : 'none',
+        border: 'none',
+        borderRadius: 4,
+        cursor: 'default',
+        fontSize: T.ui,
+        fontFamily: FONT,
+        color: V.txtPri,
+        transition: 'background 0.1s ease',
+      }}
+    >
+      {opt.icon ? <opt.icon size={14} fill={opt.fill} stroke={opt.stroke} strokeWidth={2} /> : <span style={{ width: 14 }} />}
+      <span style={{ flex: 1, textAlign: 'left' }}>{opt.label}</span>
+      <span style={{ color: V.txtSec }}>{count}</span>
+    </button>
+  )
+}
+
+function StatusFilter({ value, onChange, counts }: StatusFilterProps) {
+  const [open, setOpen] = useState(false)
+
+  // Close on outside click (with delay to avoid catching the opening click)
+  useEffect(() => {
+    if (!open) return
+    const handleClick = () => setOpen(false)
+    // Delay adding listener to next tick so opening click doesn't trigger close
+    const timer = setTimeout(() => {
+      window.addEventListener('click', handleClick)
+    }, 0)
+    return () => {
+      clearTimeout(timer)
+      window.removeEventListener('click', handleClick)
+    }
+  }, [open])
+
+  const current = STATUS_FILTER_OPTIONS.find(o => o.value === value) ?? STATUS_FILTER_OPTIONS[0]
+
+  const handleButtonClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    e.preventDefault()
+    setOpen(o => !o)
+  }
+
+  return (
+    <div style={{ position: 'relative', pointerEvents: 'auto' }}>
+      <button
+        onClick={handleButtonClick}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+          padding: '6px 10px',
+          background: V.card,
+          border: `1px solid ${V.border}`,
+          borderRadius: R.ui,
+          fontSize: T.ui,
+          fontFamily: FONT,
+          color: V.txtPri,
+          cursor: 'default',
+          boxShadow: V.shadow,
+        }}
+      >
+        {current.icon && <current.icon size={14} fill={current.fill} stroke={current.stroke} strokeWidth={2} />}
+        <span>{current.label}</span>
+        <span style={{ color: V.txtSec }}>({counts[value]})</span>
+        <ChevronDown size={12} style={{ marginLeft: 2, color: V.txtSec }} />
+      </button>
+      {open && (
+        <div
+          onClick={e => e.stopPropagation()}
+          onPointerDown={e => e.stopPropagation()}
+          style={{
+            position: 'absolute',
+            top: '100%',
+            left: 0,
+            marginTop: 4,
+            background: V.card,
+            border: `1px solid ${V.border}`,
+            borderRadius: R.ui,
+            boxShadow: V.shadow,
+            padding: 4,
+            zIndex: 1000,
+            minWidth: 140,
+            pointerEvents: 'auto',
+          }}
+        >
+          {STATUS_FILTER_OPTIONS.map(opt => (
+            <FilterDropdownItem
+              key={opt.value}
+              opt={opt}
+              selected={value === opt.value}
+              onClick={() => { onChange(opt.value); setOpen(false) }}
+              count={counts[opt.value]}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  )
 }
 
 /* ── Toast with spring enter / fade exit ── */
@@ -225,7 +337,7 @@ export function BryllenShell({ manifests, annotationEndpoint = 'http://localhost
 interface BryllenShellInnerProps {
   manifests: ProjectManifest[]
   annotationEndpoint: string
-  urlState: { projectIdx: number; iterationIdx: number; pageIdx: number } | null
+  urlState: { projectIdx: number } | null
 }
 
 function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenShellInnerProps) {
@@ -240,8 +352,6 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
   }, [cssVars])
 
   const [activeProjectIndex, setActiveProjectIndex] = useState(() => urlState?.projectIdx ?? loadProjectIndex(manifests.length))
-  const [urlIterationIdx] = useState(() => urlState?.iterationIdx)
-  const [urlPageIdx] = useState(() => urlState?.pageIdx)
 
   // Persist active project selection
   useEffect(() => {
@@ -249,8 +359,6 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
   }, [activeProjectIndex])
 
   const [commentCount, setCommentCount] = useState(0)
-  const [sidebarOpen, setSidebarOpen] = useState(true)
-  const [iterDialogOpen, setIterDialogOpen] = useState(false)
   const [projectDialogOpen, setProjectDialogOpen] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(null)
@@ -311,39 +419,6 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
     }
   }, [annotationEndpoint, showToast])
 
-  const handleNewIteration = useCallback(async (prompt: string, images?: Array<{ id: string; dataUrl: string; filename: string }>) => {
-    const projectName = activeProject?.project ?? ''
-    // Figure out next iteration name (v1, v2, etc.)
-    const nextIterNum = (activeProject?.iterations?.length ?? 0) + 1
-    const nextIterName = `v${nextIterNum}`
-
-    try {
-      // Upload inspiration images to new iteration's context folder
-      if (images && images.length > 0) {
-        for (const img of images) {
-          await fetch(`${annotationEndpoint}/context`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              project: projectName,
-              iteration: nextIterName,
-              dataUrl: img.dataUrl,
-              filename: img.filename,
-            }),
-          })
-        }
-      }
-
-      await fetch(`${annotationEndpoint}/annotations`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'iteration', comment: prompt, project: projectName }),
-      })
-      showToast('Iteration submitted')
-    } catch {
-      showToast('Failed to submit')
-    }
-  }, [annotationEndpoint, showToast, activeProject])
 
   // Handle prompt request submission (from agent's /bryllen-new without prompt)
   const handlePromptRequestSubmit = useCallback(async (payload: { name: string; description: string; prompt: string; images?: Array<{ id: string; dataUrl: string; filename: string }> }) => {
@@ -383,13 +458,7 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
     }
   }, [annotationEndpoint, showToast, promptRequest])
 
-  const { iterationIndex: activeIterationIndex, pageIndex: activePageIndex, setIteration: setActiveIterationIndex, setPage: setActivePageIndex } = useNavMemory(
-    activeProject?.project ?? '',
-    activeProject?.iterations ?? [],
-    { iterationIdx: urlIterationIdx, pageIdx: urlPageIdx },
-  )
-
-  // SSE listener for prompt-requested and navigate events
+  // SSE listener for prompt-requested events
   useEffect(() => {
     if (typeof window === 'undefined') return
 
@@ -413,72 +482,141 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
             }
             setPromptRequest({ id: String(data.id), projectName })
           }
-        } else if (data.type === 'navigate' && data.iteration) {
-          // Navigate to a specific iteration (e.g., after creating a new one)
-          // Store as pending — HMR may not have loaded the new iteration yet
-          setPendingNavigation(data.iteration)
         }
       } catch { /* ignore parse errors */ }
     }
     return () => source.close()
   }, [annotationEndpoint])
 
-  // Handle pending navigation once HMR loads the new iteration
+  // Sync URL when project changes
   useEffect(() => {
-    if (!pendingNavigation) return
-    const iterations = activeProject?.iterations ?? []
-    const targetIdx = iterations.findIndex(it =>
-      it.name.toLowerCase() === pendingNavigation.toLowerCase()
-    )
-    if (targetIdx >= 0) {
-      setActiveIterationIndex(targetIdx)
-      setActivePageIndex(0)
-      setPendingNavigation(null)
-    }
-  }, [pendingNavigation, activeProject?.iterations, setActiveIterationIndex, setActivePageIndex])
-
-  const activeIteration = activeProject?.iterations?.[activeIterationIndex]
-  const iterClass = activeIteration ? `iter-${activeIteration.name.toLowerCase()}` : ''
-  const iterationName = activeIteration?.name ?? 'v1'
-
-  // Sync URL when navigation changes
-  const augmentedPagesForUrl = activeIteration?.pages ?? []
-  const activePageForUrl = augmentedPagesForUrl[activePageIndex]
-  useEffect(() => {
-    if (activeProject?.project && activeIteration?.name && activePageForUrl?.name) {
-      const newUrl = buildUrl(activeProject.project, activeIteration.name, activePageForUrl.name)
+    if (activeProject?.project) {
+      const newUrl = buildUrl(activeProject.project)
       if (window.location.pathname !== newUrl) {
         window.history.replaceState(null, '', newUrl)
       }
     }
-  }, [activeProject?.project, activeIteration?.name, activePageForUrl?.name])
+  }, [activeProject?.project])
 
-  // Build pages array (no longer adding virtual Context page)
-  const augmentedPages = activeIteration?.pages ?? []
-  const activePage = augmentedPages[activePageIndex]
-  const pageName = activePage?.name ?? ''
-  const layoutedFrames = activePage ? layoutFrames(activePage) : []
+  // Get frames from either flat structure or legacy iterations structure
+  const getLayoutedProjectFrames = (project: ProjectManifest | undefined): CanvasFrame[] => {
+    if (!project) return []
+
+    // New flat structure
+    if (project.frames && project.frames.length > 0) {
+      return layoutFrames(project.frames, project.grid)
+    }
+
+    // Legacy iterations structure - layout iterations HORIZONTALLY, pages within each VERTICALLY
+    if (project.iterations && project.iterations.length > 0) {
+      const allFrames: CanvasFrame[] = []
+      const ORIGIN_X = 100
+      const ORIGIN_Y = 100
+      const ITERATION_GAP = 200 // Gap between iterations (horizontal)
+      const PAGE_GAP = 100 // Gap between pages within iteration (vertical)
+
+      let currentX = ORIGIN_X
+
+      for (const iteration of project.iterations) {
+        let currentY = ORIGIN_Y
+        let iterationMaxX = currentX // Track the rightmost edge of this iteration
+
+        for (const page of iteration.pages ?? []) {
+          if (!page.frames || page.frames.length === 0) continue
+
+          // Layout this page's frames
+          const pageFrames = layoutFrames(page.frames, page.grid)
+
+          // Offset frames to current position
+          const offsetFrames = pageFrames.map(f => ({
+            ...f,
+            x: f.x - ORIGIN_X + currentX, // Offset X by iteration column
+            y: f.y - ORIGIN_Y + currentY, // Offset Y within iteration
+          }))
+
+          allFrames.push(...offsetFrames)
+
+          // Track the rightmost edge of this page
+          const pageMaxX = Math.max(...offsetFrames.map(f => f.x + f.width))
+          if (pageMaxX > iterationMaxX) iterationMaxX = pageMaxX
+
+          // Move Y down for next page
+          const pageMaxY = Math.max(...offsetFrames.map(f => f.y + f.height))
+          currentY = pageMaxY + PAGE_GAP
+        }
+
+        // Move X right for next iteration
+        currentX = iterationMaxX + ITERATION_GAP
+      }
+      return allFrames
+    }
+    return []
+  }
+
+  // Layout frames from the project
+  const layoutedFrames = activeProject ? getLayoutedProjectFrames(activeProject) : []
 
   // Token panel state
   const [tokenPanelOpen, setTokenPanelOpen] = useState(false)
-  // Find the Tokens page for the panel
-  const tokensPage = augmentedPages.find(p => p.name === 'Tokens')
 
-  const persistConfig = activeProject?.project && pageName
-    ? { project: activeProject.project, page: `${iterationName}/${pageName}` }
-    : undefined
-  const { frames, updateFrame, handleResize } = useFrames(layoutedFrames, activePage?.grid, persistConfig)
+  // Frame status state
+  const [frameStatuses, setFrameStatuses] = useState<Record<string, FrameStatus>>({})
+  const [statusFilter, setStatusFilter] = useState<FrameStatus | 'all'>('all')
 
-  // Get images for current page
-  const currentPageImages = pageImages[pageName] ?? []
-
-  // Load images for current page when page/iteration changes
+  // Load frame statuses when project changes
   useEffect(() => {
-    if (!activeProject?.project || !pageName) return
+    if (!activeProject?.project) return
+    fetch(`${annotationEndpoint}/frame-status?project=${encodeURIComponent(activeProject.project)}`)
+      .then(r => r.json())
+      .then(data => setFrameStatuses(data.statuses || {}))
+      .catch(() => setFrameStatuses({}))
+  }, [activeProject?.project, annotationEndpoint])
 
-    // Build URL with page param (images stored per-page)
-    const pageParam = `&page=${encodeURIComponent(pageName)}`
-    const url = `${annotationEndpoint}/context?project=${encodeURIComponent(activeProject.project)}&iteration=${encodeURIComponent(iterationName)}${pageParam}`
+  // Handle frame status change
+  const handleFrameStatusChange = useCallback((frameId: string, status: FrameStatus) => {
+    if (!activeProject?.project) return
+    setFrameStatuses(prev => ({ ...prev, [frameId]: status }))
+    // Save to backend
+    fetch(`${annotationEndpoint}/frame-status`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        project: activeProject.project,
+        frameId,
+        status,
+      }),
+    }).catch(() => {})
+  }, [activeProject?.project, annotationEndpoint])
+
+  const persistConfig = activeProject?.project
+    ? { project: activeProject.project, page: 'canvas' }
+    : undefined
+  const { frames, updateFrame, handleResize } = useFrames(layoutedFrames, activeProject?.grid, persistConfig)
+
+  // Calculate status counts for filter
+  const statusCounts = useMemo(() => {
+    const counts: Record<FrameStatus | 'all', number> = {
+      all: frames.length,
+      none: 0,
+      starred: 0,
+      approved: 0,
+      rejected: 0,
+    }
+    for (const frame of frames) {
+      const status = frameStatuses[frame.id] || 'none'
+      counts[status]++
+    }
+    return counts
+  }, [frames, frameStatuses])
+
+  // Get pasted images for the canvas
+  const currentPageImages = pageImages['canvas'] ?? []
+
+  // Load pasted images when project changes
+  useEffect(() => {
+    if (!activeProject?.project) return
+
+    const url = `${annotationEndpoint}/context?project=${encodeURIComponent(activeProject.project)}&iteration=v1&page=canvas`
 
     fetch(url)
       .then(r => r.json())
@@ -489,27 +627,27 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
             const saved = positions[img.filename]
             return {
               type: 'image' as const,
-              id: `${pageName}-${img.filename}`,
+              id: `canvas-${img.filename}`,
               title: img.filename,
-              src: `${annotationEndpoint}/context-image?project=${encodeURIComponent(activeProject.project)}&iteration=${encodeURIComponent(iterationName)}&page=${encodeURIComponent(pageName)}&filename=${encodeURIComponent(img.filename)}`,
+              src: `${annotationEndpoint}/context-image?project=${encodeURIComponent(activeProject.project)}&iteration=v1&page=canvas&filename=${encodeURIComponent(img.filename)}`,
               x: saved?.x ?? 50 + (i % 4) * 320,
               y: saved?.y ?? 50 + Math.floor(i / 4) * 320,
               width: saved?.width ?? 300,
               height: saved?.height ?? 300,
             }
           })
-          setPageImages(prev => ({ ...prev, [pageName]: images }))
+          setPageImages(prev => ({ ...prev, ['canvas']: images }))
         } else {
-          setPageImages(prev => ({ ...prev, [pageName]: [] }))
+          setPageImages(prev => ({ ...prev, ['canvas']: [] }))
         }
       })
-      .catch(() => setPageImages(prev => ({ ...prev, [pageName]: [] })))
-  }, [activeProject?.project, iterationName, pageName, annotationEndpoint])
+      .catch(() => setPageImages(prev => ({ ...prev, ['canvas']: [] })))
+  }, [activeProject?.project, annotationEndpoint])
 
-  // Save image positions per-page (debounced)
+  // Save image positions (debounced)
   const savePositionsRef = useRef<ReturnType<typeof setTimeout>>()
   useEffect(() => {
-    if (!activeProject?.project || !pageName || currentPageImages.length === 0) return
+    if (!activeProject?.project || currentPageImages.length === 0) return
     clearTimeout(savePositionsRef.current)
     savePositionsRef.current = setTimeout(() => {
       const positions: Record<string, { x: number; y: number; width: number; height: number }> = {}
@@ -520,14 +658,14 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
       fetch(`${annotationEndpoint}/context-positions`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ project: activeProject.project, iteration: iterationName, page: pageName, positions }),
+        body: JSON.stringify({ project: activeProject.project, iteration: 'v1', page: 'canvas', positions }),
       }).catch(() => {})
     }, 300)
-  }, [currentPageImages, activeProject?.project, iterationName, pageName, annotationEndpoint])
+  }, [currentPageImages, activeProject?.project, annotationEndpoint])
 
-  // Handle image paste — save to server and add to current page
+  // Handle image paste — save to server and add to canvas
   const handleImagePaste = useCallback(async (dataUrl: string, filename: string, viewportCenter: { x: number; y: number }) => {
-    if (!activeProject?.project || !pageName) return
+    if (!activeProject?.project) return
 
     try {
       const res = await fetch(`${annotationEndpoint}/context`, {
@@ -535,8 +673,8 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           project: activeProject.project,
-          iteration: iterationName,
-          page: pageName,
+          iteration: 'v1',
+          page: 'canvas',
           dataUrl,
           filename,
         }),
@@ -545,39 +683,39 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
 
       if (result.path) {
         // Add to local state immediately — position near viewport center with slight offset for each image
-        const currentImages = pageImages[pageName] ?? []
+        const currentImages = pageImages['canvas'] ?? []
         // Offset each subsequent image slightly so they don't stack exactly
         const offsetIndex = currentImages.length % 5
         const newImage: CanvasImageFrame = {
           type: 'image',
-          id: `${pageName}-${result.filename}`,
+          id: `canvas-${result.filename}`,
           title: result.filename,
-          src: `${annotationEndpoint}/context-image?project=${encodeURIComponent(activeProject.project)}&iteration=${encodeURIComponent(iterationName)}&page=${encodeURIComponent(pageName)}&filename=${encodeURIComponent(result.filename)}`,
+          src: `${annotationEndpoint}/context-image?project=${encodeURIComponent(activeProject.project)}&iteration=v1&page=canvas&filename=${encodeURIComponent(result.filename)}`,
           x: viewportCenter.x - 150 + offsetIndex * 30,  // Center minus half width, plus cascade offset
           y: viewportCenter.y - 150 + offsetIndex * 30,  // Center minus half height, plus cascade offset
           width: 300,
           height: 300,
         }
-        setPageImages(prev => ({ ...prev, [pageName]: [...(prev[pageName] ?? []), newImage] }))
+        setPageImages(prev => ({ ...prev, ['canvas']: [...(prev['canvas'] ?? []), newImage] }))
         showToast('Image added')
       }
     } catch {
       showToast('Failed to save image')
     }
-  }, [activeProject?.project, iterationName, pageName, pageImages, annotationEndpoint, showToast])
+  }, [activeProject?.project, pageImages, annotationEndpoint, showToast])
 
-  // Handle image deletion from current page
+  // Handle image deletion from canvas
   const handleDeletePageImage = useCallback(async (imageId: string, filename: string) => {
-    if (!activeProject?.project || !pageName) return
+    if (!activeProject?.project) return
 
     try {
-      const res = await fetch(`${annotationEndpoint}/context?project=${encodeURIComponent(activeProject.project)}&iteration=${encodeURIComponent(iterationName)}&page=${encodeURIComponent(pageName)}&filename=${encodeURIComponent(filename)}`, {
+      const res = await fetch(`${annotationEndpoint}/context?project=${encodeURIComponent(activeProject.project)}&iteration=v1&page=canvas&filename=${encodeURIComponent(filename)}`, {
         method: 'DELETE',
       })
       if (res.ok) {
         setPageImages(prev => ({
           ...prev,
-          [pageName]: (prev[pageName] ?? []).filter(img => img.id !== imageId)
+          ['canvas']: (prev['canvas'] ?? []).filter(img => img.id !== imageId)
         }))
         showToast('Image deleted')
       } else {
@@ -586,7 +724,7 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
     } catch {
       showToast('Failed to delete image')
     }
-  }, [activeProject?.project, iterationName, pageName, annotationEndpoint, showToast])
+  }, [activeProject?.project, annotationEndpoint, showToast])
 
   const projectKey = activeProject?.project ?? ''
   const [canvasBg, setCanvasBg] = useState(DEFAULT_CANVAS_COLOR)
@@ -699,14 +837,8 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
         projects={manifests}
         activeProjectIndex={activeProjectIndex}
         onSelectProject={setActiveProjectIndex}
-        iterations={activeProject?.iterations ?? []}
-        activeIterationIndex={activeIterationIndex}
-        onSelectIteration={setActiveIterationIndex}
         annotationEndpoint={annotationEndpoint}
         commentCount={commentCount}
-        sidebarOpen={sidebarOpen}
-        onToggleSidebar={() => setSidebarOpen(o => !o)}
-        onNewIteration={() => setIterDialogOpen(true)}
         onNewProject={() => setProjectDialogOpen(true)}
         shareUrl={activeProject?.shareUrl}
         projectName={activeProject?.project ?? ''}
@@ -715,15 +847,7 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
       />
 
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
-        <IterationSidebar
-          iterationName={activeIteration?.name ?? ''}
-          pages={augmentedPages}
-          activePageIndex={activePageIndex}
-          onSelectPage={setActivePageIndex}
-          collapsed={!sidebarOpen}
-        />
-
-        <div className={iterClass} style={{ flex: 1, backgroundColor: V.chrome, padding: `${E.insetTop}px ${E.inset}px ${E.inset}px` }}>
+        <div style={{ flex: 1, backgroundColor: V.chrome, padding: `${E.insetTop}px ${E.inset}px ${E.inset}px` }}>
           <div style={{
             width: '100%',
             height: '100%',
@@ -734,47 +858,44 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
             position: 'relative',
           } as React.CSSProperties}>
             <Canvas
-              pageKey={`${activeProject?.project ?? ''}-${activeIteration?.name ?? ''}-${activePage?.name ?? ''}`}
+              pageKey={`${activeProject?.project ?? ''}-canvas`}
               onImagePaste={handleImagePaste}
               hud={<>
+                <div style={{ position: 'absolute', top: 12, left: 12, zIndex: 5 }}>
+                  <StatusFilter value={statusFilter} onChange={setStatusFilter} counts={statusCounts} />
+                </div>
                 <div style={{ position: 'absolute', top: 12, right: 12, zIndex: 5, display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <CanvasColorPicker activeColor={canvasBg} onSelect={setCanvasBg} />
-                  {tokensPage && <TokenPanelToggle onClick={() => setTokenPanelOpen(o => !o)} />}
+                </div>
+                <div style={{ position: 'absolute', bottom: 12, left: 12, zIndex: 5 }}>
+                  <InfoButton />
                 </div>
                 <div style={{ position: 'absolute', bottom: 12, left: '50%', transform: 'translateX(-50%)', zIndex: 5 }}>
                   <ZoomControl />
                 </div>
-                <TokenPanel
-                  open={tokenPanelOpen}
-                  onClose={() => setTokenPanelOpen(false)}
-                  tokensPage={tokensPage}
-                />
               </>}
             >
               {/* Render component frames */}
-              {frames.map(frame => {
-                // Support both single pickedFrameId and array pickedFrameIds
-                const pickedFrameIds = activeIteration?.pickedFrameIds ??
-                  (activeIteration?.pickedFrameId ? [activeIteration.pickedFrameId] : [])
-                const isFaded = pickedFrameIds.length > 0 && !pickedFrameIds.includes(frame.id)
-                return (
-                  <Frame
-                    key={frame.id}
-                    id={frame.id}
-                    title={frame.title}
-                    x={frame.x}
-                    y={frame.y}
-                    width={frame.width}
-                    height={frame.height}
-                    onMove={(id, newX, newY) => updateFrame(id, { x: newX, y: newY })}
-                    onResize={handleResize}
-                    faded={isFaded}
-                  >
-                    {'component' in frame && <frame.component {...(frame.props ?? {})} />}
-                  </Frame>
-                )
-              })}
-              {/* Render pasted images on current page */}
+              {frames
+                .filter(frame => statusFilter === 'all' || frameStatuses[frame.id] === statusFilter || (statusFilter === 'none' && !frameStatuses[frame.id]))
+                .map(frame => (
+                <Frame
+                  key={frame.id}
+                  id={frame.id}
+                  title={frame.title}
+                  x={frame.x}
+                  y={frame.y}
+                  width={frame.width}
+                  height={frame.height}
+                  onMove={(id, newX, newY) => updateFrame(id, { x: newX, y: newY })}
+                  onResize={handleResize}
+                  status={frameStatuses[frame.id] || 'none'}
+                  onStatusChange={handleFrameStatusChange}
+                >
+                  {'component' in frame && <frame.component {...(frame.props ?? {})} />}
+                </Frame>
+              ))}
+              {/* Render pasted images */}
               {currentPageImages.map(img => (
                 <Frame
                   key={img.id}
@@ -787,7 +908,7 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
                   onMove={(id, newX, newY) => {
                     setPageImages(prev => ({
                       ...prev,
-                      [pageName]: (prev[pageName] ?? []).map(ci =>
+                      ['canvas']: (prev['canvas'] ?? []).map(ci =>
                         ci.id === id ? { ...ci, x: newX, y: newY } : ci
                       )
                     }))
@@ -797,7 +918,6 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
                     src={img.src}
                     title={img.title}
                     onDelete={() => {
-                      // Extract filename from id (format: "pageName-filename")
                       const filename = img.title
                       handleDeletePageImage(img.id, filename)
                     }}
@@ -812,13 +932,6 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
       {import.meta.env.DEV && <AnnotationOverlay endpoint={annotationEndpoint} frames={[...frames, ...currentPageImages]} showToast={showToast} project={projectKey} projectId={activeProject?.id} />}
       {/* Comment overlay hidden for now */}
       {/* <CommentOverlay endpoint={annotationEndpoint} frames={frames} onCommentCountChange={setCommentCount} /> */}
-      {import.meta.env.DEV && (
-        <NewIterationDialog
-          open={iterDialogOpen}
-          onClose={() => setIterDialogOpen(false)}
-          onSubmit={handleNewIteration}
-        />
-      )}
       {import.meta.env.DEV && (
         <NewProjectDialog
           open={projectDialogOpen}

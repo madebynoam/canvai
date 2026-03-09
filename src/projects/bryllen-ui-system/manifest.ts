@@ -55,6 +55,7 @@ import { DSMatrix } from './v11/pages/ds-matrix'
 import type { ProjectManifest } from '../../runtime/types'
 
 const manifest: ProjectManifest = {
+  id: 'f9aa1ce5-0d68-43bb-89c2-60a3c38949c8',
   project: 'canvai-ui-system',
   iterations: [
     {

@@ -1,6 +1,5 @@
 import { S, R, T, FONT } from '../tokens'
-import { TokenSwatch } from '../../../../runtime'
-import { ScaleRow } from '../components'
+import { TokenSwatch, SpacingToken, RadiusToken, FontSizeToken } from '../../../../runtime'
 
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -68,26 +67,32 @@ export function Tokens() {
       </Section>
 
       <Section title="Spacing — 4px grid">
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
-          {Object.entries(S).map(([key, val]) => (
-            <ScaleRow key={key} label={`S.${key}`} value={val} preview="box" />
-          ))}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: S.sm }}>
+          <SpacingToken value={S.xs} label="S.xs" sublabel="4px" tokenPath="--spacing-xs" />
+          <SpacingToken value={S.sm} label="S.sm" sublabel="8px" tokenPath="--spacing-sm" />
+          <SpacingToken value={S.md} label="S.md" sublabel="12px" tokenPath="--spacing-md" />
+          <SpacingToken value={S.lg} label="S.lg" sublabel="16px" tokenPath="--spacing-lg" />
+          <SpacingToken value={S.xl} label="S.xl" sublabel="20px" tokenPath="--spacing-xl" />
+          <SpacingToken value={S.xxl} label="S.xxl" sublabel="24px" tokenPath="--spacing-xxl" />
         </div>
       </Section>
 
       <Section title="Radii">
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
-          {Object.entries(R).map(([key, val]) => (
-            <ScaleRow key={key} label={`R.${key}`} value={val} preview="radius" />
-          ))}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: S.sm }}>
+          <RadiusToken value={R.control} label="R.control" sublabel="4px — controls" tokenPath="--radius-control" />
+          <RadiusToken value={R.card} label="R.card" sublabel="8px — cards" tokenPath="--radius-card" />
+          <RadiusToken value={R.panel} label="R.panel" sublabel="12px — panels" tokenPath="--radius-panel" />
+          <RadiusToken value={R.pill} label="R.pill" sublabel="20px — pills" tokenPath="--radius-pill" />
         </div>
       </Section>
 
       <Section title="Typography">
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
-          {Object.entries(T).map(([key, val]) => (
-            <ScaleRow key={key} label={`T.${key}`} value={val} preview="text" />
-          ))}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: S.sm }}>
+          <FontSizeToken value={T.label} label="T.label" sublabel="9px — labels" tokenPath="--font-label" />
+          <FontSizeToken value={T.pill} label="T.pill" sublabel="10px — pills" tokenPath="--font-pill" />
+          <FontSizeToken value={T.caption} label="T.caption" sublabel="11px — captions" tokenPath="--font-caption" />
+          <FontSizeToken value={T.body} label="T.body" sublabel="12px — body" tokenPath="--font-body" />
+          <FontSizeToken value={T.title} label="T.title" sublabel="13px — titles" tokenPath="--font-title" />
         </div>
       </Section>
     </div>

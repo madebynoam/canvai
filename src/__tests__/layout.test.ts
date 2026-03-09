@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { layoutFrames, relayoutFrames } from '../runtime/layout'
-import type { PageManifest, CanvasFrame } from '../runtime/types'
+import type { ManifestFrame, GridConfig, CanvasFrame } from '../runtime/types'
 
 // Mock component for testing
 const MockComponent = () => null
@@ -9,17 +9,14 @@ MockComponent.displayName = 'MockComponent'
 describe('layoutFrames', () => {
   describe('horizontal layout (frames side by side)', () => {
     it('positions 3 frames horizontally when columns >= 3', () => {
-      const page: PageManifest = {
-        name: 'Test',
-        grid: { columns: 3, columnWidth: 1440, rowHeight: 900, gap: 40 },
-        frames: [
-          { id: 'a', title: 'A', component: MockComponent, width: 1440, height: 900 },
-          { id: 'b', title: 'B', component: MockComponent, width: 1440, height: 900 },
-          { id: 'c', title: 'C', component: MockComponent, width: 1440, height: 900 },
-        ],
-      }
+      const frames: ManifestFrame[] = [
+        { id: 'a', title: 'A', component: MockComponent, width: 1440, height: 900 },
+        { id: 'b', title: 'B', component: MockComponent, width: 1440, height: 900 },
+        { id: 'c', title: 'C', component: MockComponent, width: 1440, height: 900 },
+      ]
+      const grid: GridConfig = { columns: 3, columnWidth: 1440, rowHeight: 900, gap: 40 }
 
-      const result = layoutFrames(page)
+      const result = layoutFrames(frames, grid)
 
       // All frames should have same Y (horizontal layout)
       expect(result[0].y).toBe(100)
@@ -33,19 +30,16 @@ describe('layoutFrames', () => {
     })
 
     it('positions 5 frames horizontally when columns=5', () => {
-      const page: PageManifest = {
-        name: 'Test',
-        grid: { columns: 5, columnWidth: 1440, rowHeight: 900, gap: 40 },
-        frames: [
-          { id: 'a', title: 'A', component: MockComponent, width: 1440, height: 900 },
-          { id: 'b', title: 'B', component: MockComponent, width: 1440, height: 900 },
-          { id: 'c', title: 'C', component: MockComponent, width: 1440, height: 900 },
-          { id: 'd', title: 'D', component: MockComponent, width: 1440, height: 900 },
-          { id: 'e', title: 'E', component: MockComponent, width: 1440, height: 900 },
-        ],
-      }
+      const frames: ManifestFrame[] = [
+        { id: 'a', title: 'A', component: MockComponent, width: 1440, height: 900 },
+        { id: 'b', title: 'B', component: MockComponent, width: 1440, height: 900 },
+        { id: 'c', title: 'C', component: MockComponent, width: 1440, height: 900 },
+        { id: 'd', title: 'D', component: MockComponent, width: 1440, height: 900 },
+        { id: 'e', title: 'E', component: MockComponent, width: 1440, height: 900 },
+      ]
+      const grid: GridConfig = { columns: 5, columnWidth: 1440, rowHeight: 900, gap: 40 }
 
-      const result = layoutFrames(page)
+      const result = layoutFrames(frames, grid)
 
       // All 5 frames on same row
       expect(result.every(f => f.y === 100)).toBe(true)
@@ -61,17 +55,14 @@ describe('layoutFrames', () => {
 
   describe('wrapping to new rows', () => {
     it('wraps to second row when frames exceed columns', () => {
-      const page: PageManifest = {
-        name: 'Test',
-        grid: { columns: 2, columnWidth: 1440, rowHeight: 900, gap: 40 },
-        frames: [
-          { id: 'a', title: 'A', component: MockComponent, width: 1440, height: 900 },
-          { id: 'b', title: 'B', component: MockComponent, width: 1440, height: 900 },
-          { id: 'c', title: 'C', component: MockComponent, width: 1440, height: 900 },
-        ],
-      }
+      const frames: ManifestFrame[] = [
+        { id: 'a', title: 'A', component: MockComponent, width: 1440, height: 900 },
+        { id: 'b', title: 'B', component: MockComponent, width: 1440, height: 900 },
+        { id: 'c', title: 'C', component: MockComponent, width: 1440, height: 900 },
+      ]
+      const grid: GridConfig = { columns: 2, columnWidth: 1440, rowHeight: 900, gap: 40 }
 
-      const result = layoutFrames(page)
+      const result = layoutFrames(frames, grid)
 
       // Row 1: frames a, b at y=100
       expect(result[0].y).toBe(100)
@@ -89,17 +80,14 @@ describe('layoutFrames', () => {
 
   describe('uses actual frame widths', () => {
     it('positions frames using their individual widths', () => {
-      const page: PageManifest = {
-        name: 'Test',
-        grid: { columns: 3, gap: 40 },
-        frames: [
-          { id: 'a', title: 'A', component: MockComponent, width: 400, height: 300 },
-          { id: 'b', title: 'B', component: MockComponent, width: 800, height: 300 },
-          { id: 'c', title: 'C', component: MockComponent, width: 600, height: 300 },
-        ],
-      }
+      const frames: ManifestFrame[] = [
+        { id: 'a', title: 'A', component: MockComponent, width: 400, height: 300 },
+        { id: 'b', title: 'B', component: MockComponent, width: 800, height: 300 },
+        { id: 'c', title: 'C', component: MockComponent, width: 600, height: 300 },
+      ]
+      const grid: GridConfig = { columns: 3, gap: 40 }
 
-      const result = layoutFrames(page)
+      const result = layoutFrames(frames, grid)
 
       // X: 100, 100+400+40=540, 540+800+40=1380
       expect(result[0].x).toBe(100)
@@ -110,18 +98,15 @@ describe('layoutFrames', () => {
 
   describe('default grid config', () => {
     it('uses default columns=4 when no grid specified', () => {
-      const page: PageManifest = {
-        name: 'Test',
-        frames: [
-          { id: 'a', title: 'A', component: MockComponent },
-          { id: 'b', title: 'B', component: MockComponent },
-          { id: 'c', title: 'C', component: MockComponent },
-          { id: 'd', title: 'D', component: MockComponent },
-          { id: 'e', title: 'E', component: MockComponent }, // 5th frame wraps
-        ],
-      }
+      const frames: ManifestFrame[] = [
+        { id: 'a', title: 'A', component: MockComponent },
+        { id: 'b', title: 'B', component: MockComponent },
+        { id: 'c', title: 'C', component: MockComponent },
+        { id: 'd', title: 'D', component: MockComponent },
+        { id: 'e', title: 'E', component: MockComponent }, // 5th frame wraps
+      ]
 
-      const result = layoutFrames(page)
+      const result = layoutFrames(frames)
 
       // First 4 on row 1
       expect(result[0].y).toBe(100)
@@ -136,17 +121,14 @@ describe('layoutFrames', () => {
 
   describe('NO diagonal layout', () => {
     it('NEVER produces diagonal layout (same row = same Y)', () => {
-      const page: PageManifest = {
-        name: 'Test',
-        grid: { columns: 10 }, // More columns than frames
-        frames: [
-          { id: 'a', title: 'A', component: MockComponent, width: 1440, height: 900 },
-          { id: 'b', title: 'B', component: MockComponent, width: 1440, height: 900 },
-          { id: 'c', title: 'C', component: MockComponent, width: 1440, height: 900 },
-        ],
-      }
+      const frames: ManifestFrame[] = [
+        { id: 'a', title: 'A', component: MockComponent, width: 1440, height: 900 },
+        { id: 'b', title: 'B', component: MockComponent, width: 1440, height: 900 },
+        { id: 'c', title: 'C', component: MockComponent, width: 1440, height: 900 },
+      ]
+      const grid: GridConfig = { columns: 10 } // More columns than frames
 
-      const result = layoutFrames(page)
+      const result = layoutFrames(frames, grid)
 
       // All frames must have same Y
       const yValues = result.map(f => f.y)

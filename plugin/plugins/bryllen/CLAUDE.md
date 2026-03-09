@@ -357,14 +357,33 @@ During ideation, multiple directions may have different component implementation
 - Same component with minor spacing tweaks
 - Same hierarchy with different font weights
 
-### Processing annotations
+### Processing annotations (CRITICAL — the annotation IS the map)
 
-1. Read `frameId`, `componentName`, `selector`, `comment`, `computedStyles`
-2. Follow guard protocol
-3. Map to file in `v<N>/components/` or `v<N>/pages/`
-4. **Route visual changes through tokens** — find/create semantic token in `tokens.css`, never hardcode values
-5. Run `npx bryllen resolve <id>` (auto-commits)
-6. Log to `CHANGELOG.md`
+**The annotation tells you EXACTLY where to edit. No guessing. No heuristics. Just read the fields:**
+
+| Field | What it tells you |
+|-------|-------------------|
+| `project` | Exact project folder: `src/projects/<project>/` |
+| `frameId` | Exact iteration + frame: `v8-dashboard` → `v8/` folder |
+| `componentName` | Exact file to edit |
+
+**Example:** `{ "project": "my-app", "frameId": "v3-sidebar", "componentName": "Sidebar" }`
+→ Edit `src/projects/my-app/v3/components/Sidebar.tsx` or `v3/pages/Sidebar.tsx`
+
+**NEVER:**
+- Guess the project from git commits
+- Use Explore agents to "find" the file
+- Check "which project is active"
+
+**Steps:**
+1. Read `project`, `frameId`, `componentName` from the annotation
+2. Construct the path directly: `src/projects/{project}/{iteration from frameId}/`
+3. Grep for `componentName` in that folder (components/ or pages/)
+4. Follow guard protocol
+5. Apply changes, route visual values through tokens
+5. **Route visual changes through tokens** — find/create semantic token in `tokens.css`, never hardcode values
+6. Run `npx bryllen resolve <id>` (auto-commits)
+7. Log to `CHANGELOG.md`
 
 ### Processing project annotations (`type: 'project'`)
 

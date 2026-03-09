@@ -1,8 +1,9 @@
 import { useRef, useState, useEffect, useCallback, createContext, useContext, useMemo } from 'react'
+import { S, R, T } from './tokens'
 
 const MIN_ZOOM = 0.1
 const MAX_ZOOM = 5
-const ENDPOINT = 'http://localhost:4748'
+const ENDPOINT = `http://localhost:${__BRYLLEN_HTTP_PORT__ ?? 4748}`
 
 // Viewport and canvas background are stored in SQLite via HTTP server
 // These are async but we provide sync wrappers for backward compat
@@ -79,8 +80,12 @@ export function useCanvas() {
 // Pending annotation data stored at Canvas level (survives page switches)
 export interface PendingAnnotation {
   id: string
-  color: string
-  lch: { l: number; c: number; h: number }
+  // Color tokens
+  color?: string
+  lch?: { l: number; c: number; h: number }
+  // Numeric tokens (spacing, radius, font)
+  value?: number
+  unit?: string
 }
 
 // Token override context — lets TokenSwatch propagate live edits via CSS custom properties
@@ -522,7 +527,28 @@ export function Canvas({ children, pageKey, hud, onImagePaste }: CanvasProps) {
               position: 'absolute',
               top: 0,
               left: 0,
-              ...Object.fromEntries(Object.entries(tokenOverrides).map(([k, v]) => [k, v])),
+              // Default spacing CSS variables
+              '--spacing-xs': `${S.xs}px`,
+              '--spacing-sm': `${S.sm}px`,
+              '--spacing-md': `${S.md}px`,
+              '--spacing-lg': `${S.lg}px`,
+              '--spacing-xl': `${S.xl}px`,
+              '--spacing-xxl': `${S.xxl}px`,
+              // Default radius CSS variables (all variations)
+              '--radius-control': '4px',
+              '--radius-card': '8px',
+              '--radius-panel': '12px',
+              '--radius-pill': '20px',
+              '--radius-ui': `${R.ui}px`,
+              // Default font size CSS variables (all variations)
+              '--font-label': '9px',
+              '--font-pill': '10px',
+              '--font-caption': '11px',
+              '--font-body': '12px',
+              '--font-title': '13px',
+              '--font-ui': `${T.ui}px`,
+              // Overrides take precedence
+              ...tokenOverrides,
             } as React.CSSProperties}
           >
             {children}

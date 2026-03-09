@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import { SquareMousePointer } from 'lucide-react'
-import { N, A, E, S, R, T, ICON, FONT } from '../../../../runtime/tokens'
+import { N, A, E, S, R, T, FONT } from '../../../../runtime/tokens'
 import { TopBar } from '../../../../runtime/TopBar'
-import { IterationSidebar } from '../../../../runtime/IterationSidebar'
 
 const projects = [
   { project: 'canvai-ui-system' },
@@ -10,24 +9,8 @@ const projects = [
   { project: 'dashboard' },
 ]
 
-const iterations = [
-  { name: 'V1' },
-  { name: 'V2' },
-  { name: 'V3' },
-]
-
-const pages = [
-  { name: 'Tokens' },
-  { name: 'Components' },
-  { name: 'Shell' },
-  { name: 'Team Settings' },
-]
-
 export function Shell() {
   const [projectIdx, setProjectIdx] = useState(0)
-  const [iterIdx, setIterIdx] = useState(0)
-  const [pageIdx, setPageIdx] = useState(2)
-  const [sidebarOpen, setSidebarOpen] = useState(true)
 
   return (
     <div style={{
@@ -40,25 +23,12 @@ export function Shell() {
         projects={projects}
         activeProjectIndex={projectIdx}
         onSelectProject={setProjectIdx}
-        iterations={iterations}
-        activeIterationIndex={iterIdx}
-        onSelectIteration={setIterIdx}
-        pendingCount={1}
-        mode="manual"
-        sidebarOpen={sidebarOpen}
-        onToggleSidebar={() => setSidebarOpen(o => !o)}
+        annotationEndpoint="http://localhost:4748"
+        projectName="canvai-ui-system"
       />
 
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
-        <IterationSidebar
-          iterationName={iterations[iterIdx].name}
-          pages={pages}
-          activePageIndex={pageIdx}
-          onSelectPage={setPageIdx}
-          collapsed={!sidebarOpen}
-        />
-
-        {/* Elevated canvas area */}
+        {/* Canvas area */}
         <div style={{ flex: 1, backgroundColor: N.chrome, padding: E.inset }}>
           <div style={{
             width: '100%', height: '100%',

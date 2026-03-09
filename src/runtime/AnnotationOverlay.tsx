@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
-import { SquareMousePointer, Trash2, Pencil, Lightbulb, Check, Minus, Plus, X } from 'lucide-react'
+import { SquareMousePointer, Trash2, Pencil, Lightbulb, Minus, Plus, X } from 'lucide-react'
 import { A, F, D, S, R, T, ICON, FONT, V } from './tokens'
 import { DialogCard, DialogActions, ActionButton } from './Menu'
 import type { CanvasFrame, CanvasComponentFrame, Connection } from './types'
@@ -43,10 +43,12 @@ interface AnnotationOverlayProps {
   frames: CanvasFrame[]
   showToast?: (msg: string) => void
   project?: string
+  /** UUID of the project (from manifest.id) — used for per-project annotation storage */
+  projectId?: string
 }
 
-/* ── Mode toggle (Refine / Ideate / Pick) — icon chips with tooltips ── */
-type AnnotationMode = 'refine' | 'ideate' | 'pick'
+/* ── Mode toggle (Refine / Ideate) — icon chips with tooltips ── */
+type AnnotationMode = 'refine' | 'ideate'
 
 interface ModeOption {
   mode: AnnotationMode
@@ -58,7 +60,6 @@ interface ModeOption {
 const MODES: ModeOption[] = [
   { mode: 'refine', icon: Pencil, label: 'Refine', description: 'Adjust this element' },
   { mode: 'ideate', icon: Lightbulb, label: 'Ideate', description: 'Generate new ideas' },
-  { mode: 'pick', icon: Check, label: 'Pick', description: 'Use this version' },
 ]
 
 function ModeChip({ option, active, onClick }: {
@@ -69,10 +70,6 @@ function ModeChip({ option, active, onClick }: {
   const [hovered, setHovered] = useState(false)
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
-
-  // Green accent for Pick mode
-  const pickActiveColor = 'oklch(0.55 0.14 155)'
-  const isPick = option.mode === 'pick'
 
   useEffect(() => {
     if (hovered && buttonRef.current) {
@@ -96,15 +93,11 @@ function ModeChip({ option, active, onClick }: {
           border: 'none',
           cursor: 'default',
           borderRadius: R.ui,
-          background: active
-            ? (isPick ? pickActiveColor : V.active)
-            : hovered ? V.chrome : 'transparent',
+          background: active ? V.active : hovered ? V.chrome : 'transparent',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          color: active
-            ? (isPick ? '#fff' : V.txtPri)
-            : V.txtSec,
+          color: active ? V.txtPri : V.txtSec,
           transition: 'background 0.1s ease-out',
         }}
       >
@@ -237,15 +230,12 @@ function VariationStepper({ count, onChange }: { count: number; onChange: (n: nu
   )
 }
 
-function ModeToggle({ value, onChange, showPick = true, variationCount, onVariationChange }: {
+function ModeToggle({ value, onChange, variationCount, onVariationChange }: {
   value: AnnotationMode
   onChange: (mode: AnnotationMode) => void
-  showPick?: boolean
   variationCount?: number
   onVariationChange?: (n: number) => void
 }) {
-  const options = showPick ? MODES : MODES.filter(m => m.mode !== 'pick')
-
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: S.sm }}>
       <div style={{
@@ -255,7 +245,7 @@ function ModeToggle({ value, onChange, showPick = true, variationCount, onVariat
         borderRadius: R.ui,
         padding: 2,
       }}>
-        {options.map(opt => (
+        {MODES.map(opt => (
           <ModeChip
             key={opt.mode}
             option={opt}
@@ -465,7 +455,9 @@ interface AnnotationMarker {
   progress?: string
 }
 
-export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, project = '' }: AnnotationOverlayProps) {
+export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, project = '', projectId }: AnnotationOverlayProps) {
+  // Use projectId if available, otherwise fall back to project name
+  const projectParam = projectId || project
   const [mode, setMode] = useState<Mode>('idle')
   const [highlight, setHighlight] = useState<DOMRect | null>(null)
   const [target, setTarget] = useState<TargetInfo | null>(null)
@@ -506,7 +498,9 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
 
   // Load persisted annotations on mount (survive page refresh)
   useEffect(() => {
-    fetch(`${endpoint}/annotations`)
+    const params = new URLSearchParams()
+    if (projectParam) params.set('projectId', projectParam)
+    fetch(`${endpoint}/annotations?${params}`)
       .then(r => r.json())
       .then((all: { id: string; type?: string; frameId: string; selector: string; comment: string; status: string }[]) => {
         const active = all.filter(a =>
@@ -522,11 +516,13 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
         })))
       })
       .catch(() => {})
-  }, [endpoint])
+  }, [endpoint, projectParam])
 
   // Subscribe to SSE for resolved annotations and progress updates
   useEffect(() => {
-    const source = new EventSource(`${endpoint}/annotations/events`)
+    const params = new URLSearchParams()
+    if (projectParam) params.set('projectId', projectParam)
+    const source = new EventSource(`${endpoint}/annotations/events?${params}`)
     source.onmessage = (e) => {
       try {
         const data = JSON.parse(e.data)
@@ -540,7 +536,7 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
       } catch { /* ignore parse errors */ }
     }
     return () => source.close()
-  }, [endpoint])
+  }, [endpoint, projectParam])
 
   // Recompute marker positions every frame via rAF — keeps markers in sync during pan/zoom
   useEffect(() => {
@@ -1033,8 +1029,8 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
       : comment.trim()
 
     const body = {
-      project,
-      type: isConnection ? 'connection' : annotationMode === 'pick' ? 'pick' : undefined,
+      project: projectParam,
+      type: isConnection ? 'connection' : undefined,
       frameId: target.frameId,
       frameIds: target.frameIds,  // Include frameIds array for multi-select
       componentName: target.componentName,
@@ -1050,7 +1046,9 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
     }
 
     try {
-      const res = await fetch(`${endpoint}/annotations`, {
+      const params = new URLSearchParams()
+      if (projectParam) params.set('projectId', projectParam)
+      const res = await fetch(`${endpoint}/annotations?${params}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -1096,7 +1094,7 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
     setComment('')
     setPastedImage(null)
     setEditingMarkerId(null)
-  }, [target, comment, endpoint, editingMarkerId, toast, project, annotationMode, variationCount, pastedImage])
+  }, [target, comment, endpoint, editingMarkerId, toast, projectParam, annotationMode, variationCount, pastedImage])
 
   const handleCancel = useCallback(() => {
     // If canceling a new connection, remove it
@@ -1123,7 +1121,9 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
     if (editingMarkerId === null) return
     const marker = markers.find(m => m.id === editingMarkerId)
     if (marker?.serverId) {
-      fetch(`${endpoint}/annotations/${marker.serverId}`, { method: 'DELETE' }).catch(() => {})
+      const params = new URLSearchParams()
+      if (projectParam) params.set('projectId', projectParam)
+      fetch(`${endpoint}/annotations/${marker.serverId}?${params}`, { method: 'DELETE' }).catch(() => {})
     }
     setMarkers(prev => prev.filter(m => m.id !== editingMarkerId))
     setMode('idle')
@@ -1131,7 +1131,7 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
     setComment('')
     setEditingMarkerId(null)
     toast('Annotation deleted')
-  }, [editingMarkerId, markers, endpoint, toast])
+  }, [editingMarkerId, markers, endpoint, toast, projectParam])
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && mode === 'commenting') {
@@ -1505,9 +1505,7 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
               onPaste={handlePaste}
               placeholder={
                 target.elementTag === 'multi-select'
-                  ? annotationMode === 'pick'
-                    ? 'Why are you picking these frames? (optional)'
-                    : 'Describe the change for these frames...'
+                  ? 'Describe the change for these frames...'
                   : target.elementTag === 'connection'
                     ? 'How should these be combined?'
                     : target.frameId
@@ -1569,7 +1567,6 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
               <ModeToggle
                 value={annotationMode}
                 onChange={setAnnotationMode}
-                showPick={!!target.frameId && target.elementTag !== 'connection' && target.elementTag !== 'canvas'}
                 variationCount={variationCount}
                 onVariationChange={setVariationCount}
               />

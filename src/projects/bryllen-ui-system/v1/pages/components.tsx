@@ -3,7 +3,6 @@ import { N, A, S, R, T, ICON, FONT } from '../../../../runtime/tokens'
 import { TopBar } from '../../../../runtime/TopBar'
 import { ProjectPicker } from '../../../../runtime/ProjectPicker'
 import { IterationPills } from '../../../../runtime/IterationPills'
-import { IterationSidebar } from '../../../../runtime/IterationSidebar'
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -42,8 +41,6 @@ const samplePages = [
 export function Components() {
   const [projectIdx, setProjectIdx] = useState(0)
   const [iterIdx, setIterIdx] = useState(0)
-  const [pageIdx, setPageIdx] = useState(0)
-  const [sidebarOpen, setSidebarOpen] = useState(true)
 
   return (
     <div style={{ padding: S.xxl, fontFamily: FONT }}>
@@ -57,30 +54,8 @@ export function Components() {
             projects={sampleProjects}
             activeProjectIndex={projectIdx}
             onSelectProject={setProjectIdx}
-            iterations={sampleIterations}
-            activeIterationIndex={iterIdx}
-            onSelectIteration={setIterIdx}
-            pendingCount={2}
-            mode="manual"
-            sidebarOpen={sidebarOpen}
-            onToggleSidebar={() => setSidebarOpen(o => !o)}
-          />
-        </div>
-      </Section>
-
-      <Section title="TopBar — Watch Mode">
-        <div style={{ border: `1px solid ${N.border}`, borderRadius: R.card, overflow: 'hidden' }}>
-          <TopBar
-            projects={sampleProjects}
-            activeProjectIndex={0}
-            onSelectProject={() => {}}
-            iterations={sampleIterations}
-            activeIterationIndex={1}
-            onSelectIteration={() => {}}
-            pendingCount={0}
-            mode="watch"
-            sidebarOpen={true}
-            onToggleSidebar={() => {}}
+            annotationEndpoint="http://localhost:4748"
+            projectName="settings-page"
           />
         </div>
       </Section>
@@ -123,43 +98,6 @@ export function Components() {
             activeIndex={0}
             onSelect={() => {}}
           />
-        </div>
-      </Section>
-
-      <Section title="IterationSidebar">
-        <div style={{
-          display: 'inline-flex', height: 280,
-          border: `1px solid ${N.border}`, borderRadius: R.card, overflow: 'hidden',
-        }}>
-          <IterationSidebar
-            iterationName="V1"
-            pages={samplePages}
-            activePageIndex={pageIdx}
-            onSelectPage={setPageIdx}
-            collapsed={false}
-          />
-        </div>
-      </Section>
-
-      <Section title="IterationSidebar — Collapsed">
-        <div style={{
-          display: 'inline-flex', height: 120,
-          border: `1px solid ${N.border}`, borderRadius: R.card, overflow: 'hidden',
-        }}>
-          <IterationSidebar
-            iterationName="V1"
-            pages={samplePages}
-            activePageIndex={0}
-            onSelectPage={() => {}}
-            collapsed={true}
-          />
-          <div style={{
-            width: 200, backgroundColor: N.canvas,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: T.body, color: N.txtTer,
-          }}>
-            Canvas area
-          </div>
         </div>
       </Section>
     </div>

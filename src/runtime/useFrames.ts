@@ -3,7 +3,7 @@ import type { CanvasFrame } from './types'
 import { relayoutFrames } from './layout'
 
 const FRAME_GAP = 40
-const SERVER_ENDPOINT = 'http://localhost:4748'
+const SERVER_ENDPOINT = `http://localhost:${__BRYLLEN_HTTP_PORT__ ?? 4748}`
 
 function frameIdsKey(frames: CanvasFrame[]): string {
   return frames.map(f => f.id).join(',')

@@ -19,6 +19,7 @@ import { DashPlanner } from './v2/pages/dash-planner'
 import { DashAgencies } from './v2/pages/dash-agencies'
 
 const manifest: ProjectManifest = {
+  id: 'ee98420f-a805-4eb6-a5db-8740a8ed8439',
   project: 'pulse',
   iterations: [
     {

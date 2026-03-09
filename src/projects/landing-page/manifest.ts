@@ -104,6 +104,7 @@ import { Mosaic as Mosaic8 } from './v8/pages/mosaic'
 import type { ProjectManifest } from '../../runtime/types'
 
 const manifest: ProjectManifest = {
+  id: '25ad55f6-27f8-493e-8263-b012818af79a',
   project: 'landing-page',
   iterations: [
     {

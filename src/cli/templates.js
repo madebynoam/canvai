@@ -140,16 +140,16 @@ The code was never a mockup. Explore → Decide → Ship. No handoff.
 
 ## Design directions (proliferate first)
 
-Generate **3+ distinct design directions** on a single "All Directions" manifest page — different visual bets, not variations of one idea. Use \\\`DirectionLabel\\\` as the first frame per row in an N+1 column grid (1 label + N states). Let the designer react and converge.
+Generate **3+ distinct design directions** as frames on the canvas — different visual bets, not variations of one idea. Let the designer react and converge.
 
 ## Component hierarchy
 
 \\\`\\\`\\\`
-Tokens (v<N>/tokens.css)     → OKLCH custom properties, all visual values
+Tokens (tokens.css)     → OKLCH custom properties, all visual values
   ↓
-Components (v<N>/components/) → use ONLY var(--token), can compose each other
+Components (components/) → use ONLY var(--token), can compose each other
   ↓
-Pages (v<N>/pages/)           → import ONLY from ../components/
+Pages (pages/)           → import ONLY from ../components/
 \\\`\\\`\\\`
 
 A page defines exactly one exported function. Any sub-component belongs in \\\`components/\\\`.
@@ -161,9 +161,8 @@ A page defines exactly one exported function. Any sub-component belongs in \\\`c
 - **Components use \\\`var(--token)\\\` only.** No hardcoded visual values.
 - **Pages import only from \\\`../components/\\\`.** No inline styled HTML.
 - **Components must be interactive.** Inputs typeable, buttons clickable, menus openable.
-- **Iterations: V1, V2, V3.** Sequential, never descriptive. Include \\\`description\\\` field.
 
-## Mandatory pages
+## Mandatory frames
 
 - **Tokens** — color swatches (\\\`TokenSwatch\\\` from \\\`bryllen/runtime\\\`), typography, spacing
 - **Components** — all building blocks with variations and states
@@ -186,9 +185,9 @@ Components with internal navigation (tabs, sidebar) use React state in one compo
 
 ## Before any edit
 
-1. Read \\\`manifest.ts\\\` — frozen? Stop.
+1. Read \\\`manifest.ts\\\`.
 2. Check \\\`components/index.ts\\\` — component exists? If not, create first.
-3. New components: add to barrel AND Components showcase page.
+3. New components: add to barrel AND Components showcase frame.
 4. Hierarchy check — pages use components, components use tokens.
 5. Log to \\\`CHANGELOG.md\\\`.
 6. **Commit after each change:** \\\`git add src/projects/ && git commit -m 'style: <description>'\\\`
@@ -223,6 +222,45 @@ dist
 `
 
 // MCP removed in favor of CLI commands — no .mcp.json needed
+
+/**
+ * Generate a UUID v4.
+ * Uses crypto.randomUUID if available, otherwise fallback.
+ */
+function generateUUID() {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID()
+  }
+  // Fallback for older Node.js versions
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = Math.random() * 16 | 0
+    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16)
+  })
+}
+
+/**
+ * Project manifest template.
+ * Creates the initial manifest.ts for a new project with a unique ID.
+ */
+export function projectManifest({ name }) {
+  const id = generateUUID()
+  return `import type { ProjectManifest } from 'bryllen/runtime'
+
+const manifest: ProjectManifest = {
+  id: '${id}',
+  project: '${name}',
+  frames: [],
+  grid: {
+    columns: 4,
+    columnWidth: 320,
+    rowHeight: 200,
+    gap: 40,
+  },
+}
+
+export default manifest
+`
+}
 
 /**
  * Project-level CLAUDE.md template.

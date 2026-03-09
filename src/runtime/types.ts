@@ -56,35 +56,43 @@ export interface ImageFrame {
 /** A frame declared in a manifest (no position — layout is computed) */
 export type ManifestFrame = ComponentFrame | ImageFrame
 
-/** A page within a project — one tab on the canvas */
+/** Grid layout config for canvas */
+export interface GridConfig {
+  columns?: number
+  columnWidth?: number
+  rowHeight?: number
+  gap?: number
+}
+
+/** Frame status for visual filtering */
+export type FrameStatus = 'none' | 'starred' | 'approved' | 'rejected'
+
+/** Page manifest for iterations (DEPRECATED - use flat frames array) */
 export interface PageManifest {
   name: string
   frames: ManifestFrame[]
-  /** Grid layout config */
-  grid?: {
-    columns?: number
-    columnWidth?: number
-    rowHeight?: number
-    gap?: number
-  }
+  grid?: GridConfig
 }
 
-/** An iteration grouping pages within a project */
+/** Iteration manifest (DEPRECATED - use flat frames array) */
 export interface IterationManifest {
   name: string
-  description?: string
   frozen?: boolean
+  description?: string
   pages: PageManifest[]
-  /** ID of the picked frame in this iteration (for visual treatment) */
-  pickedFrameId?: string
-  /** IDs of multiple picked frames (for multi-select) */
-  pickedFrameIds?: string[]
 }
 
 /** A project manifest — exported from src/projects/<name>/manifest.ts */
 export interface ProjectManifest {
+  /** Unique identifier for this project (UUID) */
+  id?: string
   project: string
-  iterations: IterationManifest[]
+  /** All frames displayed on the canvas (new flat structure) */
+  frames?: ManifestFrame[]
+  /** DEPRECATED: Use frames array instead */
+  iterations?: IterationManifest[]
+  /** Grid layout config */
+  grid?: GridConfig
   /** URL where this project was last shared via /canvai-share */
   shareUrl?: string
 }

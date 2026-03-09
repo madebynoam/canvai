@@ -1,4 +1,4 @@
-import type { CanvasFrame, ManifestFrame, PageManifest } from './types'
+import type { CanvasFrame, ManifestFrame, GridConfig, ProjectManifest } from './types'
 
 const DEFAULT_COL_WIDTH = 320
 const DEFAULT_ROW_HEIGHT = 200
@@ -10,18 +10,18 @@ const ORIGIN_Y = 100
  * Convert manifest frames into positioned canvas frames.
  * Frames flow left-to-right using ACTUAL frame widths, wrapping at column count.
  */
-export function layoutFrames(page: PageManifest): CanvasFrame[] {
+export function layoutFrames(frames: ManifestFrame[], grid?: GridConfig): CanvasFrame[] {
   const {
     columns = 4,
     columnWidth = DEFAULT_COL_WIDTH,
     rowHeight = DEFAULT_ROW_HEIGHT,
     gap = DEFAULT_GAP,
-  } = page.grid ?? {}
+  } = grid ?? {}
 
   // Group frames into rows
   const rows: ManifestFrame[][] = []
-  for (let i = 0; i < page.frames.length; i += columns) {
-    rows.push(page.frames.slice(i, i + columns))
+  for (let i = 0; i < frames.length; i += columns) {
+    rows.push(frames.slice(i, i + columns))
   }
 
   const result: CanvasFrame[] = []
@@ -42,9 +42,9 @@ export function layoutFrames(page: PageManifest): CanvasFrame[] {
         y: currentY,
         width: frameWidth,
         height: frameHeight,
-        component: frame.component,
-        props: frame.props,
-      })
+        component: 'component' in frame ? frame.component : undefined,
+        props: 'props' in frame ? frame.props : undefined,
+      } as CanvasFrame)
 
       currentX += frameWidth + gap
       if (frameHeight > maxHeight) maxHeight = frameHeight
@@ -54,6 +54,13 @@ export function layoutFrames(page: PageManifest): CanvasFrame[] {
   }
 
   return result
+}
+
+/**
+ * Layout frames from a project manifest.
+ */
+export function layoutProject(project: ProjectManifest): CanvasFrame[] {
+  return layoutFrames(project.frames, project.grid)
 }
 
 /**

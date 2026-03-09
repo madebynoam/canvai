@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { createServer } from 'http'
-import { readFileSync, writeFileSync, mkdirSync, existsSync, statSync } from 'fs'
+import { readFileSync, writeFileSync, mkdirSync, existsSync, statSync, rmSync } from 'fs'
 import { execSync } from 'child_process'
 import { join } from 'path'
 import {
@@ -35,6 +35,16 @@ import {
   saveContextPositions,
   getPreference,
   setPreference,
+  getFrameStatuses,
+  setFrameStatus,
+  getProjectAnnotationDb,
+  addProjectAnnotation,
+  getProjectAnnotations,
+  getProjectAnnotation,
+  updateProjectAnnotationStatus,
+  updateProjectAnnotationProgress,
+  deleteProjectAnnotation,
+  closeProjectDbs,
 } from './db.js'
 
 // --- Playwright (lazy) ---
@@ -69,86 +79,71 @@ function closeBrowser() {
   }
 }
 
-process.on('SIGTERM', closeBrowser)
-process.on('exit', closeBrowser)
+function cleanup() {
+  closeBrowser()
+  closeProjectDbs()
+}
+process.on('SIGTERM', cleanup)
+process.on('exit', cleanup)
 
 // --- Persistence ---
 
 const STORE_DIR = join(process.cwd(), '.bryllen')
-const STORE_FILE = join(STORE_DIR, 'annotations.json')
+const PROJECTS_DIR = join(process.cwd(), 'src', 'projects')
 
-// Initialize SQLite database
+// Initialize global SQLite database (for frame positions, preferences, etc.)
 initDb(STORE_DIR)
 
-function loadAnnotations() {
-  try {
-    if (existsSync(STORE_FILE)) {
-      const data = JSON.parse(readFileSync(STORE_FILE, 'utf8'))
-      if (Array.isArray(data)) {
-        for (const a of data) annotations.set(a.id, a)
-        if (data.length > 0) {
-          nextId = Math.max(...data.map(a => Number(a.id))) + 1
-        }
-      }
+// Clean up old annotations.json files (fresh start with SQLite)
+function cleanupOldAnnotations() {
+  const oldFiles = [
+    join(STORE_DIR, 'annotations.json'),
+    join(process.cwd(), '.canvai', 'annotations.json'),
+  ]
+  for (const file of oldFiles) {
+    if (existsSync(file)) {
+      try {
+        rmSync(file)
+        console.log(`[bryllen] Cleaned up old ${file}`)
+      } catch { /* ignore */ }
     }
-  } catch {
-    // Corrupt file — start fresh
   }
 }
+cleanupOldAnnotations()
 
-function persistAnnotations() {
-  try {
-    if (!existsSync(STORE_DIR)) mkdirSync(STORE_DIR, { recursive: true })
-    writeFileSync(STORE_FILE, JSON.stringify([...annotations.values()], null, 2))
-  } catch (err) {
-    console.error('[bryllen] Failed to persist annotations:', err.message)
+// Get annotation database for a project
+function getAnnotationDb(projectName) {
+  if (!projectName) {
+    console.warn('[bryllen] No projectId provided for annotation, using fallback')
+    // Fallback: use a global annotations db in .bryllen
+    return getProjectAnnotationDb(STORE_DIR, '_global')
   }
+  return getProjectAnnotationDb(PROJECTS_DIR, projectName)
 }
 
-// --- Annotation store ---
+// --- Annotation store (per-project SQLite) ---
 
-const annotations = new Map()
-const waiters = [] // Array of { resolve } for long-poll /annotations/next
-const sseClients = [] // Array of response objects for SSE
-let nextId = 1
+const waiters = [] // Array of { resolve, projectName } for long-poll /annotations/next
+const sseClients = [] // Array of { res, projectName } for SSE
 
-// Load persisted annotations on startup
-loadAnnotations()
+function addAnnotation(projectName, data) {
+  const db = getAnnotationDb(projectName)
+  const annotation = addProjectAnnotation(db, data)
+  // Add project field for backwards compatibility
+  annotation.project = projectName
 
-function addAnnotation(data) {
-  const id = String(nextId++)
-  const isImmediate = data.type === 'iteration' || data.type === 'project' || data.type === 'prompt-request' || data.type === 'share' || data.type === 'pick'
-  // Handle frameIds array: default to [frameId] if only single frameId provided
-  const frameIds = data.frameIds ?? (data.frameId ? [data.frameId] : [])
-  const annotation = {
-    id,
-    type: isImmediate ? data.type : 'annotation',
-    project: data.project ?? '',
-    frameId: data.frameId ?? '',
-    frameIds,  // Include frameIds array for multi-select
-    componentName: data.componentName ?? '',
-    props: data.props ?? {},
-    selector: data.selector ?? '',
-    elementTag: data.elementTag ?? '',
-    elementClasses: data.elementClasses ?? '',
-    elementText: data.elementText ?? '',
-    computedStyles: data.computedStyles ?? {},
-    comment: data.comment ?? '',
-    image: data.image ?? null,
-    timestamp: Date.now(),
-    status: isImmediate ? 'pending' : 'draft',
-    mode: data.mode ?? 'refine',
-  }
-  annotations.set(id, annotation)
-  persistAnnotations()
+  const isImmediate = data.type === 'iteration' || data.type === 'project' ||
+    data.type === 'prompt-request' || data.type === 'share' || data.type === 'pick'
 
-  // Immediate annotations (iteration, project, prompt-request) skip draft — immediately unblock a waiter
+  // Immediate annotations skip draft — immediately unblock a waiter
   if (isImmediate) {
-    if (waiters.length > 0) {
-      const waiter = waiters.shift()
+    // Find waiter for this project (or any project if no project-specific waiter)
+    const waiterIdx = waiters.findIndex(w => !w.projectName || w.projectName === projectName)
+    if (waiterIdx !== -1) {
+      const waiter = waiters.splice(waiterIdx, 1)[0]
       waiter.resolve(annotation)
     }
-    // Notify SSE clients
+    // Notify SSE clients for this project
     let sseType
     if (data.type === 'project') sseType = 'project-pending'
     else if (data.type === 'prompt-request') sseType = 'prompt-requested'
@@ -156,61 +151,73 @@ function addAnnotation(data) {
     else if (data.type === 'pick') sseType = 'pick-pending'
     else sseType = 'iteration-pending'
     for (const client of sseClients) {
-      client.write(`data: ${JSON.stringify({ type: sseType, id })}\n\n`)
+      if (!client.projectName || client.projectName === projectName) {
+        client.res.write(`data: ${JSON.stringify({ type: sseType, id: annotation.id })}\n\n`)
+      }
     }
   }
 
   return annotation
 }
 
-function applyAnnotation(id) {
-  const annotation = annotations.get(id)
+function applyAnnotation(projectName, id) {
+  const db = getAnnotationDb(projectName)
+  let annotation = getProjectAnnotation(db, id)
   if (!annotation || annotation.status !== 'draft') return null
-  annotation.status = 'pending'
-  persistAnnotations()
+  annotation = updateProjectAnnotationStatus(db, id, 'pending')
+  annotation.project = projectName
 
-  // Unblock oldest long-poll waiter
-  if (waiters.length > 0) {
-    const waiter = waiters.shift()
+  // Unblock oldest long-poll waiter for this project
+  const waiterIdx = waiters.findIndex(w => !w.projectName || w.projectName === projectName)
+  if (waiterIdx !== -1) {
+    const waiter = waiters.splice(waiterIdx, 1)[0]
     waiter.resolve(annotation)
   }
 
   // Notify SSE clients
   for (const client of sseClients) {
-    client.write(`data: ${JSON.stringify({ type: 'applied', id })}\n\n`)
+    if (!client.projectName || client.projectName === projectName) {
+      client.res.write(`data: ${JSON.stringify({ type: 'applied', id })}\n\n`)
+    }
   }
 
   return annotation
 }
 
-function applyAllAnnotations() {
+function applyAllAnnotations(projectName) {
+  const db = getAnnotationDb(projectName)
+  const drafts = getProjectAnnotations(db, 'draft')
   const applied = []
-  for (const annotation of annotations.values()) {
-    if (annotation.status === 'draft') {
-      annotation.status = 'pending'
-      applied.push(annotation)
-    }
+
+  for (const annotation of drafts) {
+    updateProjectAnnotationStatus(db, annotation.id, 'pending')
+    annotation.status = 'pending'
+    annotation.project = projectName
+    applied.push(annotation)
   }
+
   if (applied.length === 0) return applied
-  persistAnnotations()
 
   // Unblock waiters for each applied annotation (FIFO)
   for (const annotation of applied) {
-    if (waiters.length > 0) {
-      const waiter = waiters.shift()
+    const waiterIdx = waiters.findIndex(w => !w.projectName || w.projectName === projectName)
+    if (waiterIdx !== -1) {
+      const waiter = waiters.splice(waiterIdx, 1)[0]
       waiter.resolve(annotation)
     }
   }
 
   // Notify SSE clients
   for (const client of sseClients) {
-    client.write(`data: ${JSON.stringify({ type: 'applied-all', ids: applied.map(a => a.id) })}\n\n`)
+    if (!client.projectName || client.projectName === projectName) {
+      client.res.write(`data: ${JSON.stringify({ type: 'applied-all', ids: applied.map(a => a.id) })}\n\n`)
+    }
   }
 
   return applied
 }
 
-function autoCommit(annotation) {
+function autoCommit(projectName, annotation) {
   try {
     // Check if there are staged or unstaged changes in src/projects/
     const status = execSync('git status --porcelain src/projects/', { encoding: 'utf8' }).trim()
@@ -227,68 +234,86 @@ function autoCommit(annotation) {
 
     // Notify SSE clients about the commit
     for (const client of sseClients) {
-      client.write(`data: ${JSON.stringify({ type: 'committed', id: annotation.id, message: msg })}\n\n`)
+      if (!client.projectName || client.projectName === projectName) {
+        client.res.write(`data: ${JSON.stringify({ type: 'committed', id: annotation.id, message: msg })}\n\n`)
+      }
     }
   } catch {
     // Silent — git not available, no repo, or nothing to commit
   }
 }
 
-function resolveAnnotation(id, navigateTo = null) {
-  const annotation = annotations.get(id)
+function resolveAnnotation(projectName, id, navigateTo = null) {
+  const db = getAnnotationDb(projectName)
+  let annotation = getProjectAnnotation(db, id)
   if (annotation) {
-    annotation.status = 'resolved'
-    delete annotation.progress // Clear progress on resolve
-    persistAnnotations()
+    annotation = updateProjectAnnotationStatus(db, id, 'resolved')
+    updateProjectAnnotationProgress(db, id, null) // Clear progress on resolve
+    annotation.project = projectName
+
     // Notify all SSE clients
     for (const client of sseClients) {
-      client.write(`data: ${JSON.stringify({ type: 'resolved', id })}\n\n`)
-      // If navigation requested (e.g., after creating a new iteration), send navigate event
-      if (navigateTo) {
-        client.write(`data: ${JSON.stringify({ type: 'navigate', iteration: navigateTo })}\n\n`)
+      if (!client.projectName || client.projectName === projectName) {
+        client.res.write(`data: ${JSON.stringify({ type: 'resolved', id })}\n\n`)
+        // If navigation requested (e.g., after creating a new iteration), send navigate event
+        if (navigateTo) {
+          client.res.write(`data: ${JSON.stringify({ type: 'navigate', iteration: navigateTo })}\n\n`)
+        }
       }
     }
     // Auto-commit project changes
-    autoCommit(annotation)
+    autoCommit(projectName, annotation)
   }
   return annotation
 }
 
-function updateProgress(id, message) {
-  const annotation = annotations.get(id)
+function updateProgress(projectName, id, message) {
+  const db = getAnnotationDb(projectName)
+  let annotation = getProjectAnnotation(db, id)
   if (annotation && annotation.status === 'pending') {
-    annotation.progress = message
+    annotation = updateProjectAnnotationProgress(db, id, message)
+    annotation.project = projectName
     // Notify all SSE clients
     for (const client of sseClients) {
-      client.write(`data: ${JSON.stringify({ type: 'progress', id, message })}\n\n`)
+      if (!client.projectName || client.projectName === projectName) {
+        client.res.write(`data: ${JSON.stringify({ type: 'progress', id, message })}\n\n`)
+      }
     }
     return annotation
   }
   return null
 }
 
-function deleteAnnotation(id) {
-  const annotation = annotations.get(id)
+function deleteAnnotationById(projectName, id) {
+  const db = getAnnotationDb(projectName)
+  const annotation = deleteProjectAnnotation(db, id)
   if (!annotation) return null
-  annotations.delete(id)
-  persistAnnotations()
+  annotation.project = projectName
   // Notify all SSE clients
   for (const client of sseClients) {
-    client.write(`data: ${JSON.stringify({ type: 'deleted', id })}\n\n`)
+    if (!client.projectName || client.projectName === projectName) {
+      client.res.write(`data: ${JSON.stringify({ type: 'deleted', id })}\n\n`)
+    }
   }
   return annotation
 }
 
-function getPending() {
-  return [...annotations.values()].filter(a => a.status === 'pending')
+function getPending(projectName) {
+  const db = getAnnotationDb(projectName)
+  const annotations = getProjectAnnotations(db, 'pending')
+  return annotations.map(a => ({ ...a, project: projectName }))
 }
 
-function getDrafts() {
-  return [...annotations.values()].filter(a => a.status === 'draft')
+function getDrafts(projectName) {
+  const db = getAnnotationDb(projectName)
+  const annotations = getProjectAnnotations(db, 'draft')
+  return annotations.map(a => ({ ...a, project: projectName }))
 }
 
-function getAll() {
-  return [...annotations.values()]
+function getAll(projectName) {
+  const db = getAnnotationDb(projectName)
+  const annotations = getProjectAnnotations(db)
+  return annotations.map(a => ({ ...a, project: projectName }))
 }
 
 // --- Comment SSE ---
@@ -342,8 +367,10 @@ const httpServer = createServer(async (req, res) => {
 
   try {
     // ── Annotation SSE ───────────────────────────────────────────────────────
+    // Now supports projectId query param for project-scoped events
 
     if (req.method === 'GET' && url.pathname === '/annotations/events') {
+      const projectName = url.searchParams.get('projectId') || url.searchParams.get('project') || ''
       res.writeHead(200, {
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
@@ -351,26 +378,31 @@ const httpServer = createServer(async (req, res) => {
         'Access-Control-Allow-Origin': '*',
       })
       res.write('\n')
-      sseClients.push(res)
+      const client = { res, projectName }
+      sseClients.push(client)
       req.on('close', () => {
-        const idx = sseClients.indexOf(res)
+        const idx = sseClients.indexOf(client)
         if (idx !== -1) sseClients.splice(idx, 1)
       })
       return
     }
 
     // POST /annotations — receive from browser
+    // Requires projectId query param or project field in body
     if (req.method === 'POST' && url.pathname === '/annotations') {
       const data = await parseBody(req)
-      const annotation = addAnnotation(data)
-      console.log(`[bryllen] Annotation #${annotation.id}: "${annotation.comment}"`)
+      const projectName = url.searchParams.get('projectId') || data.project || ''
+      const annotation = addAnnotation(projectName, data)
+      console.log(`[bryllen] Annotation #${annotation.id} (${projectName}): "${annotation.comment}"`)
       sendJson(res, 201, annotation)
       return
     }
 
     // GET /annotations/next — long-poll with timeout, returns pending annotation or { timeout: true }
+    // Supports projectId query param for project-scoped waiting
     if (req.method === 'GET' && url.pathname === '/annotations/next') {
-      const pending = getPending()
+      const projectName = url.searchParams.get('projectId') || url.searchParams.get('project') || ''
+      const pending = getPending(projectName)
       if (pending.length > 0) {
         sendJson(res, 200, pending[0])
         return
@@ -379,7 +411,7 @@ const httpServer = createServer(async (req, res) => {
       const timeoutMs = Number(url.searchParams.get('timeout')) || 30000
 
       const annotation = await new Promise((resolve) => {
-        const waiter = { resolve }
+        const waiter = { resolve, projectName }
         waiters.push(waiter)
 
         const timer = setTimeout(() => {
@@ -414,7 +446,8 @@ const httpServer = createServer(async (req, res) => {
 
     // POST /annotations/apply — apply all drafts
     if (req.method === 'POST' && url.pathname === '/annotations/apply') {
-      const applied = applyAllAnnotations()
+      const projectName = url.searchParams.get('projectId') || url.searchParams.get('project') || ''
+      const applied = applyAllAnnotations(projectName)
       sendJson(res, 200, applied)
       return
     }
@@ -422,7 +455,8 @@ const httpServer = createServer(async (req, res) => {
     // POST /annotations/:id/apply — apply single draft
     const applyMatch = url.pathname.match(/^\/annotations\/(.+)\/apply$/)
     if (req.method === 'POST' && applyMatch) {
-      const annotation = applyAnnotation(applyMatch[1])
+      const projectName = url.searchParams.get('projectId') || url.searchParams.get('project') || ''
+      const annotation = applyAnnotation(projectName, applyMatch[1])
       if (annotation) {
         sendJson(res, 200, annotation)
       } else {
@@ -432,14 +466,16 @@ const httpServer = createServer(async (req, res) => {
     }
 
     // GET /annotations — list all (with optional ?status= filter)
+    // Supports projectId query param for project-scoped listing
     if (req.method === 'GET' && url.pathname === '/annotations') {
+      const projectName = url.searchParams.get('projectId') || url.searchParams.get('project') || ''
       const status = url.searchParams.get('status')
       if (status === 'pending') {
-        sendJson(res, 200, getPending())
+        sendJson(res, 200, getPending(projectName))
       } else if (status === 'draft') {
-        sendJson(res, 200, getDrafts())
+        sendJson(res, 200, getDrafts(projectName))
       } else {
-        sendJson(res, 200, getAll())
+        sendJson(res, 200, getAll(projectName))
       }
       return
     }
@@ -448,6 +484,7 @@ const httpServer = createServer(async (req, res) => {
     // Body can include { navigate: "V8" } to trigger UI navigation
     const resolveMatch = url.pathname.match(/^\/annotations\/(.+)\/resolve$/)
     if (req.method === 'POST' && resolveMatch) {
+      const projectName = url.searchParams.get('projectId') || url.searchParams.get('project') || ''
       let navigateTo = null
       // Parse optional body for navigation
       let body = ''
@@ -460,7 +497,7 @@ const httpServer = createServer(async (req, res) => {
           }
         } catch { /* ignore parse errors */ }
 
-        const annotation = resolveAnnotation(resolveMatch[1], navigateTo)
+        const annotation = resolveAnnotation(projectName, resolveMatch[1], navigateTo)
         if (annotation) {
           sendJson(res, 200, annotation)
         } else {
@@ -473,12 +510,13 @@ const httpServer = createServer(async (req, res) => {
     // POST /annotations/:id/progress — update progress message
     const progressMatch = url.pathname.match(/^\/annotations\/(.+)\/progress$/)
     if (req.method === 'POST' && progressMatch) {
+      const projectName = url.searchParams.get('projectId') || url.searchParams.get('project') || ''
       let body = ''
       req.on('data', chunk => { body += chunk })
       req.on('end', () => {
         try {
           const { message } = JSON.parse(body)
-          const annotation = updateProgress(progressMatch[1], message)
+          const annotation = updateProgress(projectName, progressMatch[1], message)
           if (annotation) {
             sendJson(res, 200, { id: annotation.id, progress: message })
           } else {
@@ -494,9 +532,10 @@ const httpServer = createServer(async (req, res) => {
     // DELETE /annotations/:id — delete an annotation
     const deleteAnnotationMatch = url.pathname.match(/^\/annotations\/(\d+)$/)
     if (req.method === 'DELETE' && deleteAnnotationMatch) {
-      const annotation = deleteAnnotation(deleteAnnotationMatch[1])
+      const projectName = url.searchParams.get('projectId') || url.searchParams.get('project') || ''
+      const annotation = deleteAnnotationById(projectName, deleteAnnotationMatch[1])
       if (annotation) {
-        console.log(`[bryllen] Annotation #${deleteAnnotationMatch[1]} deleted`)
+        console.log(`[bryllen] Annotation #${deleteAnnotationMatch[1]} (${projectName}) deleted`)
         sendJson(res, 200, annotation)
       } else {
         sendJson(res, 404, { error: 'Annotation not found' })
@@ -930,6 +969,44 @@ const httpServer = createServer(async (req, res) => {
 
       saveFramePositions(project, page, positions)
       sendJson(res, 200, { saved: true })
+      return
+    }
+
+    // ── Frame status routes (SQLite) ─────────────────────────────────────────
+
+    // GET /frame-status — load frame statuses for a project
+    if (req.method === 'GET' && url.pathname === '/frame-status') {
+      const project = url.searchParams.get('project')
+
+      if (!project) {
+        sendJson(res, 400, { error: 'project query param is required' })
+        return
+      }
+
+      const statuses = getFrameStatuses(project)
+      sendJson(res, 200, { statuses })
+      return
+    }
+
+    // PUT /frame-status — set status for a single frame
+    if (req.method === 'PUT' && url.pathname === '/frame-status') {
+      const data = await parseBody(req)
+      const { project, frameId, status } = data
+
+      if (!project || !frameId || !status) {
+        sendJson(res, 400, { error: 'project, frameId, and status are required' })
+        return
+      }
+
+      // Validate status value
+      const validStatuses = ['none', 'starred', 'approved', 'rejected']
+      if (!validStatuses.includes(status)) {
+        sendJson(res, 400, { error: `Invalid status. Must be one of: ${validStatuses.join(', ')}` })
+        return
+      }
+
+      setFrameStatus(project, frameId, status)
+      sendJson(res, 200, { saved: true, project, frameId, status })
       return
     }
 

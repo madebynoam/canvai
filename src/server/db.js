@@ -61,10 +61,20 @@ export function initDb(bryllenDir) {
       updated_at INTEGER DEFAULT (strftime('%s', 'now'))
     );
 
+    CREATE TABLE IF NOT EXISTS frame_status (
+      project TEXT NOT NULL,
+      frame_id TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'none',
+      updated_at INTEGER DEFAULT (strftime('%s', 'now')),
+      PRIMARY KEY (project, frame_id)
+    );
+
     CREATE INDEX IF NOT EXISTS idx_frame_positions_project_page
       ON frame_positions(project, page);
     CREATE INDEX IF NOT EXISTS idx_context_positions_project
       ON context_positions(project, iteration);
+    CREATE INDEX IF NOT EXISTS idx_frame_status_project
+      ON frame_status(project);
   `)
 
   // Add manually_positioned column if it doesn't exist (migration for existing DBs)
@@ -196,6 +206,73 @@ export function saveViewport(project, page, panX, panY, zoom) {
   `).run(project, page, panX, panY, zoom)
 }
 
+// ─── Frame Status ─────────────────────────────────────────────────────────────
+
+export function getFrameStatuses(project) {
+  const rows = getDb().prepare(`
+    SELECT frame_id, status FROM frame_status
+    WHERE project = ?
+  `).all(project)
+
+  if (rows.length === 0) return {}
+
+  const statuses = {}
+  for (const row of rows) {
+    statuses[row.frame_id] = row.status
+  }
+  return statuses
+}
+
+export function getFrameStatus(project, frameId) {
+  const row = getDb().prepare(`
+    SELECT status FROM frame_status
+    WHERE project = ? AND frame_id = ?
+  `).get(project, frameId)
+  return row ? row.status : 'none'
+}
+
+export function setFrameStatus(project, frameId, status) {
+  if (status === 'none') {
+    // Remove the row if status is 'none' (default)
+    getDb().prepare(`
+      DELETE FROM frame_status WHERE project = ? AND frame_id = ?
+    `).run(project, frameId)
+  } else {
+    getDb().prepare(`
+      INSERT INTO frame_status (project, frame_id, status, updated_at)
+      VALUES (?, ?, ?, strftime('%s', 'now'))
+      ON CONFLICT(project, frame_id) DO UPDATE SET
+        status = excluded.status,
+        updated_at = excluded.updated_at
+    `).run(project, frameId, status)
+  }
+}
+
+export function saveFrameStatuses(project, statuses) {
+  const db = getDb()
+  const upsert = db.prepare(`
+    INSERT INTO frame_status (project, frame_id, status, updated_at)
+    VALUES (?, ?, ?, strftime('%s', 'now'))
+    ON CONFLICT(project, frame_id) DO UPDATE SET
+      status = excluded.status,
+      updated_at = excluded.updated_at
+  `)
+  const remove = db.prepare(`
+    DELETE FROM frame_status WHERE project = ? AND frame_id = ?
+  `)
+
+  const transaction = db.transaction(() => {
+    for (const [frameId, status] of Object.entries(statuses)) {
+      if (status === 'none') {
+        remove.run(project, frameId)
+      } else {
+        upsert.run(project, frameId, status)
+      }
+    }
+  })
+  transaction()
+}
+
 // ─── Preferences ─────────────────────────────────────────────────────────────
 
 export function getPreference(key) {
@@ -283,5 +360,205 @@ export function closeDb() {
   if (db) {
     db.close()
     db = null
+  }
+}
+
+// ─── Per-Project Annotation Databases ─────────────────────────────────────────
+
+const projectDbs = new Map()
+
+/**
+ * Get or create a per-project annotation database.
+ * Databases are stored in src/projects/<projectName>/.bryllen/annotations.db
+ * @param {string} projectsDir - Path to src/projects directory
+ * @param {string} projectName - Name of the project folder
+ */
+export function getProjectAnnotationDb(projectsDir, projectName) {
+  const cacheKey = `${projectsDir}:${projectName}`
+  if (projectDbs.has(cacheKey)) {
+    return projectDbs.get(cacheKey)
+  }
+
+  const projectBryllenDir = join(projectsDir, projectName, '.bryllen')
+  if (!existsSync(projectBryllenDir)) {
+    mkdirSync(projectBryllenDir, { recursive: true })
+  }
+
+  const dbPath = join(projectBryllenDir, 'annotations.db')
+  const projectDb = new Database(dbPath)
+
+  // Enable WAL mode for better concurrency
+  projectDb.pragma('journal_mode = WAL')
+
+  // Create annotations table
+  projectDb.exec(`
+    CREATE TABLE IF NOT EXISTS annotations (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      type TEXT DEFAULT 'annotation',
+      frame_id TEXT,
+      frame_ids TEXT,
+      component_name TEXT,
+      props TEXT,
+      selector TEXT,
+      element_tag TEXT,
+      element_classes TEXT,
+      element_text TEXT,
+      computed_styles TEXT,
+      comment TEXT,
+      image TEXT,
+      timestamp INTEGER,
+      status TEXT DEFAULT 'draft',
+      mode TEXT DEFAULT 'refine',
+      progress TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_annotations_status ON annotations(status);
+  `)
+
+  projectDbs.set(cacheKey, projectDb)
+  return projectDb
+}
+
+/**
+ * Add an annotation to a project's database.
+ */
+export function addProjectAnnotation(projectDb, data) {
+  const stmt = projectDb.prepare(`
+    INSERT INTO annotations (
+      type, frame_id, frame_ids, component_name, props, selector,
+      element_tag, element_classes, element_text, computed_styles,
+      comment, image, timestamp, status, mode
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `)
+
+  const isImmediate = data.type === 'iteration' || data.type === 'project' ||
+    data.type === 'prompt-request' || data.type === 'share' || data.type === 'pick'
+
+  const frameIds = data.frameIds ?? (data.frameId ? [data.frameId] : [])
+
+  const result = stmt.run(
+    isImmediate ? data.type : 'annotation',
+    data.frameId ?? '',
+    JSON.stringify(frameIds),
+    data.componentName ?? '',
+    JSON.stringify(data.props ?? {}),
+    data.selector ?? '',
+    data.elementTag ?? '',
+    data.elementClasses ?? '',
+    data.elementText ?? '',
+    JSON.stringify(data.computedStyles ?? {}),
+    data.comment ?? '',
+    data.image ?? null,
+    Date.now(),
+    isImmediate ? 'pending' : 'draft',
+    data.mode ?? 'refine'
+  )
+
+  return {
+    id: String(result.lastInsertRowid),
+    type: isImmediate ? data.type : 'annotation',
+    frameId: data.frameId ?? '',
+    frameIds,
+    componentName: data.componentName ?? '',
+    props: data.props ?? {},
+    selector: data.selector ?? '',
+    elementTag: data.elementTag ?? '',
+    elementClasses: data.elementClasses ?? '',
+    elementText: data.elementText ?? '',
+    computedStyles: data.computedStyles ?? {},
+    comment: data.comment ?? '',
+    image: data.image ?? null,
+    timestamp: Date.now(),
+    status: isImmediate ? 'pending' : 'draft',
+    mode: data.mode ?? 'refine',
+  }
+}
+
+/**
+ * Get all annotations from a project's database.
+ */
+export function getProjectAnnotations(projectDb, status = null) {
+  let query = 'SELECT * FROM annotations'
+  const params = []
+
+  if (status) {
+    query += ' WHERE status = ?'
+    params.push(status)
+  }
+
+  query += ' ORDER BY id ASC'
+
+  const rows = projectDb.prepare(query).all(...params)
+  return rows.map(rowToAnnotation)
+}
+
+/**
+ * Get a single annotation by ID from a project's database.
+ */
+export function getProjectAnnotation(projectDb, id) {
+  const row = projectDb.prepare('SELECT * FROM annotations WHERE id = ?').get(id)
+  return row ? rowToAnnotation(row) : null
+}
+
+/**
+ * Update an annotation's status.
+ */
+export function updateProjectAnnotationStatus(projectDb, id, status) {
+  projectDb.prepare('UPDATE annotations SET status = ? WHERE id = ?').run(status, id)
+  return getProjectAnnotation(projectDb, id)
+}
+
+/**
+ * Update an annotation's progress message.
+ */
+export function updateProjectAnnotationProgress(projectDb, id, progress) {
+  projectDb.prepare('UPDATE annotations SET progress = ? WHERE id = ?').run(progress, id)
+  return getProjectAnnotation(projectDb, id)
+}
+
+/**
+ * Delete an annotation from a project's database.
+ */
+export function deleteProjectAnnotation(projectDb, id) {
+  const annotation = getProjectAnnotation(projectDb, id)
+  if (annotation) {
+    projectDb.prepare('DELETE FROM annotations WHERE id = ?').run(id)
+  }
+  return annotation
+}
+
+/**
+ * Close all project annotation databases.
+ */
+export function closeProjectDbs() {
+  for (const [, projectDb] of projectDbs) {
+    projectDb.close()
+  }
+  projectDbs.clear()
+}
+
+/**
+ * Convert a database row to an annotation object.
+ */
+function rowToAnnotation(row) {
+  return {
+    id: String(row.id),
+    type: row.type,
+    frameId: row.frame_id,
+    frameIds: JSON.parse(row.frame_ids || '[]'),
+    componentName: row.component_name,
+    props: JSON.parse(row.props || '{}'),
+    selector: row.selector,
+    elementTag: row.element_tag,
+    elementClasses: row.element_classes,
+    elementText: row.element_text,
+    computedStyles: JSON.parse(row.computed_styles || '{}'),
+    comment: row.comment,
+    image: row.image,
+    timestamp: row.timestamp,
+    status: row.status,
+    mode: row.mode,
+    progress: row.progress,
   }
 }

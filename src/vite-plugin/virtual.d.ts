@@ -4,3 +4,4 @@ declare module 'virtual:bryllen-manifests' {
 }
 
 declare const __BRYLLEN_VERSION__: string
+declare const __BRYLLEN_HTTP_PORT__: number

@@ -42,9 +42,17 @@ Start the Bryllen dev server and enter watch mode.
 6. **Enter watch loop:** Run `npx bryllen watch` in a loop. Each call waits up to 15 seconds for the designer to click "Apply" on an annotation. Three outcomes:
 
    **Regular annotation arrives** (JSON with annotation data) — process it:
+
+   **The annotation IS the map. Read the fields, construct the path, done:**
+   - `project` → `src/projects/{project}/`
+   - `frameId` prefix (e.g. `v9-shell`) → `v9/` folder
+   - `componentName` → file in `components/` or `pages/`
+
+   **NEVER guess the project from git commits, Explore agents, or "which is active" heuristics.**
+
    - Run `npx bryllen progress <id> "Reading file..."` to show status on canvas
-   - **Fast file lookup:** Parse `frameId` (e.g. `"v9-shell"`) to get the iteration (`v9`) and component hint. Grep for `componentName` in that iteration's folder. The annotation metadata is a direct map to the file — never use an Explore agent or broad codebase search.
-   - Read the `comment`, `componentName`, `selector`, and `computedStyles`
+   - Grep for `componentName` in `src/projects/{project}/{iteration}/` — that's the file
+   - Read the `comment`, `selector`, and `computedStyles` for what to change
    - **Follow the guard protocol** (see CLAUDE.md "Before any edit")
    - Map to file in `v<N>/components/` or `v<N>/pages/`
    - Run `npx bryllen progress <id> "Applying changes..."`

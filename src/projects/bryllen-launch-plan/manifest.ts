@@ -64,6 +64,7 @@ import { MinimalMaster } from './v2/pages/minimal-master'
 import type { ProjectManifest } from '../../runtime/types'
 
 const manifest: ProjectManifest = {
+  id: 'bfaeb566-7983-455d-a1e4-d77ab32c6f15',
   project: 'canvai-launch-plan',
   iterations: [
     {
