@@ -14,6 +14,7 @@ interface Annotation {
   frameId: string
   selector: string
   status: 'draft' | 'pending' | 'resolved'
+  progress?: string
 }
 
 /* ─── AnnotationBadge ─────────────────────────────────── */
@@ -241,8 +242,20 @@ function PendingRow({ annotation }: { annotation: Annotation }) {
         }}>
           {annotation.comment}
         </div>
-        <div style={{ fontSize: T.ui, color: V.txtSec, marginTop: 2 }}>
-          {annotation.type === 'iteration' ? 'Creating iteration\u2026' : annotation.type === 'project' ? 'Creating project\u2026' : 'Applying\u2026'}
+        <div style={{
+          fontSize: T.ui,
+          color: F.marker,
+          marginTop: 2,
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          opacity: annotation.progress ? 1 : 0.6,
+        }}>
+          {annotation.progress
+            ? annotation.progress
+            : annotation.type === 'iteration' ? 'Creating iteration\u2026'
+            : annotation.type === 'project' ? 'Creating project\u2026'
+            : 'Waiting for agent\u2026'}
         </div>
       </div>
     </div>
@@ -327,6 +340,11 @@ function useAnnotationPanel(endpoint: string, projectId?: string) {
           const ids = new Set(data.ids)
           setAnnotations(prev => prev.map(a =>
             ids.has(a.id) ? { ...a, status: 'pending' as const } : a
+          ))
+        }
+        if (data.type === 'progress' && data.id && data.message) {
+          setAnnotations(prev => prev.map(a =>
+            a.id === data.id ? { ...a, progress: data.message } : a
           ))
         }
       } catch { /* ignore */ }

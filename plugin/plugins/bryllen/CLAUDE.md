@@ -506,10 +506,24 @@ node node_modules/bryllen/src/cli/index.js screenshot [--frame <id>] [--delay <m
 node node_modules/bryllen/src/cli/index.js context --project <name> --iteration <v>
 ```
 
-**Progress updates:** Call `progress` at key points so the designer sees what's happening:
-- `"Reading file..."` — after identifying the target file
-- `"Applying changes..."` — before editing
+**Progress updates:** Call `progress` frequently — the designer sees this in real time and it removes the feeling of waiting in the dark. More messages = better experience.
+
+Typical annotation flow:
+- `"Reading project..."` — immediately after receiving the annotation
+- `"Reading [ComponentName]..."` — after identifying the target file
+- `"Checking token values..."` — when looking up/planning token changes
+- `"Writing [ComponentName]..."` — right before editing the file
+- `"Updating tokens..."` — when editing tokens.css
 - `"Taking screenshot..."` — before visual review
+- `"Checking screenshot..."` — while reviewing the image
+- `"Looks good, resolving..."` — before calling resolve
+
+For iterations/projects (longer operations), add more:
+- `"Copying v1 → v2..."` — during cp
+- `"Building components..."` — while creating component files
+- `"Building pages..."` — while creating page files
+- `"Adding to manifest..."` — when editing manifest.ts
+- `"Taking screenshot..."` — before screenshot
 
 ## Skills
 
