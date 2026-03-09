@@ -51,6 +51,10 @@ import {
   getFrames,
   updateFrame,
   softDeleteFrame,
+  createSticky,
+  getStickies,
+  deleteSticky,
+  deleteStickyByParentFrame,
 } from './db.js'
 
 // --- Playwright (lazy) ---
@@ -1223,13 +1227,76 @@ const httpServer = createServer(async (req, res) => {
         return
       }
       const result = softDeleteFrame(project, id)
+      // Cascade: delete any stickies bound to this frame
+      const deletedStickies = deleteStickyByParentFrame(project, id)
       // Notify SSE clients
       for (const client of sseClients) {
         if (!client.projectName || client.projectName === project) {
           client.res.write(`data: ${JSON.stringify({ type: 'frame-deleted', frameId: id })}\n\n`)
+          for (const sticky of deletedStickies) {
+            client.res.write(`data: ${JSON.stringify({ type: 'sticky-deleted', stickyId: sticky.id })}\n\n`)
+          }
         }
       }
       sendJson(res, 200, result)
+      return
+    }
+
+    // ── Stickies CRUD ────────────────────────────────────────────────────────
+
+    // POST /stickies — create a sticky note
+    if (req.method === 'POST' && url.pathname === '/stickies') {
+      const data = await parseBody(req)
+      const { project, id, parentFrameId, content, offsetX, offsetY } = data
+
+      if (!project || !id || !parentFrameId || !content) {
+        sendJson(res, 400, { error: 'project, id, parentFrameId, and content are required' })
+        return
+      }
+
+      const sticky = createSticky(project, { id, parentFrameId, content, offsetX, offsetY })
+      // Notify SSE clients so canvas re-fetches
+      for (const client of sseClients) {
+        if (!client.projectName || client.projectName === project) {
+          client.res.write(`data: ${JSON.stringify({ type: 'sticky-created', stickyId: id })}\n\n`)
+        }
+      }
+      sendJson(res, 201, sticky)
+      return
+    }
+
+    // GET /stickies — list stickies for a project
+    if (req.method === 'GET' && url.pathname === '/stickies') {
+      const project = url.searchParams.get('project')
+      if (!project) {
+        sendJson(res, 400, { error: 'project query param is required' })
+        return
+      }
+      sendJson(res, 200, getStickies(project))
+      return
+    }
+
+    // DELETE /stickies/:id — delete a sticky
+    const stickyDeleteMatch = url.pathname.match(/^\/stickies\/([^/]+)$/)
+    if (req.method === 'DELETE' && stickyDeleteMatch) {
+      const project = url.searchParams.get('project')
+      const id = decodeURIComponent(stickyDeleteMatch[1])
+      if (!project) {
+        sendJson(res, 400, { error: 'project query param is required' })
+        return
+      }
+      const sticky = deleteSticky(project, id)
+      if (!sticky) {
+        sendJson(res, 404, { error: 'Sticky not found' })
+        return
+      }
+      // Notify SSE clients
+      for (const client of sseClients) {
+        if (!client.projectName || client.projectName === project) {
+          client.res.write(`data: ${JSON.stringify({ type: 'sticky-deleted', stickyId: id })}\n\n`)
+        }
+      }
+      sendJson(res, 200, sticky)
       return
     }
 

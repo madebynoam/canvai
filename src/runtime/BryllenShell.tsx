@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef, memo, useMemo } from 'react'
-import { X, Star, Check, ChevronDown } from 'lucide-react'
+import { X, Star, Check, ChevronDown, StickyNote } from 'lucide-react'
 import { Canvas } from './Canvas'
 import { Frame } from './Frame'
 import { useFrames } from './useFrames'
@@ -20,7 +20,8 @@ import { InfoButton } from './InfoButton'
 import { A, D, E, S, T, R, FONT, DIM, V } from './tokens'
 import { ThemeProvider, useTheme } from './useTheme'
 import { TokenPanel, TokenPanelToggle } from './TokenPanel'
-import type { ProjectManifest, CanvasImageFrame, FrameStatus, ManifestFrame, CanvasFrame } from './types'
+import { Sticky } from './Sticky'
+import type { ProjectManifest, CanvasImageFrame, FrameStatus, ManifestFrame, CanvasFrame, CanvasSticky } from './types'
 
 interface BryllenShellProps {
   manifests: ProjectManifest[]
@@ -40,6 +41,16 @@ function loadFilters(project: string): Set<FrameStatus> {
     }
   } catch {}
   return new Set(['none', 'starred', 'approved', 'rejected'])
+}
+
+function stickiesVisibleKey(project: string) { return `bryllen:stickies-visible:${project}` }
+
+function loadStickiesVisible(project: string): boolean {
+  try {
+    const saved = localStorage.getItem(stickiesVisibleKey(project))
+    if (saved !== null) return saved !== 'false'
+  } catch {}
+  return true
 }
 
 function loadProjectIndex(max: number): number {
@@ -78,6 +89,9 @@ interface StatusFilterProps {
   visibleStatuses: Set<FrameStatus>
   onToggle: (status: FrameStatus) => void
   counts: Record<FrameStatus, number>
+  stickiesVisible: boolean
+  onToggleStickies: () => void
+  stickyCount: number
 }
 
 const STATUS_OPTIONS: Array<{ value: FrameStatus; label: string; icon: typeof Star; fill: string; stroke: string }> = [
@@ -87,7 +101,7 @@ const STATUS_OPTIONS: Array<{ value: FrameStatus; label: string; icon: typeof St
   { value: 'rejected', label: 'Rejected', icon: X, fill: 'none', stroke: '#EF4444' },
 ]
 
-function StatusFilter({ visibleStatuses, onToggle, counts }: StatusFilterProps) {
+function StatusFilter({ visibleStatuses, onToggle, counts, stickiesVisible, onToggleStickies, stickyCount }: StatusFilterProps) {
   const [open, setOpen] = useState(false)
   const activeCount = visibleStatuses.size
   const totalVisible = Array.from(visibleStatuses).reduce((sum, s) => sum + counts[s], 0)
@@ -190,6 +204,47 @@ function StatusFilter({ visibleStatuses, onToggle, counts }: StatusFilterProps) 
               </label>
             )
           })}
+          {/* Divider */}
+          <div style={{ height: 1, background: V.border, margin: '4px 0' }} />
+          {/* Notes toggle */}
+          <label
+            onClick={onToggleStickies}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '6px 8px',
+              borderRadius: 4,
+              cursor: 'default',
+              fontSize: T.ui,
+              fontFamily: FONT,
+              color: V.txtPri,
+            }}
+          >
+            <div
+              style={{
+                width: 14,
+                height: 14,
+                borderRadius: 3,
+                border: `1px solid ${stickiesVisible ? A.accent : V.border}`,
+                background: stickiesVisible ? A.accent : 'transparent',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+                transition: 'background 0.1s, border-color 0.1s',
+              }}
+            >
+              {stickiesVisible && (
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                  <path d="M2 5L4 7L8 3" stroke={D.text} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              )}
+            </div>
+            <StickyNote size={14} strokeWidth={1.5} style={{ color: V.txtSec }} />
+            <span style={{ flex: 1 }}>Notes</span>
+            <span style={{ color: V.txtSec }}>({stickyCount})</span>
+          </label>
         </div>
       )}
     </div>

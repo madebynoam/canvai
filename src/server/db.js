@@ -93,6 +93,23 @@ export function initDb(bryllenDir) {
       PRIMARY KEY (project, id)
     );
 
+    CREATE TABLE IF NOT EXISTS stickies (
+      id TEXT NOT NULL,
+      project TEXT NOT NULL,
+      parent_frame_id TEXT NOT NULL,
+      content TEXT NOT NULL,
+      offset_x REAL NOT NULL DEFAULT 0,
+      offset_y REAL NOT NULL DEFAULT -220,
+      created_at INTEGER DEFAULT (strftime('%s', 'now')),
+      PRIMARY KEY (project, id)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_stickies_project
+      ON stickies(project);
+
+    CREATE INDEX IF NOT EXISTS idx_stickies_parent_frame
+      ON stickies(project, parent_frame_id);
+
     CREATE INDEX IF NOT EXISTS idx_frames_project
       ON frames(project, deleted_at);
 
@@ -679,6 +696,69 @@ export function closeProjectDbs() {
     projectDb.close()
   }
   projectDbs.clear()
+}
+
+// ─── Stickies ─────────────────────────────────────────────────────────────────
+
+export function createSticky(project, { id, parentFrameId, content, offsetX, offsetY }) {
+  const now = Math.floor(Date.now() / 1000)
+  getDb().prepare(`
+    INSERT INTO stickies (id, project, parent_frame_id, content, offset_x, offset_y, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(project, id) DO UPDATE SET
+      parent_frame_id = excluded.parent_frame_id,
+      content = excluded.content,
+      offset_x = excluded.offset_x,
+      offset_y = excluded.offset_y
+  `).run(id, project, parentFrameId, content, offsetX ?? 0, offsetY ?? -220, now)
+
+  return getSticky(project, id)
+}
+
+export function getStickies(project) {
+  const rows = getDb().prepare(`
+    SELECT id, project, parent_frame_id, content, offset_x, offset_y
+    FROM stickies WHERE project = ?
+    ORDER BY created_at ASC
+  `).all(project)
+  return rows.map(rowToSticky)
+}
+
+export function getSticky(project, id) {
+  const row = getDb().prepare(`
+    SELECT id, project, parent_frame_id, content, offset_x, offset_y
+    FROM stickies WHERE project = ? AND id = ?
+  `).get(project, id)
+  return row ? rowToSticky(row) : null
+}
+
+export function deleteSticky(project, id) {
+  const sticky = getSticky(project, id)
+  if (sticky) {
+    getDb().prepare('DELETE FROM stickies WHERE project = ? AND id = ?').run(project, id)
+  }
+  return sticky
+}
+
+export function deleteStickyByParentFrame(project, parentFrameId) {
+  const rows = getDb().prepare(`
+    SELECT id, project, parent_frame_id, content, offset_x, offset_y
+    FROM stickies WHERE project = ? AND parent_frame_id = ?
+  `).all(project, parentFrameId)
+  if (rows.length > 0) {
+    getDb().prepare('DELETE FROM stickies WHERE project = ? AND parent_frame_id = ?').run(project, parentFrameId)
+  }
+  return rows.map(rowToSticky)
+}
+
+function rowToSticky(row) {
+  return {
+    id: row.id,
+    parentFrameId: row.parent_frame_id,
+    content: row.content,
+    offsetX: row.offset_x,
+    offsetY: row.offset_y,
+  }
 }
 
 /**
