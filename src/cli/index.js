@@ -666,6 +666,22 @@ async function startDev() {
     } catch {}
   }
 
+  // Fallback: kill by port in case of zombie processes from previous sessions
+  // (covers the case where .bryllen-ports.json is stale or missing)
+  try {
+    const { execSync } = await import('child_process')
+    for (const port of [4748, 5173]) {
+      try {
+        const pid = execSync(`lsof -ti:${port}`, { encoding: 'utf8' }).trim()
+        if (pid) {
+          for (const p of pid.split('\n').filter(Boolean)) {
+            try { process.kill(Number(p), 'SIGTERM') } catch {}
+          }
+        }
+      } catch {}
+    }
+  } catch {}
+
   // Clear Vite dep cache so updated bryllen code is re-bundled
   const viteCache = join(cwd, 'node_modules', '.vite')
   if (existsSync(viteCache)) {
