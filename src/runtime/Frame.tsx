@@ -15,7 +15,7 @@ interface FrameProps {
   height: number
   children: ReactNode
   onMove?: (id: string, x: number, y: number) => void
-  onDuplicate?: (id: string, newX: number, newY: number, origX: number, origY: number) => void
+  onDuplicate?: (id: string, origX: number, origY: number) => void
   onResize?: (id: string, height: number) => void
   status?: FrameStatus
   onStatusChange?: (id: string, status: FrameStatus) => void
@@ -126,6 +126,7 @@ export function Frame({ id, title, x, y, width, height, children, onMove, onDupl
 
     let currentX = x
     let currentY = y
+    let duplicateSpawned = false
 
     function handleWindowMove(ev: PointerEvent) {
       if (!isDraggingRef.current) return
@@ -134,6 +135,12 @@ export function Frame({ id, title, x, y, width, height, children, onMove, onDupl
       dragDistanceRef.current = Math.sqrt(dx * dx + dy * dy)
       currentX = frameStartRef.current.x + dx
       currentY = frameStartRef.current.y + dy
+      // Option+drag: once threshold crossed, stamp a copy at the origin so it
+      // stays behind — then continue dragging the current frame (it becomes the dupe)
+      if (altKeyAtStart && !duplicateSpawned && dragDistanceRef.current >= 5) {
+        duplicateSpawned = true
+        onDuplicateRef.current?.(idRef.current, frameStartRef.current.x, frameStartRef.current.y)
+      }
       onMoveRef.current?.(idRef.current, currentX, currentY)
     }
 
@@ -144,10 +151,7 @@ export function Frame({ id, title, x, y, width, height, children, onMove, onDupl
       window.removeEventListener('pointerup', handleWindowUp)
       if (altKeyAtStart) document.body.style.cursor = ''
 
-      if (altKeyAtStart && wasDrag && onDuplicateRef.current) {
-        // Option+drag: create duplicate at drop position, restore original
-        onDuplicateRef.current(idRef.current, currentX, currentY, frameStartRef.current.x, frameStartRef.current.y)
-      } else if (!wasDrag && onSelectRef.current) {
+      if (!wasDrag && onSelectRef.current) {
         onSelectRef.current(idRef.current, shiftKeyAtStart)
       }
     }
