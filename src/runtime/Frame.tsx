@@ -15,7 +15,7 @@ interface FrameProps {
   height: number
   children: ReactNode
   onMove?: (id: string, x: number, y: number) => void
-  onDuplicate?: (id: string, origX: number, origY: number) => void
+  onDuplicate?: (id: string, origX: number, origY: number) => string | undefined
   onResize?: (id: string, height: number) => void
   status?: FrameStatus
   onStatusChange?: (id: string, status: FrameStatus) => void
@@ -139,7 +139,8 @@ export function Frame({ id, title, x, y, width, height, children, onMove, onDupl
       // stays behind — then continue dragging the current frame (it becomes the dupe)
       if (altKeyAtStart && !duplicateSpawned && dragDistanceRef.current >= 5) {
         duplicateSpawned = true
-        onDuplicateRef.current?.(idRef.current, frameStartRef.current.x, frameStartRef.current.y)
+        const newId = onDuplicateRef.current?.(idRef.current, frameStartRef.current.x, frameStartRef.current.y)
+        if (newId) idRef.current = newId
       }
       onMoveRef.current?.(idRef.current, currentX, currentY)
     }

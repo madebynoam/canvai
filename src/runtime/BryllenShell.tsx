@@ -687,12 +687,19 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
     isDbMode ? activeProject.components : undefined,
   )
 
-  // Option+drag: stamp a copy at the origin so it stays behind while the dragged frame becomes the duplicate
-  const handleFrameDuplicate = useCallback((id: string, origX: number, origY: number) => {
+  // Option+drag: stamp a copy at the origin so it stays behind while the dragged frame becomes the duplicate.
+  // The copy keeps the original ID (so it survives refresh via manifest/DB lookup).
+  // The dragged frame gets a new UUID — returns it so Frame can update idRef for subsequent move calls.
+  const handleFrameDuplicate = useCallback((id: string, origX: number, origY: number): string => {
     const source = frames.find(f => f.id === id)
-    if (!source) return
-    addFrame({ ...source, id: crypto.randomUUID(), x: origX, y: origY, manuallyPositioned: true })
-  }, [frames, addFrame])
+    if (!source) return id
+    const newId = crypto.randomUUID()
+    // Give the dragged frame a new UUID (it's the new duplicate)
+    updateFrame(id, { id: newId } as Partial<CanvasFrame>)
+    // Stamp the copy at origin with the original ID (maps to manifest/DB entry)
+    addFrame({ ...source, x: origX, y: origY, manuallyPositioned: true })
+    return newId
+  }, [frames, addFrame, updateFrame])
 
   // Handle frame move with multi-select support
   const handleFrameMove = useCallback((id: string, newX: number, newY: number) => {
