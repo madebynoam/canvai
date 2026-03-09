@@ -113,6 +113,22 @@ Each iteration owns a complete token set scoped under `.iter-v<N>`. No cascade a
   npx bryllen resolve <id> --navigate V8
   ```
 
+## Canvas interactions
+
+**Frame selection:**
+- Click a frame to select it (blue ring appears)
+- Shift+click to add/remove frames from selection (multi-select)
+- Selected frames can be picked together in Pick mode
+
+**Status filter (top toolbar):**
+- Toggle chips: None, Starred, Approved, Rejected
+- Additive filtering — turn on multiple statuses to show all matching frames
+- At least one status must remain active
+
+**Frame status:**
+- Click the star icon on a frame to cycle through: None → Starred → Approved → Rejected
+- Use status to organize directions (star favorites, approve winners, reject discards)
+
 ## Before any edit (guard protocol)
 
 1. **Read `manifest.ts`** — frozen? Stop.

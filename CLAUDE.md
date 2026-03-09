@@ -5,12 +5,24 @@ Bryllen is an infinite canvas for Claude Code. Designers describe what they want
 **Jobs to Be Done:**
 1. **Explore** — See multiple directions at once → Canvas shows options
 2. **Iterate** — Describe changes in words → Click → Type → Applied
-3. **Decide** — Grab the file → Cmd+Shift+Click → Finder
+3. **Decide** — Pick the best direction → Ship the code
 4. **Share** — Get feedback → Share button → Link
 
 The code was never a mockup. Explore → Decide → Ship. No handoff.
 
 Two pieces: **npm package** (runtime, Vite plugin, CLI) and **Claude Code plugin** (skills, MCP, agent instructions in `plugin/plugins/bryllen/CLAUDE.md`).
+
+## Distribution (CRITICAL — memorize this)
+
+**Bryllen is NOT on npm registry.** Consumers install via GitHub:
+```
+npm install github:madebynoam/bryllen
+```
+
+- `bryllen update` runs `npm install github:madebynoam/bryllen`
+- NEVER suggest `npm install bryllen` or `npm update bryllen` — those won't work
+- The plugin system (`claude plugin update`) updates skills/MCP, NOT the runtime
+- Runtime features (Canvas, Frame, BryllenShell) require pushing to GitHub, then consumer runs `bryllen update`
 
 ## Project structure
 

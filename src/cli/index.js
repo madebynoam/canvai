@@ -521,7 +521,12 @@ function update() {
     }
   } catch {}
 
-  const install = spawn('npm', ['install', 'github:madebynoam/bryllen'], {
+  // Clear npm's global cache for bryllen to force fresh fetch from GitHub
+  try {
+    execSync('npm cache clean --force 2>/dev/null', { cwd, stdio: 'ignore' })
+  } catch {}
+
+  const install = spawn('npm', ['install', 'github:madebynoam/bryllen', '--force'], {
     cwd,
     stdio: 'inherit',
     shell: true,
