@@ -432,6 +432,7 @@ async function contextImages() {
 
   let project = null
   let iteration = 'v1'
+  let page = null
 
   const projectIdx = args.indexOf('--project')
   if (projectIdx !== -1 && args[projectIdx + 1]) {
@@ -441,6 +442,11 @@ async function contextImages() {
   const iterIdx = args.indexOf('--iteration')
   if (iterIdx !== -1 && args[iterIdx + 1]) {
     iteration = args[iterIdx + 1]
+  }
+
+  const pageIdx = args.indexOf('--page')
+  if (pageIdx !== -1 && args[pageIdx + 1]) {
+    page = args[pageIdx + 1]
   }
 
   // Auto-detect project if not specified
@@ -466,34 +472,53 @@ async function contextImages() {
     process.exit(1)
   }
 
-  const contextDir = join(process.cwd(), 'src', 'projects', project, iteration, 'context')
+  // If no --page given, scan all subdirectories too so images in context/canvas/ are found
+  const baseDir = join(process.cwd(), 'src', 'projects', project, iteration, 'context')
 
-  if (!existsSync(contextDir)) {
+  if (!existsSync(baseDir)) {
     console.log(JSON.stringify({ images: [], message: 'No context images found' }))
     return
   }
 
-  const files = readdirSync(contextDir)
-    .filter(f => /\.(png|jpg|jpeg|gif|webp)$/i.test(f))
-    .sort((a, b) => {
-      // Extract timestamp from filename (e.g. context-1773096113088.png → 1773096113088)
-      const tsA = parseInt(a.match(/(\d{10,})/)?.[1] ?? '0', 10)
-      const tsB = parseInt(b.match(/(\d{10,})/)?.[1] ?? '0', 10)
-      return tsB - tsA // newest first
+  const collectImages = (dir) => {
+    return readdirSync(dir)
+      .filter(f => {
+        const fpath = join(dir, f)
+        return statSync(fpath).isFile() && /\.(png|jpg|jpeg|gif|webp)$/i.test(f)
+      })
+      .map(f => ({ filename: f, path: join(dir, f) }))
+  }
+
+  let allImages = []
+  if (page) {
+    // Specific page subdirectory
+    const pageDir = join(baseDir, page)
+    if (existsSync(pageDir)) allImages = collectImages(pageDir)
+  } else {
+    // Root context/ files
+    allImages = collectImages(baseDir)
+    // Also scan page subdirectories (e.g. context/canvas/)
+    const subdirs = readdirSync(baseDir).filter(f => {
+      try { return statSync(join(baseDir, f)).isDirectory() } catch { return false }
     })
+    for (const sub of subdirs) {
+      allImages = allImages.concat(collectImages(join(baseDir, sub)))
+    }
+  }
 
-  if (files.length === 0) {
+  // Sort newest-first by timestamp in filename
+  allImages.sort((a, b) => {
+    const tsA = parseInt(a.filename.match(/(\d{10,})/)?.[1] ?? '0', 10)
+    const tsB = parseInt(b.filename.match(/(\d{10,})/)?.[1] ?? '0', 10)
+    return tsB - tsA
+  })
+
+  if (allImages.length === 0) {
     console.log(JSON.stringify({ images: [], message: 'No context images found' }))
     return
   }
 
-  // Return image paths sorted newest-first (not base64 — Claude can read files directly)
-  const images = files.map(filename => ({
-    filename,
-    path: join(contextDir, filename),
-  }))
-
-  console.log(JSON.stringify({ images }, null, 2))
+  console.log(JSON.stringify({ images: allImages }, null, 2))
 }
 
 function scaffold() {

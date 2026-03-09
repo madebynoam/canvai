@@ -322,7 +322,7 @@ Before generating designs, run:
 node node_modules/bryllen/src/cli/index.js context --project my-project --iteration v1
 ```
 
-This returns image paths **sorted newest-first**. The first image in the list is the most recently added — use it as the primary reference. Older images (e.g. from previous sessions) appear later in the list. Read them with the Read tool to analyze via Vision. Look for:
+This returns image paths **sorted newest-first** (scans all subdirectories). The first image in the list is the most recently added — use it as the primary reference. Older images (e.g. from previous sessions) appear later. Read them with the Read tool to analyze via Vision. Look for:
 - Color palettes and usage patterns
 - Typography styles and hierarchy
 - Layout patterns and spacing
@@ -337,19 +337,19 @@ Designers can annotate context images like any other frame. Clicking a context i
 
 **CRITICAL: Identify the SPECIFIC image from the annotation.** The annotation includes:
 - `componentName: "Context Image"`
-- `props.src`: URL like `http://localhost:4748/context-image?project=X&iteration=v1&filename=inspiration-123.png`
+- `props.src`: URL like `http://localhost:4748/context-image?project=X&iteration=v1&page=canvas&filename=context-123.png`
 
-**Extract the filename from `props.src`** (the `filename` query parameter). Then read THAT specific image file:
+**Extract BOTH `filename` AND `page` from `props.src`, then construct the disk path directly:**
 
-```bash
-# Get list of context images
-node node_modules/bryllen/src/cli/index.js context --project my-project --iteration v1
-# Returns: { "images": [{ "filename": "inspiration-123.png", "path": "/path/to/file" }, ...] }
-
-# Find the matching image by filename and read THAT file with the Read tool
+```
+page param present:   src/projects/<project>/<iteration>/context/<page>/<filename>
+page param absent:    src/projects/<project>/<iteration>/context/<filename>
 ```
 
-**Do NOT read all images and pick one arbitrarily.** The designer annotated a SPECIFIC image — use that one.
+Example: `props.src = ...?project=my-app&iteration=v1&page=canvas&filename=context-123.png`
+→ Read `src/projects/my-app/v1/context/canvas/context-123.png`
+
+**Do NOT read all images and pick one arbitrarily.** The designer pointed at a SPECIFIC image — construct the path and read it directly.
 
 ## Annotation flow
 
