@@ -251,7 +251,7 @@ function PendingRow({ annotation }: { annotation: Annotation }) {
 
 /* ─── useAnnotationPanel hook ─────────────────────────── */
 
-function useAnnotationPanel(endpoint: string) {
+function useAnnotationPanel(endpoint: string, projectId?: string) {
   const { open, setOpen, containerRef } = useMenu()
   const [annotations, setAnnotations] = useState<Annotation[]>([])
   const [autoApply, setAutoApply] = useState(() => {
@@ -261,6 +261,13 @@ function useAnnotationPanel(endpoint: string) {
 
   const drafts = annotations.filter(a => a.status === 'draft')
   const pending = annotations.filter(a => a.status === 'pending')
+
+  // Build query params with projectId
+  const buildParams = useCallback(() => {
+    const params = new URLSearchParams()
+    if (projectId) params.set('projectId', projectId)
+    return params.toString() ? `?${params}` : ''
+  }, [projectId])
 
   // Persist auto-apply preference
   useEffect(() => {
@@ -278,16 +285,18 @@ function useAnnotationPanel(endpoint: string) {
     prevDraftIdsRef.current = currentIds
 
     // Apply each new draft
+    const queryParams = buildParams()
     for (const draft of newDrafts) {
-      fetch(`${endpoint}/annotations/${draft.id}/apply`, { method: 'POST' }).catch(() => {})
+      fetch(`${endpoint}/annotations/${draft.id}/apply${queryParams}`, { method: 'POST' }).catch(() => {})
     }
-  }, [drafts, autoApply, endpoint])
+  }, [drafts, autoApply, endpoint, buildParams])
 
   // Fetch annotations on mount + poll every 3s
   useEffect(() => {
     let active = true
+    const queryParams = buildParams()
     function fetchAnnotations() {
-      fetch(`${endpoint}/annotations`)
+      fetch(`${endpoint}/annotations${queryParams}`)
         .then(r => r.json())
         .then((data: Annotation[]) => { if (active) setAnnotations(data) })
         .catch(() => {})
@@ -295,11 +304,12 @@ function useAnnotationPanel(endpoint: string) {
     fetchAnnotations()
     const interval = setInterval(fetchAnnotations, 3000)
     return () => { active = false; clearInterval(interval) }
-  }, [endpoint])
+  }, [endpoint, buildParams])
 
   // Subscribe to SSE for resolved + applied events
   useEffect(() => {
-    const source = new EventSource(`${endpoint}/annotations/events`)
+    const queryParams = buildParams()
+    const source = new EventSource(`${endpoint}/annotations/events${queryParams}`)
     source.onmessage = (e) => {
       try {
         const data = JSON.parse(e.data)
@@ -322,15 +332,17 @@ function useAnnotationPanel(endpoint: string) {
       } catch { /* ignore */ }
     }
     return () => source.close()
-  }, [endpoint])
+  }, [endpoint, buildParams])
 
   const handleApplyAll = useCallback(() => {
-    fetch(`${endpoint}/annotations/apply`, { method: 'POST' }).catch(() => {})
-  }, [endpoint])
+    const queryParams = buildParams()
+    fetch(`${endpoint}/annotations/apply${queryParams}`, { method: 'POST' }).catch(() => {})
+  }, [endpoint, buildParams])
 
   const handleApplyOne = useCallback((id: string) => {
-    fetch(`${endpoint}/annotations/${id}/apply`, { method: 'POST' }).catch(() => {})
-  }, [endpoint])
+    const queryParams = buildParams()
+    fetch(`${endpoint}/annotations/${id}/apply${queryParams}`, { method: 'POST' }).catch(() => {})
+  }, [endpoint, buildParams])
 
   const handleNavigate = useCallback((id: string) => {
     const annotation = annotations.find(a => a.id === id)
@@ -350,8 +362,8 @@ function useAnnotationPanel(endpoint: string) {
 
 /* ─── AnnotationPanelWidget ───────────────────────────── */
 
-export function AnnotationPanelWidget({ endpoint }: { endpoint: string }) {
-  const { open, setOpen, annotations, drafts, pending, containerRef, handleApplyAll, handleApplyOne, handleNavigate, autoApply, setAutoApply } = useAnnotationPanel(endpoint)
+export function AnnotationPanelWidget({ endpoint, projectId }: { endpoint: string; projectId?: string }) {
+  const { open, setOpen, annotations, drafts, pending, containerRef, handleApplyAll, handleApplyOne, handleNavigate, autoApply, setAutoApply } = useAnnotationPanel(endpoint, projectId)
 
   const resolved = annotations.filter(a => a.status === 'resolved')
 

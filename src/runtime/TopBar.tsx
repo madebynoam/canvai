@@ -16,6 +16,8 @@ interface TopBarProps {
   projectName: string
   updateAvailable?: boolean
   onUpdateClick?: () => void
+  /** UUID of the active project — used for per-project annotation storage */
+  projectId?: string
 }
 
 
@@ -30,6 +32,7 @@ export function TopBar({
   projectName,
   updateAvailable,
   onUpdateClick,
+  projectId,
 }: TopBarProps) {
   const [updateHovered, setUpdateHovered] = useState(false)
 
@@ -87,7 +90,7 @@ export function TopBar({
 
         {/* Annotation panel */}
         {import.meta.env.DEV && (
-          <AnnotationPanelWidget endpoint={annotationEndpoint} />
+          <AnnotationPanelWidget endpoint={annotationEndpoint} projectId={projectId} />
         )}
 
         {/* Share button — DEV only (needs annotation server) */}

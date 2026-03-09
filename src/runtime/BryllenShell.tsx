@@ -844,6 +844,7 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
         projectName={activeProject?.project ?? ''}
         updateAvailable={updateInfo.available}
         onUpdateClick={() => setUpdateDialogOpen(true)}
+        projectId={activeProject?.id}
       />
 
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>

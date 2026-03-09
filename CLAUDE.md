@@ -62,6 +62,15 @@ Files from `src/cli/templates.js` are **consumer-owned** — copied during `bryl
 4. Breaking export changes have a migration
 5. Root `CHANGELOG.md` updated
 
+### Runtime feature testing (CRITICAL)
+
+New runtime features require integration tests before shipping. The annotation system bug (0.0.108) happened because AnnotationPanel was never tested with project-specific databases. Before adding or modifying runtime features:
+
+1. Write tests in `src/__tests__/` covering the feature's core logic
+2. Test isolation (e.g., per-project storage must not leak between projects)
+3. Test the API contract (what params are required, what happens without them)
+4. Run `npm test` before committing
+
 ### Migration discipline
 
 - Never delete old migration files — consumers could be on any version
