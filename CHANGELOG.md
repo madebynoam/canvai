@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.0.136 — Progress panel
+
+**Annotation processing is now visible.** When Apply is clicked, a slide-in panel appears on the right edge of the canvas showing Claude's activity in real time:
+
+- Progress messages as they're sent (`progress` endpoint)
+- Frames as they're created (names appear with a green dot)
+- Pulsing dots while Claude is active
+- Auto-dismisses 2s after resolved
+
+The panel uses SSE events already emitted by the server — no server changes needed. Pairs with new progress call instructions added to the agent CLAUDE.md so Claude sends frequent progress updates during annotation processing, ideation, and project creation.
+
 ## 0.0.118 — 20x faster CLI commands
 
 **Performance fix:** Changed CLAUDE.md instructions from `npx bryllen` to `node node_modules/bryllen/src/cli/index.js`. `npx` adds 1.5s overhead per command. Direct node execution takes 0.07s.

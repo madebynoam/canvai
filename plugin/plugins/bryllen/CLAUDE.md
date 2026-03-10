@@ -402,10 +402,12 @@ Every annotation has a `mode` field: `'refine'`, `'ideate'`, or `'pick'`.
 - Result: updated component/token
 
 **Ideate mode** (generates new frames):
+- `node node_modules/bryllen/src/cli/index.js progress <id> "Planning directions…"`
 - **Run guard protocol**: identify ALL UI elements needed for variations
 - **Create missing components** in v<N>/components/, add to barrel
 - THEN invoke `/design-taste` — this skill has mandatory layout rules
 - Generate the number of variations specified in the annotation (check the comment for `[IDEATE MODE: ... exactly N ...]`)
+- Call `progress <id> "Creating variation N of M…"` before writing each variation
 - "Genuinely different" means different in **layout, hierarchy, interaction, or approach** — NOT just color or font variations
 - **LAY OUT FRAMES HORIZONTALLY** (increasing X, same Y) — see "Frame layout" section above
 - Each frame should be a distinct design bet, not a tweak of the same idea
@@ -487,23 +489,30 @@ During ideation, multiple directions may have different component implementation
 - Check "which project is active"
 
 **Steps:**
-1. Read `project`, `frameId`, `componentName` from the annotation
-2. Construct the path directly: `src/projects/{project}/{iteration from frameId}/`
-3. Grep for `componentName` in that folder (components/ or pages/)
-4. Follow guard protocol
-5. Apply changes, route visual values through tokens
-5. **Route visual changes through tokens** — find/create semantic token in `tokens.css`, never hardcode values
-6. Run `node node_modules/bryllen/src/cli/index.js resolve <id>` (auto-commits)
-7. Log to `CHANGELOG.md`
+1. `node node_modules/bryllen/src/cli/index.js progress <id> "Reading annotation…"`
+2. Read `project`, `frameId`, `componentName` from the annotation
+3. Construct the path directly: `src/projects/{project}/{iteration from frameId}/`
+4. `node node_modules/bryllen/src/cli/index.js progress <id> "Reading <ComponentName>…"`
+5. Grep for `componentName` in that folder (components/ or pages/)
+6. Follow guard protocol
+7. `node node_modules/bryllen/src/cli/index.js progress <id> "Applying changes…"`
+8. Apply changes, route visual values through tokens
+9. **Route visual changes through tokens** — find/create semantic token in `tokens.css`, never hardcode values
+10. `node node_modules/bryllen/src/cli/index.js progress <id> "Taking screenshot…"`
+11. Run `node node_modules/bryllen/src/cli/index.js resolve <id>` (auto-commits)
+12. Log to `CHANGELOG.md`
 
 ### Processing project annotations (`type: 'project'`)
 
-1. Parse JSON comment `{ name, description, prompt }`
-2. Create project folder structure (v1/, manifest.ts, CHANGELOG.md)
-3. **Run guard protocol**: identify ALL UI elements from the prompt
-4. Create tokens.css, ALL required components, mandatory pages (Tokens, Components)
-5. Invoke `/design-taste`, generate initial frames
-6. Resolve with `--navigate V1`
+1. `node node_modules/bryllen/src/cli/index.js progress <id> "Setting up project…"`
+2. Parse JSON comment `{ name, description, prompt }`
+3. Create project folder structure (v1/, manifest.ts, CHANGELOG.md)
+4. `node node_modules/bryllen/src/cli/index.js progress <id> "Planning components…"`
+5. **Run guard protocol**: identify ALL UI elements from the prompt
+6. Create tokens.css, ALL required components, mandatory pages (Tokens, Components)
+7. `node node_modules/bryllen/src/cli/index.js progress <id> "Generating directions…"`
+8. Invoke `/design-taste`, generate initial frames (call `progress <id> "Creating direction N…"` before each)
+9. Resolve with `--navigate V1`
 
 ## CLI Commands (for agent use)
 

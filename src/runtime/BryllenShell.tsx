@@ -21,6 +21,7 @@ import { A, D, E, S, T, R, FONT, DIM, V } from './tokens'
 import { ThemeProvider, useTheme } from './useTheme'
 import { TokenPanel, TokenPanelToggle } from './TokenPanel'
 import { Sticky } from './Sticky'
+import { ProgressPanel } from './ProgressPanel'
 import type { ProjectManifest, CanvasImageFrame, FrameStatus, ManifestFrame, CanvasFrame, CanvasSticky } from './types'
 
 interface BryllenShellProps {
@@ -420,6 +421,7 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
   const [commentCount, setCommentCount] = useState(0)
   const [projectDialogOpen, setProjectDialogOpen] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
+  const [activeAnnotationId, setActiveAnnotationId] = useState<string | null>(null)
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(null)
   // Images stored per-page: { "pageName": CanvasImageFrame[] }
   const [pageImages, setPageImages] = useState<Record<string, CanvasImageFrame[]>>({})
@@ -544,6 +546,13 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
               .catch(() => {})
           }
           return
+        }
+        if (data.type === 'applied' && data.id) {
+          setActiveAnnotationId(String(data.id))
+        }
+        if (data.type === 'resolved' && data.id) {
+          // Clear progress panel when resolved (panel also auto-dismisses, but clear just in case)
+          setActiveAnnotationId(prev => prev === String(data.id) ? null : prev)
         }
         if (data.type === 'prompt-requested' && data.id) {
           // Fetch the annotation to get the project name
@@ -1358,6 +1367,15 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
       </div>
 
       {import.meta.env.DEV && <AnnotationOverlay endpoint={annotationEndpoint} frames={[...frames, ...currentPageImages]} showToast={showToast} project={projectKey} projectId={activeProject?.id} />}
+      {activeAnnotationId && (
+        <ProgressPanel
+          annotationId={activeAnnotationId}
+          endpoint={annotationEndpoint}
+          project={activeProject?.project}
+          projectId={activeProject?.id}
+          onDismiss={() => setActiveAnnotationId(null)}
+        />
+      )}
       {/* Comment overlay hidden for now */}
       {/* <CommentOverlay endpoint={annotationEndpoint} frames={frames} onCommentCountChange={setCommentCount} /> */}
       {import.meta.env.DEV && (
