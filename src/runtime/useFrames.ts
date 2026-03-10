@@ -10,9 +10,15 @@ function frameIdsKey(frames: CanvasFrame[]): string {
   return frames.map(f => f.id).join(',')
 }
 
+interface ClonedFrameMapping {
+  cloneId: string
+  sourceId: string
+}
+
 interface SavedFrameData {
   positions: Record<string, { x: number; y: number; manuallyPositioned?: boolean }> | null
   deletedIds: string[]
+  clonedFrames: ClonedFrameMapping[]
 }
 
 async function loadFrameDataServer(project: string, page: string): Promise<SavedFrameData> {
@@ -22,9 +28,10 @@ async function loadFrameDataServer(project: string, page: string): Promise<Saved
     return {
       positions: data.positions || null,
       deletedIds: data.deletedIds || [],
+      clonedFrames: data.clonedFrames || [],
     }
   } catch {
-    return { positions: null, deletedIds: [] }
+    return { positions: null, deletedIds: [], clonedFrames: [] }
   }
 }
 
@@ -36,6 +43,16 @@ async function savePositionsServer(project: string, page: string, frames: Canvas
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ project, page, positions, deletedIds }),
+    })
+  } catch {}
+}
+
+async function saveClonedFrameServer(project: string, page: string, cloneId: string, sourceId: string) {
+  try {
+    await fetch(`${SERVER_ENDPOINT}/frame-positions/clone`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ project, page, cloneId, sourceId }),
     })
   } catch {}
 }
@@ -231,7 +248,7 @@ export function useFrames(
 
     async function load() {
       const base = sourceFramesRef.current
-      let saved: SavedFrameData = { positions: null, deletedIds: [] }
+      let saved: SavedFrameData = { positions: null, deletedIds: [], clonedFrames: [] }
 
       // Load from server (SQLite)
       if (persistConfigRef.current?.project && persistConfigRef.current?.page) {
@@ -246,10 +263,22 @@ export function useFrames(
       // Filter out deleted frames
       const filtered = base.filter(f => !deletedIdsRef.current.has(f.id))
 
+      // Reconstruct cloned frames from saved mappings
+      const clones: CanvasFrame[] = []
+      for (const { cloneId, sourceId } of saved.clonedFrames) {
+        if (deletedIdsRef.current.has(cloneId)) continue
+        const sourceFrame = base.find(f => f.id === sourceId)
+        if (sourceFrame) {
+          clones.push({ ...sourceFrame, id: cloneId })
+        }
+      }
+
+      const withClones = [...filtered, ...clones]
+
       // Only apply saved positions for frames that were MANUALLY positioned by the user.
       // Non-manual frames should use the calculated layout position to avoid stale/bad positions.
       const merged = saved.positions
-        ? filtered.map(f => {
+        ? withClones.map(f => {
             const savedPos = saved.positions![f.id]
             if (savedPos && savedPos.manuallyPositioned) {
               return {
@@ -261,7 +290,7 @@ export function useFrames(
             }
             return f
           })
-        : filtered
+        : withClones
 
       setFrames(merged)
       measuredHeightsRef.current = {}
@@ -380,7 +409,7 @@ export function useFrames(
     }
   }, [frames])
 
-  // Duplicate a frame: adds in-memory immediately, persists to DB in DB mode.
+  // Duplicate a frame: adds in-memory immediately, persists to DB or clone mapping.
   // Returns the new frame's ID.
   const duplicateFrame = useCallback((source: CanvasFrame, x: number, y: number): string => {
     const newId = crypto.randomUUID()
@@ -388,14 +417,13 @@ export function useFrames(
     setFrames(prev => [...prev, copy])
     const config = persistConfigRef.current
     if (isDbMode && config?.project) {
-      // Resolve componentKey: use source's key, or look it up in registry by matching component ref
+      // DB mode: POST to /frames API
       let componentKey: string | null = null
       if (source.type === 'image') {
         // images use src, not componentKey
       } else {
         const srcComp = source as import('./types').CanvasComponentFrame
         componentKey = srcComp.componentKey ?? null
-        // If componentKey is missing, reverse-lookup from the registry
         if (!componentKey && srcComp.component) {
           const registry = componentsRegistryRef.current ?? {}
           for (const [key, comp] of Object.entries(registry)) {
@@ -421,8 +449,6 @@ export function useFrames(
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       }).then(() => {
-        // Immediately persist the position after frame is created — don't rely on
-        // the 300ms debounce which can be pre-empted by SSE re-renders.
         fetch(`${SERVER_ENDPOINT}/frame-positions`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -434,6 +460,10 @@ export function useFrames(
           }),
         }).catch(() => {})
       }).catch(() => {})
+    } else if (config?.project && config?.page) {
+      // Manifest mode: save clone mapping + position
+      saveClonedFrameServer(config.project, config.page, newId, source.id)
+      savePositionsServer(config.project, config.page, [copy], Array.from(deletedIdsRef.current))
     }
     return newId
   }, [isDbMode])

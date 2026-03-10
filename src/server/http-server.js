@@ -55,6 +55,9 @@ import {
   getStickies,
   deleteSticky,
   deleteStickyByParentFrame,
+  getClonedFrames,
+  saveClonedFrame,
+  deleteClonedFrame,
 } from './db.js'
 
 // --- Playwright (lazy) ---
@@ -999,7 +1002,23 @@ const httpServer = createServer(async (req, res) => {
 
       const positions = getFramePositions(project, page)
       const deletedIds = getDeletedFrames(project, page)
-      sendJson(res, 200, { positions, deletedIds })
+      const clonedFrames = getClonedFrames(project, page)
+      sendJson(res, 200, { positions, deletedIds, clonedFrames })
+      return
+    }
+
+    // POST /frame-positions/clone — save a cloned frame mapping (manifest mode)
+    if (req.method === 'POST' && url.pathname === '/frame-positions/clone') {
+      const data = await parseBody(req)
+      const { project, page, cloneId, sourceId } = data
+
+      if (!project || !page || !cloneId || !sourceId) {
+        sendJson(res, 400, { error: 'project, page, cloneId, and sourceId are required' })
+        return
+      }
+
+      saveClonedFrame(project, page, cloneId, sourceId)
+      sendJson(res, 200, { saved: true })
       return
     }
 
@@ -1014,6 +1033,8 @@ const httpServer = createServer(async (req, res) => {
       }
 
       addDeletedFrame(project, page, frameId)
+      // Also clean up any clone mapping for this frame
+      deleteClonedFrame(project, page, frameId)
       sendJson(res, 200, { deleted: true, frameId })
       return
     }

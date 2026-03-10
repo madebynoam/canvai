@@ -539,10 +539,14 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
   }, [annotationEndpoint, showToast, promptRequest])
 
   // SSE listener for annotation events, sticky events, and update events
+  // Reconnects when the active project changes so events are scoped correctly
+  const activeProjectId = activeProject?.id ?? ''
   useEffect(() => {
     if (typeof window === 'undefined') return
 
-    const source = new EventSource(`${annotationEndpoint}/annotations/events`)
+    const params = new URLSearchParams()
+    if (activeProjectId) params.set('projectId', activeProjectId)
+    const source = new EventSource(`${annotationEndpoint}/annotations/events?${params}`)
     source.onmessage = async (e) => {
       try {
         const data = JSON.parse(e.data)
@@ -566,11 +570,13 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
         }
         if (data.type === 'prompt-requested' && data.id) {
           // Fetch the annotation to get the project name
-          const res = await fetch(`${annotationEndpoint}/annotations`)
+          const pid = activeProjectId
+          const fetchParams = new URLSearchParams()
+          if (pid) fetchParams.set('projectId', pid)
+          const res = await fetch(`${annotationEndpoint}/annotations?${fetchParams}`)
           const annotations = await res.json()
           const annotation = annotations.find((a: { id: string }) => String(a.id) === String(data.id))
           if (annotation) {
-            // Parse project name from comment (it's JSON: { name: "project-name" })
             let projectName = ''
             try {
               const parsed = JSON.parse(annotation.comment)
@@ -584,7 +590,7 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
       } catch { /* ignore parse errors */ }
     }
     return () => source.close()
-  }, [annotationEndpoint])
+  }, [annotationEndpoint, activeProjectId])
 
   // Check for update result on mount — show "Restart Claude Code" notice if CLAUDE.md changed
   useEffect(() => {
@@ -832,12 +838,8 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
     const source = frames.find(f => f.id === id)
     if (!source) return
     const newX = source.x + (source.width ?? 320) + 40
-    if (isDbMode) {
-      duplicateFrame(source, newX, source.y)
-    } else {
-      addFrame({ ...source, id: crypto.randomUUID(), x: newX, y: source.y, manuallyPositioned: true })
-    }
-  }, [frames, isDbMode, duplicateFrame, addFrame])
+    duplicateFrame(source, newX, source.y)
+  }, [frames, duplicateFrame])
 
   // Open frame in new tab (preview mode)
   const handleOpenInNewTab = useCallback((id: string) => {
@@ -847,26 +849,16 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
   }, [activeProject?.project])
 
   // Option+drag: stamp a copy at the origin while the dragged frame moves away.
-  // DB mode: copy gets a new ID and is POSTed to the server — it's a real frame.
-  //   Dragged frame keeps its original ID (already in DB), so idRef doesn't change.
-  // Manifest mode: copy keeps the original manifest-mapped ID; dragged frame gets a
-  //   new UUID so deleting it doesn't mark the manifest entry as deleted. Returns
-  //   the new UUID so Frame.tsx can update idRef for subsequent move calls.
+  // The copy is persisted at the origin; the dragged frame keeps moving.
+  // In DB mode the copy gets a new ID (POSTed to server).
+  // In manifest mode the copy also gets a new ID (clone mapping saved).
   const handleFrameDuplicate = useCallback((id: string, origX: number, origY: number): string => {
     const source = frames.find(f => f.id === id)
     if (!source) return id
-    if (isDbMode) {
-      // DB mode: persist the copy; dragged frame's ID is unchanged
-      duplicateFrame(source, origX, origY)
-      return id
-    } else {
-      // Manifest mode: swap IDs — copy at origin keeps the manifest-mapped ID
-      const newId = crypto.randomUUID()
-      updateFrame(id, { id: newId } as Partial<CanvasFrame>)
-      addFrame({ ...source, x: origX, y: origY, manuallyPositioned: true })
-      return newId
-    }
-  }, [frames, isDbMode, duplicateFrame, updateFrame, addFrame])
+    // Stamp a copy at origin; dragged frame keeps its ID
+    duplicateFrame(source, origX, origY)
+    return id
+  }, [frames, duplicateFrame])
 
   // Handle frame move with multi-select support
   const handleFrameMove = useCallback((id: string, newX: number, newY: number) => {

@@ -86,7 +86,7 @@ After init, the designer describes what they want. The agent follows this exact 
      - Landing page: hero-first vs. feature grid vs. testimonial-led vs. interactive demo
      - Component: horizontal pills vs. vertical list vs. icon grid vs. dropdown
    - **NOT genuinely different:** same layout with different colors, same hierarchy with different fonts
-   - Create an **"All Directions"** page in the manifest with all directions visible side by side
+   - Add each direction component to `manifest.components`, then register frames via `POST /frames`
    - Each direction gets its own row (use `DirectionLabel` as first frame, then the direction's frames)
    - The designer will pick one — only then do you build out variations/states
 
@@ -99,7 +99,7 @@ After init, the designer describes what they want. The agent follows this exact 
    - **Tokens page** — renders color swatches using `TokenSwatch` from `bryllen/runtime`, typography scale, and spacing grid.
    - **Components page** — shows all building blocks individually.
 
-5. **Generate the manifest** — `manifest.ts` with iteration `name: 'V1'` containing all pages. The "All Directions" page comes FIRST. Import `./v1/tokens.css` at the top.
+5. **Update the manifest** — The scaffold already created `manifest.ts` with `components: {}`. Add each component to the `components` map (key = component name, value = imported component). Import `./v1/tokens.css` at the top. Then register frames via the HTTP API (see Manifest format below).
 
 6. **Log to CHANGELOG.md** — record the design directions and why each is different
 
@@ -141,53 +141,44 @@ The matrix model (variations × states as separate frames) is for isolated compo
 
 **Rule:** If a page has internal navigation, the navigation must work. Use `useState` to track the active section and render the correct content. One frame, one component, full interactivity.
 
-## Manifest format
+## Manifest format (DB mode)
+
+The manifest only maps component keys to React components. Frame metadata (title, width, height, order) lives in SQLite.
 
 ```ts
 import type { ProjectManifest } from 'bryllen/runtime'
 import './v1/tokens.css'
 import { TokensPage } from './v1/pages/tokens'
 import { ComponentsPage } from './v1/pages/components'
-import { MainPage } from './v1/pages/main'
+import { DirA } from './v1/pages/DirA'
+import { DirB } from './v1/pages/DirB'
 
 const manifest: ProjectManifest = {
+  id: '<uuid>',
   project: '<project-name>',
-  iterations: [
-    {
-      name: 'V1',
-      frozen: false,
-      pages: [
-        {
-          name: 'Tokens',
-          grid: { columns: 4, columnWidth: 240, rowHeight: 200, gap: 40 },
-          frames: [
-            { id: 'v1-tok-colors', title: 'Tokens / Colors', component: TokensPage, props: { section: 'colors' } },
-            { id: 'v1-tok-type', title: 'Tokens / Typography', component: TokensPage, props: { section: 'typography' } },
-            { id: 'v1-tok-spacing', title: 'Tokens / Spacing', component: TokensPage, props: { section: 'spacing' } },
-            { id: 'v1-tok-radii', title: 'Tokens / Radii', component: TokensPage, props: { section: 'radii' } },
-          ],
-        },
-        {
-          name: 'Components',
-          grid: { columns: 3, columnWidth: 300, rowHeight: 160, gap: 40 },
-          frames: [
-            { id: 'v1-btn-primary', title: 'Button / Primary / Default', component: ComponentsPage, props: { variant: 'primary' } },
-          ],
-        },
-        {
-          name: 'Main',
-          grid: { columns: 1, columnWidth: 800, rowHeight: 560, gap: 40 },
-          frames: [
-            { id: 'v1-main', title: 'Main Composition', component: MainPage },
-          ],
-        },
-      ],
-    },
-  ],
+  components: {
+    TokensPage,
+    ComponentsPage,
+    DirA,
+    DirB,
+  },
 }
 
 export default manifest
 ```
+
+After adding components to the manifest, register frames via HTTP:
+
+```bash
+# Register each frame (canvas picks it up via SSE — no reload needed)
+curl -X POST http://localhost:4748/frames -H 'Content-Type: application/json' \
+  -d '{"project":"<project-name>","id":"dir-a","title":"Direction A","componentKey":"DirA","width":1440,"height":900}'
+
+curl -X POST http://localhost:4748/frames -H 'Content-Type: application/json' \
+  -d '{"project":"<project-name>","id":"tok-colors","title":"Tokens / Colors","componentKey":"TokensPage","width":240,"height":200,"props":{"section":"colors"}}'
+```
+
+**CRITICAL:** The `componentKey` in the POST must match the key in `manifest.components`.
 
 ## Spring module
 

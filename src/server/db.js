@@ -113,6 +113,15 @@ export function initDb(bryllenDir) {
     CREATE INDEX IF NOT EXISTS idx_frames_project
       ON frames(project, deleted_at);
 
+    CREATE TABLE IF NOT EXISTS cloned_frames (
+      project TEXT NOT NULL,
+      page TEXT NOT NULL,
+      clone_id TEXT NOT NULL,
+      source_id TEXT NOT NULL,
+      created_at INTEGER DEFAULT (strftime('%s', 'now')),
+      PRIMARY KEY (project, page, clone_id)
+    );
+
     CREATE INDEX IF NOT EXISTS idx_frame_positions_project_page
       ON frame_positions(project, page);
     CREATE INDEX IF NOT EXISTS idx_context_positions_project
@@ -121,6 +130,8 @@ export function initDb(bryllenDir) {
       ON frame_status(project);
     CREATE INDEX IF NOT EXISTS idx_deleted_frames_project_page
       ON deleted_frames(project, page);
+    CREATE INDEX IF NOT EXISTS idx_cloned_frames_project_page
+      ON cloned_frames(project, page);
   `)
 
   // Add manually_positioned column if it doesn't exist (migration for existing DBs)
@@ -215,6 +226,28 @@ export function removeDeletedFrame(project, page, frameId) {
   getDb().prepare(`
     DELETE FROM deleted_frames WHERE project = ? AND page = ? AND frame_id = ?
   `).run(project, page, frameId)
+}
+
+// ─── Cloned Frames (manifest mode duplicates) ────────────────────────────────
+
+export function getClonedFrames(project, page) {
+  return getDb().prepare(`
+    SELECT clone_id, source_id FROM cloned_frames
+    WHERE project = ? AND page = ?
+  `).all(project, page).map(r => ({ cloneId: r.clone_id, sourceId: r.source_id }))
+}
+
+export function saveClonedFrame(project, page, cloneId, sourceId) {
+  getDb().prepare(`
+    INSERT OR REPLACE INTO cloned_frames (project, page, clone_id, source_id)
+    VALUES (?, ?, ?, ?)
+  `).run(project, page, cloneId, sourceId)
+}
+
+export function deleteClonedFrame(project, page, cloneId) {
+  getDb().prepare(`
+    DELETE FROM cloned_frames WHERE project = ? AND page = ? AND clone_id = ?
+  `).run(project, page, cloneId)
 }
 
 // ─── Context Positions ───────────────────────────────────────────────────────
