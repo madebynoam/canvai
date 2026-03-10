@@ -421,6 +421,10 @@ const httpServer = createServer(async (req, res) => {
       res.write('\n')
       const client = { res, projectName }
       sseClients.push(client)
+      // Track active project so CLI can auto-detect without asking
+      if (projectName) {
+        try { writeFileSync(join(process.cwd(), '.bryllen-active-project'), projectName) } catch {}
+      }
       req.on('close', () => {
         const idx = sseClients.indexOf(client)
         if (idx !== -1) sseClients.splice(idx, 1)

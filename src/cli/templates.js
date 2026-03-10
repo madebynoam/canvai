@@ -219,6 +219,10 @@ dist
 .DS_Store
 *.local
 .bryllen
+.bryllen-ports.json
+.bryllen-active-project
+.bryllen-update-requested
+.bryllen-update-result.json
 `
 
 // MCP removed in favor of CLI commands — no .mcp.json needed

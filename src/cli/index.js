@@ -87,6 +87,14 @@ function detectProject(args) {
 
   if (projects.length === 1) return projects[0]
   if (projects.length > 1) {
+    // Check if the browser is open on a specific project (written by HTTP server on SSE connect)
+    try {
+      const activeFile = join(process.cwd(), '.bryllen-active-project')
+      if (existsSync(activeFile)) {
+        const active = readFileSync(activeFile, 'utf8').trim()
+        if (active && projects.includes(active)) return active
+      }
+    } catch {}
     console.error(JSON.stringify({ error: 'Multiple projects. Use --project <name>', projects }))
     process.exit(1)
   }

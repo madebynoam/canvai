@@ -5,3 +5,7 @@ dist/
 *.tsbuildinfo
 .canvai
 .canvai-screenshots
+.bryllen-ports.json
+.bryllen-active-project
+.bryllen-update-requested
+.bryllen-update-result.json
