@@ -106,6 +106,8 @@ Pages (v<N>/pages/)           → import ONLY from ../components/
 
 **NEVER inline styled HTML in pages.** Every visual element must be a component.
 
+**All generated components must be fully interactive** — inputs must be typeable, buttons must handle clicks, tabs/nav must switch state.
+
 ### Creating a frame with UI elements — REQUIRED STEPS:
 
 1. **Identify ALL components needed** — Card, Button, Sidebar, StatWidget, etc.
@@ -272,6 +274,29 @@ curl -X POST http://localhost:4748/frames -H 'Content-Type: application/json' \
 ```
 
 **CRITICAL:** Frames do NOT have x,y coordinates. Position is computed from `grid.columns`. Always set `grid.columns >= frame count` for horizontal layout.
+
+## Responsive design (MANDATORY for web layouts)
+
+Any time you generate a landing page, marketing site, web app, or any webpage layout:
+
+1. **Always generate mobile (390px) alongside desktop (1440px)** — minimum two frames per direction
+2. **Optional tablet (768px)** when the design has complex responsive behavior (sidebars, multi-column, etc.)
+3. **Group frames by direction, then viewport:** for N directions, layout is N columns × 3 rows (desktop / tablet / mobile) OR for single direction, horizontal: [desktop] [mobile]
+4. **The component IS responsive** — use CSS media queries or flexible layout inside the component so that both frames use the same component file rendered at different widths
+5. Frame IDs include viewport suffix: `dir-a-desktop`, `dir-a-mobile`, `dir-a-tablet`
+
+Example layout for 3 directions × 2 viewports:
+```
+[Dir A Desktop] [Dir B Desktop] [Dir C Desktop]
+[Dir A Mobile]  [Dir B Mobile]  [Dir C Mobile]
+```
+`grid.columns = 3` (one column per direction)
+
+For a single ideation frame (refine mode), still generate mobile if it's a website layout.
+
+**This rule applies to:** landing pages, marketing sites, product pages, homepages, web apps, dashboards accessible via browser, and any layout the designer describes as a "website" or "page".
+
+**This rule does NOT apply to:** native app components, isolated UI components, design tokens pages, component showcases.
 
 ## Mandatory pages
 
@@ -526,6 +551,12 @@ Typical annotation flow:
 - `"Taking screenshot..."` — before visual review
 - `"Checking screenshot..."` — while reviewing the image
 - `"Looks good, resolving..."` — before calling resolve
+
+**Liveness check — designs must be live React, not static mockups:**
+- Visible content renders (not a blank screen or error boundary)
+- Interactive elements (buttons, inputs, tabs, nav items) exist where the design calls for them
+- Navigation/state uses React useState, not just visual presentation
+- If any of these fail: fix the component before resolving
 
 For iterations/projects (longer operations), add more:
 - `"Copying v1 → v2..."` — during cp
