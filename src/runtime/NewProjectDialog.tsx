@@ -132,8 +132,8 @@ export function NewProjectDialog({ open, onClose, onSubmit, defaultName }: NewPr
       }
     }
 
-    window.addEventListener('paste', handlePaste)
-    return () => window.removeEventListener('paste', handlePaste)
+    window.addEventListener('paste', handlePaste, { capture: true })
+    return () => window.removeEventListener('paste', handlePaste, { capture: true })
   }, [open])
 
   const handleSubmit = useCallback(() => {

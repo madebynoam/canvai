@@ -70,7 +70,18 @@ Answer these before coding:
 - **Diagonal flow** — guide the eye, don't just stack vertically
 - **Grid-breaking moments** — hero elements that demand attention
 
-## 6. Backgrounds & Atmosphere
+## 6. Depth Discipline
+
+Pick **exactly ONE** depth strategy and apply it consistently throughout the design:
+
+- **Borders-only** — clean, technical feel; no shadows
+- **Subtle shadow** — single elevation level; cards float slightly
+- **Layered shadows** — rich, tactile hierarchy; multiple elevations
+- **Surface color shifts** — elevation through lightness steps; no shadows
+
+**Don't mix strategies.** A border-heavy layout with dramatic drop shadows creates visual noise. Commit to one and execute it everywhere.
+
+## 7. Backgrounds & Atmosphere
 
 Never default to flat solid colors. Create depth:
 
@@ -80,7 +91,7 @@ Never default to flat solid colors. Create depth:
 - **Layered transparencies** — glass, blur, depth
 - **Contextual effects** — match the aesthetic direction
 
-## 7. Motion (When Applicable)
+## 8. Motion (When Applicable)
 
 - **High-impact moments** over scattered micro-interactions
 - **Staggered reveals on load** — use animation-delay, orchestrate
@@ -88,7 +99,7 @@ Never default to flat solid colors. Create depth:
 - **Match intensity to aesthetic**: Maximalist = elaborate, Minimal = subtle
 - **Spring physics** for position/scale, CSS transitions for color
 
-## 8. Frame Layout (MANDATORY — horizontal only)
+## 9. Frame Layout (MANDATORY — horizontal only)
 
 **Frames MUST be laid out HORIZONTALLY (increasing X, constant Y).**
 
@@ -115,7 +126,7 @@ frames: [
 
 **If your frames have the same X and different Y values, you have failed.** Horizontal side-by-side comparison is Bryllen's core value.
 
-## 9. Variation Mandate
+## 10. Variation Mandate
 
 When generating multiple directions:
 
@@ -123,6 +134,7 @@ When generating multiple directions:
 - **Vary light/dark themes** across generations
 - **Different typography** per direction — don't converge on the same fonts
 - **No two designs should feel the same**
+- **Never converge on the same typefaces across generations** (e.g. don't use Space Grotesk every time)
 
 ### "Genuinely Different" Examples
 - Dashboard: card-based vs. table-based vs. sidebar+main
@@ -134,13 +146,41 @@ When generating multiple directions:
 - Same hierarchy with different fonts
 - Same component with spacing tweaks
 
-## 10. Before You Code
+## 11. Domain Extraction
+
+Before committing to colors and fonts, pull from the product's world:
+
+1. **Concepts** — List 5+ words that live in this domain. A finance tool: precision, ledger, trust, weight, custody. A music app: rhythm, waveform, resonance, energy, decay.
+2. **Colors** — What colors would you see in the PHYSICAL version of this domain? Not "what's trendy" — what exists there?
+3. **Signature** — What is the ONE element that only THIS product would have? A specific shape, interaction, texture, or compositional choice that is yours.
+4. **Defaults you're replacing** — Name 3 obvious choices you're explicitly NOT making.
+
+This prevents designs that could belong to any product.
+
+## 12. Evaluation Checks
+
+Before finalizing any design, run these four tests:
+
+- **Swap test** — Could you replace any font or color without changing the concept? If yes, the choice isn't earned. Every decision must be deliberate.
+- **Squint test** — Blur your eyes. Does the visual hierarchy still hold? The primary action must be obvious without reading.
+- **Signature test** — Can you point to 3+ specific elements that exist only in THIS design and couldn't appear in a competitor's product?
+- **Token test** — Do your CSS variable names sound product-specific or generic? `--canvas-dot-ink` vs `--primary`. Generic names signal generic thinking.
+
+If any check fails, revisit before resolving.
+
+## 13. Before You Code
 
 Checklist:
 - [ ] Chose ONE bold aesthetic direction
 - [ ] Know the ONE thing that makes this memorable
 - [ ] Have a dominant color + sharp accent planned
+- [ ] Chose ONE depth strategy (borders, shadow, or surface shifts)
+- [ ] Extracted domain concepts and identified the signature element
 - [ ] Frame positions calculated (horizontal, no overlap)
 - [ ] Context images analyzed for palette/style extraction (if provided)
+
+**Match implementation complexity to the vision.** Maximalist designs need elaborate code — animations, layered effects, rich texture. Minimalist designs need restraint — careful spacing, precision, subtle details. Elegance comes from executing the vision fully, not from adding more effects.
+
+Don't hold back. Commit fully. Extraordinary design comes from intentionality and precision, not from playing it safe.
 
 Now write the code.

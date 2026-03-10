@@ -468,8 +468,10 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
       }
 
       // Create project annotation (without images in payload)
+      // Store in active project's db so the agent can find it with --project and the spinner shows
       const { images: _, ...projectPayload } = payload
-      await fetch(`${annotationEndpoint}/annotations`, {
+      const projectParam = activeProject?.project ? `?projectId=${encodeURIComponent(activeProject.project)}` : ''
+      await fetch(`${annotationEndpoint}/annotations${projectParam}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type: 'project', comment: JSON.stringify(projectPayload) }),
@@ -478,7 +480,7 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
     } catch {
       showToast('Failed to submit')
     }
-  }, [annotationEndpoint, showToast])
+  }, [annotationEndpoint, showToast, activeProject?.project])
 
 
   // Handle prompt request submission (from agent's /bryllen-new without prompt)
@@ -504,7 +506,8 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
 
       // Create the actual project annotation with the prompt (without images)
       const { images: _, ...projectPayload } = payload
-      await fetch(`${annotationEndpoint}/annotations`, {
+      const projectParam = activeProject?.project ? `?projectId=${encodeURIComponent(activeProject.project)}` : ''
+      await fetch(`${annotationEndpoint}/annotations${projectParam}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type: 'project', comment: JSON.stringify(projectPayload) }),
