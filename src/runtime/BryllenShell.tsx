@@ -540,7 +540,7 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
 
   // SSE listener for annotation events, sticky events, and update events
   // Reconnects when the active project changes so events are scoped correctly
-  const activeProjectId = activeProject?.id ?? ''
+  const activeProjectId = activeProject?.project ?? ''
   useEffect(() => {
     if (typeof window === 'undefined') return
 
@@ -1258,7 +1258,7 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
         projectName={activeProject?.project ?? ''}
         updateAvailable={updateInfo.available}
         onUpdateClick={() => setUpdateDialogOpen(true)}
-        projectId={activeProject?.id}
+        projectId={activeProject?.project}
       />
 
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden', backgroundColor: V.chrome }}>
@@ -1389,7 +1389,7 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
                 annotationId={panelAnnotationId}
                 endpoint={annotationEndpoint}
                 project={activeProject?.project}
-                projectId={activeProject?.id}
+                projectId={activeProject?.project}
                 onDismiss={closePanel}
               />
             )}
@@ -1397,7 +1397,7 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
         </div>
       </div>
 
-      {import.meta.env.DEV && <AnnotationOverlay endpoint={annotationEndpoint} frames={[...frames, ...currentPageImages]} showToast={showToast} project={projectKey} projectId={activeProject?.id} />}
+      {import.meta.env.DEV && <AnnotationOverlay endpoint={annotationEndpoint} frames={[...frames, ...currentPageImages]} showToast={showToast} project={projectKey} projectId={activeProject?.project} />}
       {/* Comment overlay hidden for now */}
       {/* <CommentOverlay endpoint={annotationEndpoint} frames={frames} onCommentCountChange={setCommentCount} /> */}
       {import.meta.env.DEV && (

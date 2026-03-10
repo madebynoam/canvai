@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 
 import { createServer } from 'http'
-import { readFileSync, writeFileSync, mkdirSync, existsSync, statSync, rmSync, readdirSync, unlinkSync } from 'fs'
+import { readFileSync, writeFileSync, copyFileSync, mkdirSync, existsSync, statSync, rmSync, readdirSync, unlinkSync } from 'fs'
+import { randomUUID } from 'crypto'
 import { spawn } from 'child_process'
 import { join } from 'path'
 import {
@@ -48,6 +49,7 @@ import {
   deleteProjectAnnotation,
   closeProjectDbs,
   createFrame,
+  getFrame,
   getFrames,
   updateFrame,
   softDeleteFrame,
@@ -398,6 +400,87 @@ function sendJson(res, status, data) {
     'Access-Control-Allow-Headers': 'Content-Type',
   })
   res.end(JSON.stringify(data))
+}
+
+// ─── Helpers for frame duplication ────────────────────────────────────────────
+
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+/** Recursively search for a file by exact name within a directory. */
+function searchForFile(dir, fileName) {
+  try {
+    const entries = readdirSync(dir, { withFileTypes: true })
+    for (const entry of entries) {
+      if (entry.name.startsWith('.') || entry.name === 'node_modules') continue
+      const full = join(dir, entry.name)
+      if (entry.isDirectory()) {
+        const found = searchForFile(full, fileName)
+        if (found) return found
+      } else if (entry.name === fileName) {
+        return full
+      }
+    }
+  } catch {}
+  return null
+}
+
+/** Analyze a component file to determine its export type. */
+function analyzeComponentFile(filePath) {
+  const content = readFileSync(filePath, 'utf8')
+  const isDefault = /export\s+default\s/.test(content)
+  const namedMatch = content.match(/export\s+(?:function|const|class)\s+(\w+)/)
+  return { sourcePath: filePath, exportName: namedMatch ? namedMatch[1] : null, isDefault }
+}
+
+/**
+ * Find the source file for a component by its key.
+ * Searches by filename, then parses manifest imports, then traces barrel re-exports.
+ */
+function findComponentFile(projectDir, componentKey) {
+  // Strategy 1: File named componentKey.tsx
+  for (const ext of ['.tsx', '.ts']) {
+    const found = searchForFile(projectDir, componentKey + ext)
+    if (found) return analyzeComponentFile(found)
+  }
+  // Strategy 2: PascalCase from kebab-case
+  if (componentKey.includes('-')) {
+    const pascal = componentKey.split('-').map(s => s[0].toUpperCase() + s.slice(1)).join('')
+    for (const ext of ['.tsx', '.ts']) {
+      const found = searchForFile(projectDir, pascal + ext)
+      if (found) return analyzeComponentFile(found)
+    }
+  }
+  // Strategy 3: Parse manifest imports
+  const manifestPath = join(projectDir, 'manifest.ts')
+  if (!existsSync(manifestPath)) return null
+  const manifest = readFileSync(manifestPath, 'utf8')
+  for (const line of manifest.split('\n')) {
+    if (!line.startsWith('import ') || !line.includes(componentKey)) continue
+    const pathMatch = line.match(/from\s+['"]([^'"]+)['"]/)
+    if (!pathMatch) continue
+    const resolved = join(projectDir, pathMatch[1])
+    // Direct file
+    for (const ext of ['.tsx', '.ts']) {
+      if (existsSync(resolved + ext)) return analyzeComponentFile(resolved + ext)
+    }
+    // Barrel directory
+    for (const idx of ['/index.tsx', '/index.ts']) {
+      if (!existsSync(resolved + idx)) continue
+      const barrel = readFileSync(resolved + idx, 'utf8')
+      for (const bl of barrel.split('\n')) {
+        if (!bl.includes(componentKey) || !bl.includes('from')) continue
+        const bPath = bl.match(/from\s+['"]([^'"]+)['"]/)
+        if (!bPath) continue
+        const actual = join(resolved, bPath[1])
+        for (const ext of ['.tsx', '.ts']) {
+          if (existsSync(actual + ext)) return analyzeComponentFile(actual + ext)
+        }
+      }
+    }
+  }
+  return null
 }
 
 const httpServer = createServer(async (req, res) => {
@@ -1264,6 +1347,135 @@ const httpServer = createServer(async (req, res) => {
         }
       }
       sendJson(res, 200, result)
+      return
+    }
+
+    // POST /frames/duplicate — duplicate a frame with an independent component copy
+    if (req.method === 'POST' && url.pathname === '/frames/duplicate') {
+      const data = await parseBody(req)
+      const { project, sourceId, x, y } = data
+
+      if (!project || !sourceId) {
+        sendJson(res, 400, { error: 'project and sourceId are required' })
+        return
+      }
+
+      const sourceFrame = getFrame(project, sourceId)
+      if (!sourceFrame) {
+        sendJson(res, 404, { error: 'Source frame not found' })
+        return
+      }
+
+      const newId = randomUUID()
+      const componentKey = sourceFrame.componentKey
+
+      // Non-component frame (image) or no componentKey — simple DB copy
+      if (!componentKey) {
+        const frame = createFrame(project, {
+          id: newId, title: `${sourceFrame.title} (copy)`,
+          componentKey: null, src: sourceFrame.src,
+          props: sourceFrame.props, width: sourceFrame.width, height: sourceFrame.height,
+        })
+        if (x !== undefined && y !== undefined) {
+          saveFramePositions(project, 'canvas', { [newId]: { x, y, manuallyPositioned: true } })
+        }
+        for (const client of sseClients) {
+          if (!client.projectName || client.projectName === project) {
+            client.res.write(`data: ${JSON.stringify({ type: 'frame-created', frameId: newId })}\n\n`)
+          }
+        }
+        sendJson(res, 201, { ...frame, newComponentKey: null })
+        return
+      }
+
+      // Component frame — copy the source file to make an independent duplicate
+      const projectDir = join(PROJECTS_DIR, project)
+      const manifestPath = join(projectDir, 'manifest.ts')
+      const fileInfo = existsSync(manifestPath) ? findComponentFile(projectDir, componentKey) : null
+
+      if (!fileInfo || !fileInfo.sourcePath) {
+        // Can't find source file — fallback to shared componentKey
+        console.warn(`[bryllen] Could not find source file for componentKey "${componentKey}", creating linked duplicate`)
+        const frame = createFrame(project, {
+          id: newId, title: `${sourceFrame.title} (copy)`,
+          componentKey, src: null,
+          props: sourceFrame.props, width: sourceFrame.width, height: sourceFrame.height,
+        })
+        if (x !== undefined && y !== undefined) {
+          saveFramePositions(project, 'canvas', { [newId]: { x, y, manuallyPositioned: true } })
+        }
+        for (const client of sseClients) {
+          if (!client.projectName || client.projectName === project) {
+            client.res.write(`data: ${JSON.stringify({ type: 'frame-created', frameId: newId })}\n\n`)
+          }
+        }
+        sendJson(res, 201, { ...frame, newComponentKey: componentKey })
+        return
+      }
+
+      // Determine unique suffix
+      let suffix = 1
+      const srcExt = fileInfo.sourcePath.match(/\.(tsx?|jsx?)$/)?.[0] || '.tsx'
+      while (existsSync(fileInfo.sourcePath.replace(new RegExp(`${escapeRegex(srcExt)}$`), `-dup-${suffix}${srcExt}`))) {
+        suffix++
+      }
+      const newFilePath = fileInfo.sourcePath.replace(new RegExp(`${escapeRegex(srcExt)}$`), `-dup-${suffix}${srcExt}`)
+      const newComponentKey = `${componentKey}-dup-${suffix}`
+      const varName = componentKey.replace(/[^a-zA-Z0-9_]/g, '') + `Dup${suffix}`
+
+      // Copy file
+      copyFileSync(fileInfo.sourcePath, newFilePath)
+
+      // Edit manifest.ts — add import + component entry
+      let manifest = readFileSync(manifestPath, 'utf8')
+      const relPath = './' + newFilePath.slice(projectDir.length + 1).replace(/\.(tsx?|jsx?)$/, '').replace(/\\/g, '/')
+      const importLine = fileInfo.isDefault
+        ? `import ${varName} from '${relPath}'`
+        : `import { ${fileInfo.exportName} as ${varName} } from '${relPath}'`
+
+      // Insert import after the last import line
+      const lines = manifest.split('\n')
+      let lastImportLine = -1
+      for (let i = 0; i < lines.length; i++) {
+        if (lines[i].startsWith('import ')) lastImportLine = i
+      }
+      if (lastImportLine >= 0) {
+        lines.splice(lastImportLine + 1, 0, importLine)
+      } else {
+        lines.unshift(importLine)
+      }
+      manifest = lines.join('\n')
+
+      // Insert component entry after the source key in the components map
+      const compRegex = new RegExp(`([ \\t]*['"]?${escapeRegex(componentKey)}['"]?\\s*(?::\\s*\\w+)?\\s*,)`)
+      const compMatch = manifest.match(compRegex)
+      if (compMatch) {
+        const insertPos = manifest.indexOf(compMatch[0]) + compMatch[0].length
+        const indent = compMatch[1].match(/^([ \t]*)/)?.[1] || '    '
+        manifest = manifest.slice(0, insertPos) + `\n${indent}'${newComponentKey}': ${varName},` + manifest.slice(insertPos)
+      }
+
+      writeFileSync(manifestPath, manifest, 'utf8')
+
+      // Create frame in DB
+      const frame = createFrame(project, {
+        id: newId, title: `${sourceFrame.title} (copy)`,
+        componentKey: newComponentKey, src: null,
+        props: sourceFrame.props, width: sourceFrame.width, height: sourceFrame.height,
+      })
+      if (x !== undefined && y !== undefined) {
+        saveFramePositions(project, 'canvas', { [newId]: { x, y, manuallyPositioned: true } })
+      }
+
+      // SSE notify
+      for (const client of sseClients) {
+        if (!client.projectName || client.projectName === project) {
+          client.res.write(`data: ${JSON.stringify({ type: 'frame-created', frameId: newId })}\n\n`)
+        }
+      }
+
+      console.log(`[bryllen] Duplicated frame "${sourceFrame.title}" → "${newComponentKey}" (${newFilePath})`)
+      sendJson(res, 201, { ...frame, newComponentKey })
       return
     }
 

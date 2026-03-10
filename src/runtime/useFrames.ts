@@ -414,51 +414,27 @@ export function useFrames(
   const duplicateFrame = useCallback((source: CanvasFrame, x: number, y: number): string => {
     const newId = crypto.randomUUID()
     const copy = { ...source, id: newId, x, y, manuallyPositioned: true }
+    // Add in-memory immediately for instant visual feedback
     setFrames(prev => [...prev, copy])
     const config = persistConfigRef.current
     if (isDbMode && config?.project) {
-      // DB mode: POST to /frames API
-      let componentKey: string | null = null
-      if (source.type === 'image') {
-        // images use src, not componentKey
-      } else {
-        const srcComp = source as import('./types').CanvasComponentFrame
-        componentKey = srcComp.componentKey ?? null
-        if (!componentKey && srcComp.component) {
-          const registry = componentsRegistryRef.current ?? {}
-          for (const [key, comp] of Object.entries(registry)) {
-            if (comp === srcComp.component) { componentKey = key; break }
-          }
-        }
-      }
-
-      const body: Record<string, unknown> = {
-        project: config.project,
-        id: newId,
-        title: source.title || 'Untitled',
-        width: source.width,
-        height: source.height,
-      }
-      if (source.type === 'image') {
-        body.src = (source as import('./types').CanvasImageFrame).src
-      } else {
-        body.componentKey = componentKey
-      }
-      fetch(`${SERVER_ENDPOINT}/frames`, {
+      // DB mode: call /frames/duplicate for independent component copy
+      fetch(`${SERVER_ENDPOINT}/frames/duplicate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      }).then(() => {
-        fetch(`${SERVER_ENDPOINT}/frame-positions`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            project: config.project,
-            page: 'canvas',
-            positions: { [newId]: { x, y, manuallyPositioned: true } },
-            deletedIds: [],
-          }),
-        }).catch(() => {})
+        body: JSON.stringify({
+          project: config.project,
+          sourceId: source.id,
+          x,
+          y,
+        }),
+      }).then(r => r.json()).then(result => {
+        // Update the in-memory frame with the server-assigned ID and componentKey
+        if (result?.id && result.id !== newId) {
+          setFrames(prev => prev.map(f =>
+            f.id === newId ? { ...f, id: result.id, componentKey: result.newComponentKey } : f
+          ))
+        }
       }).catch(() => {})
     } else if (config?.project && config?.page) {
       // Manifest mode: save clone mapping + position

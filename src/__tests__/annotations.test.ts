@@ -143,11 +143,11 @@ describe('TopBar and BryllenShell integration', () => {
   })
 
   it('BryllenShell passes projectId to TopBar', () => {
-    expect(shellSource).toContain('projectId={activeProject?.id}')
+    expect(shellSource).toContain('projectId={activeProject?.project}')
   })
 
   it('BryllenShell passes projectId to AnnotationOverlay', () => {
-    expect(shellSource).toContain('projectId={activeProject?.id}')
+    expect(shellSource).toContain('projectId={activeProject?.project}')
   })
 })
 
