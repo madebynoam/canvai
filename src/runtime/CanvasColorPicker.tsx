@@ -115,7 +115,7 @@ export function CanvasColorPicker({
           boxSizing: 'border-box',
         }}
       >
-        {!isNonDefault && <Palette size={ICON.md} strokeWidth={1.5} style={{ color: V.txtSec }} />}
+        <Palette size={ICON.md} strokeWidth={1.5} style={{ color: isNonDefault ? A.accent : V.txtSec }} />
       </button>
 
       {open && (
