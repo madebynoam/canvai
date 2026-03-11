@@ -76,14 +76,17 @@ const manifest: ProjectManifest = {
 
 **Frame metadata (title, width, height, order) lives in SQLite, NOT the manifest.**
 
-**Agent workflow in DB mode:**
+**Agent workflow in DB mode (2 steps — that's it):**
 1. Create component file (`DirA.tsx`, etc.)
-2. Add ONE import + ONE entry to `manifest.components` (minimal manifest edit)
-3. `POST http://localhost:4748/frames` to register the frame:
-   ```json
-   { "project": "my-project", "id": "dir-a", "title": "Direction A", "componentKey": "dir-a", "width": 1440, "height": 900 }
-   ```
-4. Canvas receives SSE `frame-created` event and re-fetches — no Vite reload needed
+2. Add import + entry to `manifest.components`
+
+**Frames are auto-registered.** When the manifest reloads, the runtime detects any component in the registry that has no DB frame record and auto-creates one. No `POST /frames` needed.
+
+You CAN still use `POST /frames` for fine-tuned control (custom title, width, sortOrder), but it's optional:
+```bash
+curl -X POST http://localhost:4748/frames -H 'Content-Type: application/json' \
+  -d '{"project":"my-project","id":"dir-a","title":"Direction A","componentKey":"DirA","width":1440,"height":900}'
+```
 
 **CRUD operations (zero file edits):**
 - Delete: `DELETE http://localhost:4748/frames/dir-a?project=my-project`
@@ -117,8 +120,8 @@ Pages (v<N>/pages/)           → import ONLY from ../components/
    - Add export to `v<N>/components/index.ts`
    - Add to Components showcase page
 3. **THEN create the page** — import components from `../components/`
-4. **Register in manifest:**
-   - **DB mode** (`components: {}`): Add import + entry to `manifest.components`, then `POST /frames`
+4. **Register the frame:**
+   - **DB mode** (`components: {}`): Add import + entry to `manifest.components` — frames are auto-registered in DB on reload
    - **Manifest mode** (`frames: []`): Add frame object to `frames` array directly
 
 ### Example — Dashboard with cards:
@@ -187,7 +190,7 @@ Each iteration owns a complete token set scoped under `.iter-v<N>`. No cascade a
 
 ## Design directions
 
-All directions on a single "All Directions" manifest page. Use `DirectionLabel` as first frame per row in N+1 column grid (1 label + N states). Each direction makes a genuinely different design bet.
+Each direction is its own separate canvas frame. **DO NOT create an "AllDirectionsPage" component** — the canvas itself IS the "all directions" view. Each direction is a page file in `v1/pages/`, added to `manifest.components`. Frames are auto-registered in the DB on reload — just add the component to the manifest and it appears.
 
 Once chosen, generate all meaningful **variations × states** as frames. Columns = states, Rows = variations. Frame IDs: `<component>-<variation>-<state>`.
 
@@ -228,7 +231,7 @@ Frames are auto-positioned using a **grid layout**. The `grid.columns` setting c
 
 ### Manifest example — DB mode (new projects, PREFERRED)
 ```ts
-// manifest.ts — only component registry, no frame metadata
+// manifest.ts — only component registry. Frames are auto-registered on reload.
 import { DirA } from './v1/pages/DirA'
 import { DirB } from './v1/pages/DirB'
 import { DirC } from './v1/pages/DirC'
@@ -237,17 +240,13 @@ const manifest: ProjectManifest = {
   id: '...',
   project: 'my-project',
   components: {
-    'dir-a': DirA,
-    'dir-b': DirB,
-    'dir-c': DirC,
+    DirA,
+    DirB,
+    DirC,
   },
 }
 ```
-Then register frames via API:
-```bash
-curl -X POST http://localhost:4748/frames -H 'Content-Type: application/json' \
-  -d '{"project":"my-project","id":"dir-a","title":"Direction A","componentKey":"dir-a","width":1440,"height":900}'
-```
+**That's it.** The runtime auto-creates DB frame records for any component in the registry that doesn't have one. Frames are auto-laid out in a horizontal grid.
 
 ### Manifest example — manifest mode (old projects, backward compat)
 ```ts
@@ -412,6 +411,7 @@ Every annotation has a `mode` field: `'refine'`, `'ideate'`, or `'pick'`.
 - **LAY OUT FRAMES HORIZONTALLY** (increasing X, same Y) — see "Frame layout" section above
 - Each frame should be a distinct design bet, not a tweak of the same idea
 - The designer chose ideate because they WANT options to compare side-by-side
+- **For EACH new frame:** (1) create component file, (2) add to `manifest.components` — frames are auto-registered in DB on reload, no POST needed
 - **After creating each variation frame, attach a sticky note** with the direction rationale. Position it in the top-right corner inside the frame using `offsetX = frameWidth - 216` and `offsetY = 16`:
   ```bash
   curl -s -X POST http://localhost:4748/stickies -H 'Content-Type: application/json' \

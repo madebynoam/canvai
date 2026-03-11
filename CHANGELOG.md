@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.0.144 — Auto-register frames (no more invisible frames)
+
+**Frames now auto-register.** Adding a component to `manifest.components` is all that's needed — the runtime auto-creates DB frame records for any component missing one. No more `POST /frames` step.
+
+- **Auto-registration:** `useFrames` compares registry keys vs DB frames on load, auto-POSTs any missing
+- **Auto-layout:** New frames are positioned in a horizontal grid instead of stacking at (0,0). Incremental frames go right of the rightmost existing frame
+- **Console warnings:** `resolveDbFrames` now logs when a frame is dropped due to componentKey mismatch
+- **Killed AllDirectionsPage concept:** Each direction is its own canvas frame. The canvas IS the all-directions view
+- **Updated skills:** Removed POST /frames from all agent instructions — manifest is the single source of truth
+
 ## 0.0.136 — Progress panel
 
 **Annotation processing is now visible.** When Apply is clicked, a slide-in panel appears on the right edge of the canvas showing Claude's activity in real time:

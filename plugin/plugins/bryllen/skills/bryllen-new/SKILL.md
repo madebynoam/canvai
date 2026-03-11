@@ -86,26 +86,37 @@ After init, the designer describes what they want. The agent follows this exact 
      - Landing page: hero-first vs. feature grid vs. testimonial-led vs. interactive demo
      - Component: horizontal pills vs. vertical list vs. icon grid vs. dropdown
    - **NOT genuinely different:** same layout with different colors, same hierarchy with different fonts
-   - Add each direction component to `manifest.components`, then register frames via `POST /frames`
-   - Each direction gets its own row (use `DirectionLabel` as first frame, then the direction's frames)
    - The designer will pick one — only then do you build out variations/states
 
 2. **Populate tokens** — Write the complete OKLCH token set in `v1/tokens.css`, scoped under `:root, .iter-v1`. Derive colors from the OKLCH palette defined in CLAUDE.md. If context images are present, extract colors from them. Every visual value (color, background, border, shadow) must be a CSS custom property. No hex values.
 
 3. **Create components for ALL directions** — build each component in `v1/components/`. Components use ONLY `var(--token)` for visual values — no hardcoded colors, sizes, or spacing. Export every component from `v1/components/index.ts`.
 
-4. **Create pages** — pages in `v1/pages/` that compose components. Pages import ONLY from `../components/` — never inline styled HTML. Three pages are **mandatory**:
-   - **All Directions page** — shows all 3-5 design directions side by side. This is the FIRST thing the designer sees.
+4. **Create pages** — each direction gets its own page file in `v1/pages/` (e.g., `DirA.tsx`, `DirB.tsx`). Pages import ONLY from `../components/`. Also create two mandatory utility pages:
    - **Tokens page** — renders color swatches using `TokenSwatch` from `bryllen/runtime`, typography scale, and spacing grid.
    - **Components page** — shows all building blocks individually.
+   - **DO NOT create an "AllDirectionsPage" component.** Each direction is its own separate canvas frame — the canvas itself IS the "all directions" view.
 
-5. **Update the manifest** — The scaffold already created `manifest.ts` with `components: {}`. Add each component to the `components` map (key = component name, value = imported component). Import `./v1/tokens.css` at the top. Then register frames via the HTTP API (see Manifest format below).
+5. **Update the manifest** — Add each component to the `components` map. **Frames are auto-registered** — the runtime detects new components and creates DB records automatically on reload. No POST /frames needed.
+
+   ```ts
+   import './v1/tokens.css'
+   import { DirA } from './v1/pages/DirA'
+   import { DirB } from './v1/pages/DirB'
+   import { TokensPage } from './v1/pages/tokens'
+   import { ComponentsPage } from './v1/pages/components'
+
+   const manifest: ProjectManifest = {
+     id: '...', project: '<name>',
+     components: { DirA, DirB, TokensPage, ComponentsPage },
+   }
+   ```
+
+   That's it. The canvas will auto-discover and display all components after Vite reloads.
 
 6. **Log to CHANGELOG.md** — record the design directions and why each is different
 
-7. **The canvas auto-discovers the manifest** and renders all frames — designer sees all directions at once
-
-8. **Enter watch mode** — run `npx bryllen watch` to start listening for designer annotations. This is critical — the designer should be able to click and annotate immediately without running any commands.
+7. **Enter watch mode** — run `npx bryllen watch` to start listening for designer annotations. This is critical — the designer should be able to click and annotate immediately without running any commands.
 
 The full token system, design language, component hierarchy, and guard protocol are defined in CLAUDE.md — those rules apply to every file the agent creates.
 
@@ -143,7 +154,7 @@ The matrix model (variations × states as separate frames) is for isolated compo
 
 ## Manifest format (DB mode)
 
-The manifest only maps component keys to React components. Frame metadata (title, width, height, order) lives in SQLite.
+The manifest only maps component keys to React components. **Frames are auto-registered** — the runtime detects new components and creates DB records automatically on reload. No manual POST needed.
 
 ```ts
 import type { ProjectManifest } from 'bryllen/runtime'
@@ -167,18 +178,13 @@ const manifest: ProjectManifest = {
 export default manifest
 ```
 
-After adding components to the manifest, register frames via HTTP:
+**That's it.** Add a component to `manifest.components` → Vite reloads → runtime auto-creates the DB frame record → frame appears on canvas in a grid layout.
 
+For fine-tuned control (custom title, specific width, sort order), you can optionally use `POST /frames`:
 ```bash
-# Register each frame (canvas picks it up via SSE — no reload needed)
 curl -X POST http://localhost:4748/frames -H 'Content-Type: application/json' \
-  -d '{"project":"<project-name>","id":"dir-a","title":"Direction A","componentKey":"DirA","width":1440,"height":900}'
-
-curl -X POST http://localhost:4748/frames -H 'Content-Type: application/json' \
-  -d '{"project":"<project-name>","id":"tok-colors","title":"Tokens / Colors","componentKey":"TokensPage","width":240,"height":200,"props":{"section":"colors"}}'
+  -d '{"project":"<name>","id":"dir-a","title":"Direction A","componentKey":"DirA","width":1440,"height":900}'
 ```
-
-**CRITICAL:** The `componentKey` in the POST must match the key in `manifest.components`.
 
 ## Spring module
 

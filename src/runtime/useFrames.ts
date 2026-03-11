@@ -4,6 +4,8 @@ import type { CanvasFrame } from './types'
 import { relayoutFrames } from './layout'
 
 const FRAME_GAP = 40
+const ORIGIN_X = 100
+const ORIGIN_Y = 100
 const SERVER_ENDPOINT = `http://localhost:${typeof __BRYLLEN_HTTP_PORT__ !== 'undefined' ? __BRYLLEN_HTTP_PORT__ : 4748}`
 
 function frameIdsKey(frames: CanvasFrame[]): string {
@@ -114,6 +116,13 @@ function resolveDbFrames(dbFrames: DbFrame[], components: Record<string, Compone
         width: f.width ?? 1440,
         height: f.height ?? 900,
       })
+    } else if (f.componentKey) {
+      const registryKeys = Object.keys(components)
+      console.warn(
+        `[bryllen] Frame "${f.title}" (id=${f.id}) dropped: componentKey "${f.componentKey}" not found in manifest.components. ` +
+        `Registry has: [${registryKeys.join(', ') || 'EMPTY'}]. ` +
+        `Did you forget to add the import to manifest.ts?`
+      )
     }
   }
   return resolved
@@ -124,6 +133,69 @@ function inferColumns(frames: CanvasFrame[]): number {
   if (frames.length === 0) return 4
   const uniqueX = new Set(frames.map(f => Math.round(f.x)))
   return Math.max(1, uniqueX.size)
+}
+
+/** Apply horizontal grid layout to frames that have no position (x=0, y=0) and aren't manually positioned.
+ *  New frames are placed after existing positioned frames to avoid overlap. */
+function applyInitialLayout(frames: CanvasFrame[], columns: number = 4): CanvasFrame[] {
+  const gap = FRAME_GAP
+
+  // Check if ALL frames need layout (fresh load) vs some are already positioned (incremental)
+  const positioned = frames.filter(f => f.manuallyPositioned || (f.x !== 0 || f.y !== 0))
+  const unpositioned = frames.filter(f => !f.manuallyPositioned && f.x === 0 && f.y === 0)
+
+  if (unpositioned.length === 0) return frames
+
+  // If ALL frames are unpositioned, do a clean grid layout
+  if (positioned.length === 0) {
+    let currentX = ORIGIN_X
+    let currentY = ORIGIN_Y
+    let colIndex = 0
+    let rowMaxHeight = 0
+
+    return frames.map(f => {
+      const x = currentX
+      const y = currentY
+      const w = f.width || 1440
+      const h = f.height || 900
+
+      currentX += w + gap
+      if (h > rowMaxHeight) rowMaxHeight = h
+      colIndex++
+
+      if (colIndex >= columns) {
+        colIndex = 0
+        currentX = ORIGIN_X
+        currentY += rowMaxHeight + gap
+        rowMaxHeight = 0
+      }
+
+      return { ...f, x, y }
+    })
+  }
+
+  // Some frames already have positions — place new ones after the rightmost existing frame
+  let maxRight = ORIGIN_X
+  let rightY = ORIGIN_Y
+  for (const f of positioned) {
+    const right = f.x + (f.width || 1440)
+    if (right > maxRight) {
+      maxRight = right
+      rightY = f.y
+    }
+  }
+
+  let currentX = maxRight + gap
+  const currentY = rightY
+
+  return frames.map(f => {
+    if (f.manuallyPositioned || (f.x !== 0 || f.y !== 0)) return f
+
+    const x = currentX
+    currentX += (f.width || 1440) + gap
+
+    return { ...f, x, y: currentY }
+  })
 }
 
 export interface FramePersistenceConfig {
@@ -166,18 +238,59 @@ export function useFrames(
     effectiveConfigRef.current = { columns: inferColumns(effectiveSource) }
   }
 
-  // DB mode: load frames from server and listen for SSE updates
+  // DB mode: load frames from server, auto-register missing components, listen for SSE updates
   useEffect(() => {
     if (!isDbMode || !persistConfig?.project) return
 
     let cancelled = false
 
+    async function autoRegisterMissingFrames(project: string, dbFrames: DbFrame[], registry: Record<string, ComponentType<any>>) {
+      // Find registry keys that have no matching DB frame
+      const dbComponentKeys = new Set(dbFrames.map(f => f.componentKey).filter(Boolean))
+      const missing = Object.keys(registry).filter(key => !dbComponentKeys.has(key))
+
+      if (missing.length === 0) return false
+
+      // Auto-create DB frame records for missing components
+      for (const key of missing) {
+        try {
+          await fetch(`${SERVER_ENDPOINT}/frames`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              project,
+              id: key.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+              title: key.replace(/([A-Z])/g, ' $1').trim(),
+              componentKey: key,
+              width: 1440,
+              height: 900,
+            }),
+          })
+          console.log(`[bryllen] Auto-registered frame for "${key}" — was in manifest.components but had no DB record`)
+        } catch {
+          console.warn(`[bryllen] Failed to auto-register frame for "${key}"`)
+        }
+      }
+      return true
+    }
+
     async function loadFromDb() {
       const project = persistConfigRef.current!.project
-      const dbFrames = await loadDbFrames(project)
+      let dbFrames = await loadDbFrames(project)
       if (cancelled) return
 
       const registry = componentsRegistryRef.current ?? {}
+
+      // Auto-register any components in the manifest that don't have DB frame records
+      const didRegister = await autoRegisterMissingFrames(project, dbFrames, registry)
+      if (cancelled) return
+
+      // Re-fetch if we created new records
+      if (didRegister) {
+        dbFrames = await loadDbFrames(project)
+        if (cancelled) return
+      }
+
       const resolved = resolveDbFrames(dbFrames, registry)
 
       // Load positions from server to restore manual positions
@@ -195,7 +308,11 @@ export function useFrames(
           })
         : resolved
 
-      setFrames(withPositions)
+      // Apply grid layout to frames that have no position (all at 0,0)
+      const columns = gridConfigRef.current?.columns || Math.min(withPositions.length, 4)
+      const layouted = applyInitialLayout(withPositions, columns)
+
+      setFrames(layouted)
       measuredHeightsRef.current = {}
       positionsLoadedRef.current = true
     }
@@ -221,14 +338,17 @@ export function useFrames(
             const registry = componentsRegistryRef.current ?? {}
             const resolved = resolveDbFrames(dbFrames, registry)
             setFrames(prev => {
-              // Preserve manual positions
-              return resolved.map(f => {
+              // Preserve existing positions (manual or previously laid out)
+              const merged = resolved.map(f => {
                 const existing = prev.find(p => p.id === f.id)
-                if (existing?.manuallyPositioned) {
-                  return { ...f, x: existing.x, y: existing.y, manuallyPositioned: true }
+                if (existing) {
+                  return { ...f, x: existing.x, y: existing.y, manuallyPositioned: existing.manuallyPositioned }
                 }
                 return f
               })
+              // Apply grid layout for any new frames that landed at (0,0)
+              const columns = gridConfigRef.current?.columns || Math.min(merged.length, 4)
+              return applyInitialLayout(merged, columns)
             })
           })
         }
