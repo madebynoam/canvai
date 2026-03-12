@@ -1596,4 +1596,19 @@ const httpServer = createServer(async (req, res) => {
 
 httpServer.listen(PORT, () => {
   console.log(`[bryllen] Annotation server listening on port ${PORT}`)
+
+  // If we just restarted after an update, broadcast update-complete once clients reconnect
+  const resultFile = join(process.cwd(), '.bryllen-update-result.json')
+  if (existsSync(resultFile)) {
+    try {
+      const result = JSON.parse(readFileSync(resultFile, 'utf8'))
+      if (Date.now() - result.timestamp < 60_000) {
+        // Give SSE clients time to reconnect before broadcasting
+        setTimeout(() => {
+          broadcast({ type: 'update-complete', version: result.version, claudeMdChanged: result.claudeMdChanged })
+          console.log(`[bryllen] Broadcast update-complete (v${result.version})`)
+        }, 2000)
+      }
+    } catch {}
+  }
 })

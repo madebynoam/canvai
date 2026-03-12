@@ -76,8 +76,6 @@ export function CanvasColorPicker({
   const { resolved } = useTheme()
   const isDarkTheme = resolved === 'dark'
   const presets = isDarkTheme ? darkPresets : lightPresets
-  const isNonDefault = activeColor !== DEFAULT_CANVAS_COLOR && activeColor !== presets[0].value
-
   // Close on click outside
   useEffect(() => {
     if (!open) return
@@ -103,19 +101,16 @@ export function CanvasColorPicker({
           width: 28,
           height: 28,
           borderRadius: '50%',
-          border: isNonDefault
-            ? `2px solid ${A.accent}`
-            : `1px solid ${V.border}`,
-          background: isNonDefault ? activeColor : V.chrome,
+          border: `1px solid ${V.border}`,
+          background: V.chrome,
           cursor: 'default',
           padding: 0,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          boxSizing: 'border-box',
         }}
       >
-        <Palette size={ICON.md} strokeWidth={1.5} style={{ color: isNonDefault ? A.accent : V.txtSec }} />
+        <Palette size={ICON.md} strokeWidth={1.5} style={{ color: V.txtSec }} />
       </button>
 
       {open && (

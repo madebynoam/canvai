@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
-import { X, Check } from 'lucide-react'
-import { F, R, S, T, V, D, FONT, ICON } from './tokens'
+import { X } from 'lucide-react'
+import { F, R, S, T, V, FONT, ICON } from './tokens'
 
 interface ProgressFrame {
   id: string
@@ -91,7 +91,6 @@ export function ProgressPanel({ annotationId, endpoint, project, projectId, onDi
   return (
     <>
       <style>{`
-        @keyframes bryllen-panel-spin { to { transform: rotate(360deg) } }
         @keyframes bryllen-panel-fadein {
           from { opacity: 0; transform: translateY(4px); }
           to   { opacity: 1; transform: translateY(0); }
@@ -122,37 +121,6 @@ export function ProgressPanel({ annotationId, endpoint, project, projectId, onDi
               flexShrink: 0,
             }}
           >
-            {status === 'done' ? (
-              <div
-                style={{
-                  width: 18,
-                  height: 18,
-                  borderRadius: '50%',
-                  background: F.success,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: D.text,
-                  flexShrink: 0,
-                }}
-              >
-                <Check size={ICON.sm} strokeWidth={2.5} />
-              </div>
-            ) : (
-              <div
-                style={{
-                  width: 14,
-                  height: 14,
-                  borderRadius: '50%',
-                  border: `1.5px solid ${V.border}`,
-                  borderTopColor: F.marker,
-                  animation: 'bryllen-panel-spin 0.85s linear infinite',
-                  flexShrink: 0,
-                  boxSizing: 'border-box',
-                }}
-              />
-            )}
-
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: T.ui, fontWeight: 600, color: V.txtPri }}>
                 {status === 'done' ? 'Done' : 'Claude is working'}

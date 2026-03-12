@@ -448,8 +448,16 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
   const [updateDialogOpen, setUpdateDialogOpen] = useState(false)
   const [isUpdating, setIsUpdating] = useState(false)
   const [updateResult, setUpdateResult] = useState<{ claudeMdChanged: boolean; version: string } | null>(null)
+  const [showReloadFallback, setShowReloadFallback] = useState(false)
 
   const showToast = useCallback((msg: string) => setToast(msg), [])
+
+  // Show "Click to reload" fallback if auto-reload hasn't fired after 8s
+  useEffect(() => {
+    if (!isUpdating) { setShowReloadFallback(false); return }
+    const timer = setTimeout(() => setShowReloadFallback(true), 8000)
+    return () => clearTimeout(timer)
+  }, [isUpdating])
 
   // Check for updates on mount
   useEffect(() => {
@@ -556,6 +564,11 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
           setUpdateDialogOpen(false)
           return
         }
+        if (data.type === 'update-complete') {
+          // New server is up — reload to pick up fresh code
+          window.location.reload()
+          return
+        }
         if (data.type === 'sticky-created' || data.type === 'sticky-deleted') {
           const project = activeProjectNameRef.current
           if (project) {
@@ -593,17 +606,20 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
     return () => source.close()
   }, [annotationEndpoint, activeProjectId])
 
-  // Check for update result on mount — show "Restart Claude Code" notice if CLAUDE.md changed
+  // Check for update result on mount — show toast + "Restart Claude Code" notice if needed
   useEffect(() => {
     fetch(`${annotationEndpoint}/update-result`)
       .then(r => r.json())
       .then(result => {
-        if (result?.claudeMdChanged) {
-          setUpdateResult({ claudeMdChanged: true, version: result.version })
+        if (result?.version) {
+          showToast(`Updated to ${result.version}`)
+          if (result.claudeMdChanged) {
+            setUpdateResult({ claudeMdChanged: true, version: result.version })
+          }
         }
       })
       .catch(() => {})
-  }, [annotationEndpoint])
+  }, [annotationEndpoint, showToast])
 
   // Sync URL when project changes
   useEffect(() => {
@@ -1462,7 +1478,17 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
             </svg>
           </div>
           <div style={{ fontSize: T.ui, fontWeight: 600, color: D.text }}>Updating Bryllen...</div>
-          <div style={{ fontSize: 12, color: 'oklch(0.65 0 0)' }}>The canvas will reload automatically</div>
+          <div style={{ fontSize: 12, color: 'oklch(0.65 0 0)' }}>
+            {showReloadFallback
+              ? <span
+                  onClick={() => window.location.reload()}
+                  style={{ textDecoration: 'underline', cursor: 'default', color: 'oklch(0.75 0.1 250)' }}
+                >
+                  Click to reload
+                </span>
+              : 'The canvas will reload automatically'
+            }
+          </div>
         </div>
         </>
       )}
