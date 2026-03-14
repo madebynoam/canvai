@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "bryllen-annotations": {
+      "command": "node",
+      "args": [
+        "node_modules/bryllen/src/mcp/mcp-server.js"
+      ]
+    }
+  }
+}

@@ -462,7 +462,7 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
   const [highlight, setHighlight] = useState<DOMRect | null>(null)
   const [target, setTarget] = useState<TargetInfo | null>(null)
   const [comment, setComment] = useState('')
-  const [pastedImage, setPastedImage] = useState<string | null>(null)
+  const [pastedImages, setPastedImages] = useState<string[]>([])
   const [annotationMode, setAnnotationMode] = useState<AnnotationMode>('refine')
   const [variationCount, setVariationCount] = useState(5)
   const [buttonState, setButtonState] = useState<'idle' | 'hover' | 'pressed'>('idle')
@@ -1041,7 +1041,7 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
       elementText: target.elementText,
       computedStyles: target.computedStyles,
       comment: finalComment,
-      image: pastedImage ?? undefined,
+      images: pastedImages.length > 0 ? pastedImages : undefined,
       mode: annotationMode,
     }
 
@@ -1092,9 +1092,9 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
     setMode('idle')
     setTarget(null)
     setComment('')
-    setPastedImage(null)
+    setPastedImages([])
     setEditingMarkerId(null)
-  }, [target, comment, endpoint, editingMarkerId, toast, projectParam, annotationMode, variationCount, pastedImage])
+  }, [target, comment, endpoint, editingMarkerId, toast, projectParam, annotationMode, variationCount, pastedImages])
 
   const handleCancel = useCallback(() => {
     // If canceling a new connection, remove it
@@ -1109,7 +1109,7 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
     setTarget(null)
     setHighlight(null)
     setComment('')
-    setPastedImage(null)
+    setPastedImages([])
     setEditingMarkerId(null)
     setEditingConnectionId(null)
     setDragState(null)
@@ -1150,7 +1150,7 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
         if (!file) return
         const reader = new FileReader()
         reader.onload = () => {
-          setPastedImage(reader.result as string)
+          setPastedImages(prev => [...prev, reader.result as string])
         }
         reader.readAsDataURL(file)
         return
@@ -1456,40 +1456,44 @@ export function AnnotationOverlay({ endpoint, frames, showToast: externalToast, 
                 fontFamily: 'inherit',
               }}
             />
-            {/* Pasted image preview */}
-            {pastedImage && (
-              <div style={{ position: 'relative', marginTop: S.sm }}>
-                <img
-                  src={pastedImage}
-                  alt="Pasted"
-                  style={{
-                    maxWidth: '100%',
-                    maxHeight: 120,
-                    borderRadius: R.ui, cornerShape: 'squircle',
-                    border: `1px solid ${V.border}`,
-                  }}
-                />
-                <button
-                  onClick={() => setPastedImage(null)}
-                  style={{
-                    position: 'absolute',
-                    top: 4,
-                    right: 4,
-                    width: 20,
-                    height: 20,
-                    borderRadius: '50%',
-                    border: 'none',
-                    background: 'rgba(0,0,0,0.6)',
-                    color: '#fff',
-                    cursor: 'default',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: 0,
-                  }}
-                >
-                  <X size={12} strokeWidth={2} />
-                </button>
+            {/* Pasted image previews */}
+            {pastedImages.length > 0 && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: S.sm, marginTop: S.sm }}>
+                {pastedImages.map((img, i) => (
+                  <div key={i} style={{ position: 'relative' }}>
+                    <img
+                      src={img}
+                      alt={`Pasted ${i + 1}`}
+                      style={{
+                        maxWidth: '100%',
+                        maxHeight: 120,
+                        borderRadius: R.ui, cornerShape: 'squircle',
+                        border: `1px solid ${V.border}`,
+                      }}
+                    />
+                    <button
+                      onClick={() => setPastedImages(prev => prev.filter((_, j) => j !== i))}
+                      style={{
+                        position: 'absolute',
+                        top: 4,
+                        right: 4,
+                        width: 20,
+                        height: 20,
+                        borderRadius: '50%',
+                        border: 'none',
+                        background: 'rgba(0,0,0,0.6)',
+                        color: '#fff',
+                        cursor: 'default',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: 0,
+                      }}
+                    >
+                      <X size={12} strokeWidth={2} />
+                    </button>
+                  </div>
+                ))}
               </div>
             )}
             <DialogActions>

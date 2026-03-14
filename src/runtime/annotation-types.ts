@@ -11,8 +11,8 @@ export interface CanvaiAnnotation {
   elementText: string
   computedStyles: Record<string, string>
   comment: string
-  /** Optional base64 image data URL pasted by designer */
-  image?: string
+  /** Optional base64 image data URLs pasted by designer */
+  images?: string[]
   timestamp: number
   status: 'draft' | 'pending' | 'resolved'
   /** Mode for annotation: 'refine' = edit specific element, 'ideate' = generate 3+ different frames */
