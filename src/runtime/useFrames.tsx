@@ -186,6 +186,7 @@ export function useFrames(
   const componentsRegistryRef = useRef(componentsRegistry)
   componentsRegistryRef.current = componentsRegistry
   const initialLoadCompleteRef = useRef(false)
+  const prevProjectRef = useRef<string | undefined>()
 
   // Effective grid config: use provided grid config
   if (gridConfig) {
@@ -238,6 +239,43 @@ export function useFrames(
         }
       }
       return true
+    }
+
+    const projectChanged = persistConfig.project !== prevProjectRef.current
+    prevProjectRef.current = persistConfig.project
+
+    if (!projectChanged && initialLoadCompleteRef.current) {
+      // Registry changed (Vite HMR) — soft update: re-resolve components but preserve
+      // in-memory positions so active drags don't flash back to last server-saved position
+      async function softUpdate() {
+        const project = persistConfigRef.current!.project
+        let dbFrames = await loadDbFrames(project)
+        if (cancelled) return
+
+        const registry = componentsRegistryRef.current ?? {}
+        const didRegister = await autoRegisterMissingFrames(project, dbFrames, registry)
+        if (cancelled) return
+
+        if (didRegister) {
+          dbFrames = await loadDbFrames(project)
+          if (cancelled) return
+        }
+
+        const resolved = resolveDbFrames(dbFrames, registry)
+        setFrames(prev => {
+          const merged = resolved.map(f => {
+            const existing = prev.find(p => p.id === f.id)
+            if (existing) {
+              return { ...f, x: existing.x, y: existing.y, manuallyPositioned: existing.manuallyPositioned }
+            }
+            return f
+          })
+          const columns = gridConfigRef.current?.columns || Math.min(merged.length, 4)
+          return applyInitialLayout(merged, columns)
+        })
+      }
+      softUpdate()
+      return () => { cancelled = true }
     }
 
     async function loadFromDb() {
@@ -316,14 +354,21 @@ export function useFrames(
               const merged = resolved.map(f => {
                 const existing = prev.find(p => p.id === f.id)
                 if (existing) {
+                  const componentNotInRegistry = f.componentKey && !registry[f.componentKey]
                   return {
                     ...f,
                     x: existing.x,
                     y: existing.y,
                     manuallyPositioned: existing.manuallyPositioned,
-                    // Keep existing component if not yet in registry (Vite HMR pending for new duplicates)
-                    ...(f.componentKey && !registry[f.componentKey] && existing.component
-                      ? { component: existing.component }
+                    // Keep existing component, size, and title if componentKey isn't in registry yet
+                    // (Vite HMR pending for new duplicates — avoids flash to error placeholder height/title)
+                    ...(componentNotInRegistry && existing.component
+                      ? {
+                          component: existing.component,
+                          width: existing.width,
+                          height: existing.height,
+                          title: existing.title,
+                        }
                       : {}),
                   }
                 }

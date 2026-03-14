@@ -1,12 +1,5 @@
 [
   {
-    "version": "0.0.153",
-    "title": "Fix progress panel disappearing on refresh",
-    "changes": [
-      "Fix: Progress panel now restores on page refresh — fetches pending annotations on mount and re-shows the panel if Claude is still working"
-    ]
-  },
-  {
     "version": "0.0.152",
     "title": "Fix option-drag duplicate flash",
     "changes": [
