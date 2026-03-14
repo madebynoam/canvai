@@ -1,32 +1,26 @@
 # Changelog
 
-## 0.0.152 — Fix option-drag duplicate flash
+## 0.0.155 — Fix option-drag: copy no longer disappears on HMR
 
-- Root cause: client created optimistic copy with `clientTempUUID`, server generated different `serverUUID`; SSE fired before fetch resolved → copy not found in state → repositioned to (0,0) by applyInitialLayout → flash
+- Root cause 1: server wrote `manifest.ts` (triggering Vite HMR) before creating the DB frame record — `softUpdate` loaded frames before the record existed, dropped the optimistic copy from state
+- Fix: server now creates DB record and saves position BEFORE writing `manifest.ts`, so HMR always finds the frame in DB
+- Root cause 2: `softUpdate` (triggered by HMR registry change) didn't preserve in-memory frames missing from the DB result, and didn't fall back to `existing.component` when new `componentKey` wasn't compiled yet
+- Fix: `softUpdate` now keeps optimistic frames not yet in DB, and preserves `component`/`width`/`height`/`title` when `componentKey` isn't in registry yet (same logic as SSE handler)
+
+## 0.0.154 — Fix option-drag duplicate flash (root causes)
+
+- Root cause: client created optimistic copy with `clientTempUUID`, server generated different `serverUUID`; SSE fired before fetch resolved → copy not found in state → repositioned to (0,0) by `applyInitialLayout` → flash
 - Fix: client now sends its `newId` in the POST body; server uses it instead of generating a new UUID → IDs match → SSE merge finds existing copy → position preserved
-- Fix: SSE handler preserves `existing.component` when new componentKey isn't in registry yet (Vite HMR pending) → no "missing component" flash during duplication
+- Fix: SSE handler preserves `existing.component`/`width`/`height`/`title` when new `componentKey` isn't in registry yet (Vite HMR pending) → no flash during duplication
+- Fix: added `softUpdate` path for HMR registry changes — preserves in-memory positions instead of re-fetching from DB
 
-## 0.1.0 — Remove DB Mode Conditionals (Breaking Change)
+## 0.0.153 — Fix progress panel restores on page refresh
 
-**BREAKING:** Removed manifest mode support. All projects must use the component registry pattern (frames stored in SQLite).
+- Progress panel state now persists across page refreshes
 
-**What changed:**
-- Removed manifest mode code paths (~370-420 lines of code)
-- Removed `ProjectManifest.frames` and `ProjectManifest.iterations` fields
-- Removed `deleted_frames` and `cloned_frames` database tables
-- Removed manifest-mode HTTP endpoints (`POST /frame-positions/clone`, `POST /frame-positions/delete`)
-- Simplified `useFrames` hook signature (no `sourceFrames` parameter)
-- Removed `layoutFrames()` and `layoutProject()` functions
-- Removed `ManifestFrame`, `ComponentFrame`, `ImageFrame`, `PageManifest`, `IterationManifest` types
+## 0.0.152 — Fix deleted frames stay deleted
 
-**Benefits:**
-- Simpler codebase with single standard pattern
-- Eliminated 8+ conditional branches
-- Easier to understand and maintain
-- Clearer documentation without "mode" concept
-
-**Migration:**
-Old manifest-based projects will not work with this version. The component registry pattern has been the standard since 0.0.119.
+- Deleted frames no longer reappear after page refresh or SSE events
 
 ## 0.0.149 — Fix preview mode (Open In New Tab)
 

@@ -266,12 +266,33 @@ export function useFrames(
           const merged = resolved.map(f => {
             const existing = prev.find(p => p.id === f.id)
             if (existing) {
-              return { ...f, x: existing.x, y: existing.y, manuallyPositioned: existing.manuallyPositioned }
+              const componentNotInRegistry = f.componentKey && !registry[f.componentKey]
+              return {
+                ...f,
+                x: existing.x,
+                y: existing.y,
+                manuallyPositioned: existing.manuallyPositioned,
+                // Keep existing component, size, and title if componentKey isn't in registry yet
+                // (Vite HMR may fire before the new component file is compiled)
+                ...(componentNotInRegistry && existing.component
+                  ? {
+                      component: existing.component,
+                      width: existing.width,
+                      height: existing.height,
+                      title: existing.title,
+                    }
+                  : {}),
+              }
             }
             return f
           })
-          const columns = gridConfigRef.current?.columns || Math.min(merged.length, 4)
-          return applyInitialLayout(merged, columns)
+          // Preserve optimistic frames (added in-memory but not yet committed to DB).
+          // HMR can fire before the DB record is created, so resolved may not include them.
+          const resolvedIds = new Set(resolved.map(f => f.id))
+          const optimistic = prev.filter(f => !resolvedIds.has(f.id))
+          const allFrames = [...merged, ...optimistic]
+          const columns = gridConfigRef.current?.columns || Math.min(allFrames.length, 4)
+          return applyInitialLayout(allFrames, columns)
         })
       }
       softUpdate()

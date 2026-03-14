@@ -1451,9 +1451,8 @@ const httpServer = createServer(async (req, res) => {
         manifest = manifest.slice(0, insertPos) + `\n${indent}'${newComponentKey}': ${varName},` + manifest.slice(insertPos)
       }
 
-      writeFileSync(manifestPath, manifest, 'utf8')
-
-      // Create frame in DB
+      // Create frame in DB BEFORE writing manifest.ts — Vite HMR fires when manifest is written,
+      // and the client's softUpdate must find the DB record to avoid dropping the optimistic copy.
       const frame = createFrame(project, {
         id: newId, title: `${sourceFrame.title} (copy)`,
         componentKey: newComponentKey, src: null,
@@ -1462,6 +1461,8 @@ const httpServer = createServer(async (req, res) => {
       if (x !== undefined && y !== undefined) {
         saveFramePositions(project, 'canvas', { [newId]: { x, y, manuallyPositioned: true } })
       }
+
+      writeFileSync(manifestPath, manifest, 'utf8')
 
       // SSE notify
       for (const client of sseClients) {
