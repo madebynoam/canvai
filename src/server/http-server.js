@@ -32,8 +32,6 @@ import {
   initDb,
   getFramePositions,
   saveFramePositions,
-  getDeletedFrames,
-  addDeletedFrame,
   getContextPositions,
   saveContextPositions,
   getPreference,
@@ -57,9 +55,6 @@ import {
   getStickies,
   deleteSticky,
   deleteStickyByParentFrame,
-  getClonedFrames,
-  saveClonedFrame,
-  deleteClonedFrame,
 } from './db.js'
 
 // --- Playwright (lazy) ---
@@ -431,7 +426,10 @@ function analyzeComponentFile(filePath) {
   const content = readFileSync(filePath, 'utf8')
   const isDefault = /export\s+default\s/.test(content)
   const namedMatch = content.match(/export\s+(?:function|const|class)\s+(\w+)/)
-  return { sourcePath: filePath, exportName: namedMatch ? namedMatch[1] : null, isDefault }
+  // Also capture name from `export default function Foo` for rename support
+  const defaultFnMatch = content.match(/export\s+default\s+(?:function|class)\s+(\w+)/)
+  const exportName = namedMatch ? namedMatch[1] : (defaultFnMatch ? defaultFnMatch[1] : null)
+  return { sourcePath: filePath, exportName, isDefault }
 }
 
 /**
@@ -1084,41 +1082,7 @@ const httpServer = createServer(async (req, res) => {
       }
 
       const positions = getFramePositions(project, page)
-      const deletedIds = getDeletedFrames(project, page)
-      const clonedFrames = getClonedFrames(project, page)
-      sendJson(res, 200, { positions, deletedIds, clonedFrames })
-      return
-    }
-
-    // POST /frame-positions/clone — save a cloned frame mapping (manifest mode)
-    if (req.method === 'POST' && url.pathname === '/frame-positions/clone') {
-      const data = await parseBody(req)
-      const { project, page, cloneId, sourceId } = data
-
-      if (!project || !page || !cloneId || !sourceId) {
-        sendJson(res, 400, { error: 'project, page, cloneId, and sourceId are required' })
-        return
-      }
-
-      saveClonedFrame(project, page, cloneId, sourceId)
-      sendJson(res, 200, { saved: true })
-      return
-    }
-
-    // POST /frame-positions/delete — mark a frame as deleted
-    if (req.method === 'POST' && url.pathname === '/frame-positions/delete') {
-      const data = await parseBody(req)
-      const { project, page, frameId } = data
-
-      if (!project || !page || !frameId) {
-        sendJson(res, 400, { error: 'project, page, and frameId are required' })
-        return
-      }
-
-      addDeletedFrame(project, page, frameId)
-      // Also clean up any clone mapping for this frame
-      deleteClonedFrame(project, page, frameId)
-      sendJson(res, 200, { deleted: true, frameId })
+      sendJson(res, 200, { positions })
       return
     }
 
@@ -1267,7 +1231,7 @@ const httpServer = createServer(async (req, res) => {
       return
     }
 
-    // ── Frames CRUD (DB-driven mode) ─────────────────────────────────────────
+    // ── Frames CRUD ──────────────────────────────────────────────────────────
 
     // POST /frames — create a new frame
     if (req.method === 'POST' && url.pathname === '/frames') {
@@ -1426,12 +1390,30 @@ const httpServer = createServer(async (req, res) => {
       // Copy file
       copyFileSync(fileInfo.sourcePath, newFilePath)
 
+      // Rename the exported function/component to varName so component.name is unique.
+      // This prevents the agent from matching both the original and the copy when grepping componentName.
+      if (fileInfo.exportName && fileInfo.exportName !== varName) {
+        let fileContent = readFileSync(newFilePath, 'utf8')
+        const nameRe = escapeRegex(fileInfo.exportName)
+        fileContent = fileContent
+          // export function Foo( / export function Foo<
+          .replace(new RegExp(`(export\\s+function\\s+)${nameRe}(\\s*[(<])`, 'g'), `$1${varName}$2`)
+          // export const Foo = / export const Foo:
+          .replace(new RegExp(`(export\\s+const\\s+)${nameRe}(\\s*[:=])`, 'g'), `$1${varName}$2`)
+          // export class Foo
+          .replace(new RegExp(`(export\\s+class\\s+)${nameRe}(\\s*[\\s{<])`, 'g'), `$1${varName}$2`)
+          // export default function Foo( / export default class Foo
+          .replace(new RegExp(`(export\\s+default\\s+(?:function|class)\\s+)${nameRe}(\\s*[(<\\s{])`, 'g'), `$1${varName}$2`)
+        writeFileSync(newFilePath, fileContent, 'utf8')
+      }
+
       // Edit manifest.ts — add import + component entry
       let manifest = readFileSync(manifestPath, 'utf8')
       const relPath = './' + newFilePath.slice(projectDir.length + 1).replace(/\.(tsx?|jsx?)$/, '').replace(/\\/g, '/')
+      // Use direct named import since we renamed the export to varName; default imports are unchanged
       const importLine = fileInfo.isDefault
         ? `import ${varName} from '${relPath}'`
-        : `import { ${fileInfo.exportName} as ${varName} } from '${relPath}'`
+        : `import { ${varName} } from '${relPath}'`
 
       // Insert import after the last import line
       const lines = manifest.split('\n')

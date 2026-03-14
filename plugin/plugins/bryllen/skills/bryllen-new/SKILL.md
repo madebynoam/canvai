@@ -97,7 +97,7 @@ After init, the designer describes what they want. The agent follows this exact 
    - **Components page** — shows all building blocks individually.
    - **DO NOT create an "AllDirectionsPage" component.** Each direction is its own separate canvas frame — the canvas itself IS the "all directions" view.
 
-5. **Update the manifest** — Add each component to the `components` map. **Frames are auto-registered** — the runtime detects new components and creates DB records automatically on reload. No POST /frames needed.
+5. **Update the manifest** — Add each component to the `components` map. **Frames are auto-registered** — the runtime detects new components and creates frame records automatically on reload. No POST /frames needed.
 
    ```ts
    import './v1/tokens.css'

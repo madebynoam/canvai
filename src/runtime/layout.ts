@@ -1,67 +1,8 @@
-import type { CanvasFrame, ManifestFrame, GridConfig, ProjectManifest } from './types'
+import type { CanvasFrame } from './types'
 
-const DEFAULT_COL_WIDTH = 320
 const DEFAULT_ROW_HEIGHT = 200
 const DEFAULT_GAP = 40
-const ORIGIN_X = 100
 const ORIGIN_Y = 100
-
-/**
- * Convert manifest frames into positioned canvas frames.
- * Frames flow left-to-right using ACTUAL frame widths, wrapping at column count.
- */
-export function layoutFrames(frames: ManifestFrame[], grid?: GridConfig): CanvasFrame[] {
-  const {
-    columns = 4,
-    columnWidth = DEFAULT_COL_WIDTH,
-    rowHeight = DEFAULT_ROW_HEIGHT,
-    gap = DEFAULT_GAP,
-  } = grid ?? {}
-
-  // Group frames into rows
-  const rows: ManifestFrame[][] = []
-  for (let i = 0; i < frames.length; i += columns) {
-    rows.push(frames.slice(i, i + columns))
-  }
-
-  const result: CanvasFrame[] = []
-  let currentY = ORIGIN_Y
-
-  for (const row of rows) {
-    let currentX = ORIGIN_X
-    let maxHeight = rowHeight
-
-    for (const frame of row) {
-      const frameWidth = frame.width ?? columnWidth
-      const frameHeight = frame.height ?? rowHeight
-
-      result.push({
-        id: frame.id,
-        title: frame.title,
-        x: currentX,
-        y: currentY,
-        width: frameWidth,
-        height: frameHeight,
-        component: 'component' in frame ? frame.component : undefined,
-        props: 'props' in frame ? frame.props : undefined,
-      } as CanvasFrame)
-
-      currentX += frameWidth + gap
-      if (frameHeight > maxHeight) maxHeight = frameHeight
-    }
-
-    currentY += maxHeight + gap
-  }
-
-  return result
-}
-
-/**
- * Layout frames from a project manifest.
- */
-export function layoutProject(project: ProjectManifest): CanvasFrame[] {
-  return layoutFrames(project.frames, project.grid)
-}
 
 /**
  * Recompute frame y-positions based on measured rendered heights.

@@ -469,11 +469,14 @@ During ideation, multiple directions may have different component implementation
 | Field | What it tells you |
 |-------|-------------------|
 | `project` | Exact project folder: `src/projects/<project>/` |
-| `frameId` | Exact iteration + frame: `v8-dashboard` → `v8/` folder |
-| `componentName` | Exact file to edit |
+| `frameId` | Iteration + frame for named IDs (`v3-sidebar` → `v3/` folder). UUIDs (copied frames) → search whole project. |
+| `componentName` | Exact file to edit — always unique, even for copies (copies get renamed on creation) |
 
 **Example:** `{ "project": "my-app", "frameId": "v3-sidebar", "componentName": "Sidebar" }`
 → Edit `src/projects/my-app/v3/components/Sidebar.tsx` or `v3/pages/Sidebar.tsx`
+
+**Copied frame example:** `{ "project": "my-app", "frameId": "550e8400-e29b-41d4-a716-446655440000", "componentName": "DirADup1" }`
+→ `frameId` is a UUID (copied frame) — skip folder extraction. Grep `DirADup1` across `src/projects/my-app/` to find the file.
 
 **NEVER:**
 - Guess the project from git commits
@@ -483,9 +486,11 @@ During ideation, multiple directions may have different component implementation
 **Steps:**
 1. `node node_modules/bryllen/src/cli/index.js progress <id> "Reading annotation…"`
 2. Read `project`, `frameId`, `componentName` from the annotation
-3. Construct the path directly: `src/projects/{project}/{iteration from frameId}/`
+3. Determine search folder:
+   - If `frameId` looks like `v3-sidebar` (iteration-prefixed): search `src/projects/{project}/{iteration}/`
+   - If `frameId` is a UUID (copied frame — 8-4-4-4-12 hex format): search `src/projects/{project}/` (whole project)
 4. `node node_modules/bryllen/src/cli/index.js progress <id> "Reading <ComponentName>…"`
-5. Grep for `componentName` in that folder (components/ or pages/)
+5. Grep for `componentName` in that folder (components/ or pages/) — `componentName` is always unique
 6. Follow guard protocol
 7. `node node_modules/bryllen/src/cli/index.js progress <id> "Applying changes…"`
 8. Apply changes, route visual values through tokens
