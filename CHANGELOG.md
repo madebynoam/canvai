@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.152 — Fix option-drag duplicate flash
+
+- Root cause: client created optimistic copy with `clientTempUUID`, server generated different `serverUUID`; SSE fired before fetch resolved → copy not found in state → repositioned to (0,0) by applyInitialLayout → flash
+- Fix: client now sends its `newId` in the POST body; server uses it instead of generating a new UUID → IDs match → SSE merge finds existing copy → position preserved
+- Fix: SSE handler preserves `existing.component` when new componentKey isn't in registry yet (Vite HMR pending) → no "missing component" flash during duplication
+
 ## 0.1.0 — Remove DB Mode Conditionals (Breaking Change)
 
 **BREAKING:** Removed manifest mode support. All projects must use the component registry pattern (frames stored in SQLite).

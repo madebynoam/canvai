@@ -605,6 +605,24 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
     return () => source.close()
   }, [annotationEndpoint, activeProjectId])
 
+  // Restore progress panel on refresh — if an annotation is still pending, show the panel
+  useEffect(() => {
+    if (!activeProject?.project) return
+    const params = new URLSearchParams()
+    params.set('projectId', activeProject.project)
+    fetch(`${annotationEndpoint}/annotations?${params}`)
+      .then(r => r.json())
+      .then((annotations: Array<{ id: string; status: string }>) => {
+        const pending = annotations.find(a => a.status === 'pending')
+        if (pending) {
+          if (panelCloseTimerRef.current) clearTimeout(panelCloseTimerRef.current)
+          setPanelAnnotationId(String(pending.id))
+          setPanelOpen(true)
+        }
+      })
+      .catch(() => {})
+  }, [activeProject?.project, annotationEndpoint])
+
   // Check for update result on mount — show toast + "Restart Claude Code" notice if needed
   useEffect(() => {
     fetch(`${annotationEndpoint}/update-result`)
