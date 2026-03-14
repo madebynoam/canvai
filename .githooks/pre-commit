@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# Pre-commit hook: block commits when version fields are out of sync.
+exec "$(git rev-parse --show-toplevel)/scripts/check-version-sync.sh"

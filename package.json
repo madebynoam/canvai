@@ -1,6 +1,6 @@
 {
   "name": "bryllen",
-  "version": "0.0.155",
+  "version": "0.0.156",
   "type": "module",
   "exports": {
     "./runtime": "./src/runtime/index.ts",
@@ -14,7 +14,8 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:smoke": "bash scripts/smoke-test.sh"
+    "test:smoke": "bash scripts/smoke-test.sh",
+    "prepare": "git config core.hooksPath .githooks"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.26.0",

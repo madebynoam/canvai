@@ -19,8 +19,12 @@ export function applies(fileContents) {
   const claude = fileContents['CLAUDE.md']
   if (!claude) return false
   // Needs migration if it has the hierarchy section but not the one-function rule
-  if (claude.includes('Component hierarchy') && !claude.includes('exactly one function')) return true
-  return false
+  if (!claude.includes('Component hierarchy') || claude.includes('exactly one function')) return false
+  // Also verify the replacement targets exist — if the CLAUDE.md has drifted
+  // from the expected template, this migration can't do its work
+  const hasHierarchyBlock = claude.includes('```\n\n## Hard constraints')
+  const hasPagesLine = /- \*\*Pages import only from `\.\.\/components\/`\.\*\* Never inline styled HTML in pages\./.test(claude)
+  return hasHierarchyBlock || hasPagesLine
 }
 
 export function migrate(fileContents) {
