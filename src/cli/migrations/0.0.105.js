@@ -1,19 +1,19 @@
 /**
  * Migration 0.0.105: Flatten Project → Iteration → Page hierarchy
  *
- * The manifest structure has been simplified from 4 levels to 2 levels:
- * Before: Project → Iteration → Page → Frame
- * After:  Project → Frame (flat canvas)
+ * The manifest structure has been simplified:
+ * Before: Project → Iteration → Page (with component refs)
+ * After:  Project → components map (DB-driven frames)
  *
  * This migration:
- * - Flattens all frames from all iterations/pages into a single frames array
+ * - Extracts component imports and references from iterations/pages
+ * - Builds a flat components: {} map
  * - Removes iterations and pages structure
- * - Adds grid config for layout
  */
 
 export const version = '0.0.105'
 
-export const description = 'Flatten iterations/pages to single frames array'
+export const description = 'Flatten iterations/pages to components registry'
 
 export const files = [] // Manifests are auto-discovered
 
@@ -33,8 +33,16 @@ export function applies(fileContents) {
   return false
 }
 
+/** Convert PascalCase to kebab-case: DirA → dir-a, TokensPage → tokens-page */
+function toKebab(name) {
+  return name
+    .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
+    .replace(/([A-Z])([A-Z][a-z])/g, '$1-$2')
+    .toLowerCase()
+}
+
 /**
- * Flatten iterations/pages to single frames array
+ * Flatten iterations/pages to components registry
  */
 export function migrate(fileContents) {
   const result = {}
@@ -60,44 +68,34 @@ export function migrate(fileContents) {
     const shareUrlMatch = content.match(/shareUrl:\s*['"]([^'"]+)['"]/)
     const shareUrl = shareUrlMatch ? shareUrlMatch[1] : null
 
-    // Collect all imports from the file
-    const importLines = []
+    // Collect component imports (from ./v*, ./pages/, ./components/)
+    const componentImports = []
     const importRegex = /^import\s+.*$/gm
     let importMatch
     while ((importMatch = importRegex.exec(content)) !== null) {
       const line = importMatch[0]
-      // Keep type imports and runtime imports
-      if (line.includes('bryllen/runtime') || line.includes('type {')) {
-        importLines.push(line)
-      } else if (line.includes('./v') || line.includes('./pages/') || line.includes('./components/')) {
-        // Keep component imports but we'll need to update paths
-        importLines.push(line)
+      if (line.includes('./v') || line.includes('./pages/') || line.includes('./components/')) {
+        componentImports.push(line)
       }
     }
 
-    // Extract all frame definitions from the content
-    // Look for frames: [ ... ] patterns within pages
-    const frameDefinitions = []
-    const frameBlockRegex = /frames:\s*\[([\s\S]*?)\]/g
-    let frameBlockMatch
-    while ((frameBlockMatch = frameBlockRegex.exec(content)) !== null) {
-      const block = frameBlockMatch[1]
-      // Extract individual frame objects
-      const frameObjRegex = /\{\s*(?:type:\s*['"]?\w+['"]?,?\s*)?id:\s*['"]([^'"]+)['"][^}]*\}/g
-      let frameObj
-      while ((frameObj = frameObjRegex.exec(block)) !== null) {
-        frameDefinitions.push(frameObj[0])
-      }
+    // Extract component variable names from `component: VarName` in pages
+    const componentRefs = []
+    const componentRefRegex = /component:\s*([A-Z]\w+)/g
+    let refMatch
+    while ((refMatch = componentRefRegex.exec(content)) !== null) {
+      componentRefs.push(refMatch[1])
     }
 
-    // Build the new manifest structure
-    let newManifest = `import type { ProjectManifest } from 'bryllen/runtime'\n\n`
+    // Build the new manifest
+    let newManifest = `import type { ProjectManifest } from 'bryllen/runtime'\n`
 
-    // Note: Component imports will need to be handled manually since
-    // the old structure had imports scattered across iteration folders
-    newManifest += `// TODO: Update component imports after migration\n`
-    newManifest += `// Old structure had components in v1/, v2/, etc. folders\n\n`
+    // Preserve component imports
+    for (const imp of componentImports) {
+      newManifest += `${imp}\n`
+    }
 
+    newManifest += `\n`
     newManifest += `const manifest: ProjectManifest = {\n`
 
     if (projectId) {
@@ -106,27 +104,11 @@ export function migrate(fileContents) {
 
     newManifest += `  project: '${projectName}',\n`
 
-    // Add frames array (will be empty if extraction didn't work)
-    // The migration adds a comment to help users rebuild their frames
-    newManifest += `  frames: [\n`
-    newManifest += `    // Migration flattened all iterations/pages here\n`
-    newManifest += `    // Review and rebuild frame definitions as needed\n`
-
-    // Try to preserve some frame structure hints
-    if (frameDefinitions.length > 0) {
-      for (const frame of frameDefinitions) {
-        newManifest += `    ${frame},\n`
-      }
+    // Build components map from extracted component references
+    newManifest += `  components: {\n`
+    for (const name of componentRefs) {
+      newManifest += `    '${toKebab(name)}': ${name},\n`
     }
-
-    newManifest += `  ],\n`
-
-    // Add default grid config
-    newManifest += `  grid: {\n`
-    newManifest += `    columns: 4,\n`
-    newManifest += `    columnWidth: 320,\n`
-    newManifest += `    rowHeight: 200,\n`
-    newManifest += `    gap: 40,\n`
     newManifest += `  },\n`
 
     if (shareUrl) {
