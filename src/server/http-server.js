@@ -49,6 +49,7 @@ import {
   createFrame,
   getFrame,
   getFrames,
+  getDeletedComponentKeys,
   updateFrame,
   softDeleteFrame,
   createSticky,
@@ -1254,6 +1255,17 @@ const httpServer = createServer(async (req, res) => {
       return
     }
 
+    // GET /frames/deleted-keys — list component keys of soft-deleted frames
+    if (req.method === 'GET' && url.pathname === '/frames/deleted-keys') {
+      const project = url.searchParams.get('project')
+      if (!project) {
+        sendJson(res, 400, { error: 'project query param is required' })
+        return
+      }
+      sendJson(res, 200, { deletedKeys: getDeletedComponentKeys(project) })
+      return
+    }
+
     // GET /frames — list visible frames for a project
     if (req.method === 'GET' && url.pathname === '/frames') {
       const project = url.searchParams.get('project')
@@ -1317,7 +1329,7 @@ const httpServer = createServer(async (req, res) => {
     // POST /frames/duplicate — duplicate a frame with an independent component copy
     if (req.method === 'POST' && url.pathname === '/frames/duplicate') {
       const data = await parseBody(req)
-      const { project, sourceId, x, y } = data
+      const { project, sourceId, newId: clientNewId, x, y } = data
 
       if (!project || !sourceId) {
         sendJson(res, 400, { error: 'project and sourceId are required' })
@@ -1330,7 +1342,9 @@ const httpServer = createServer(async (req, res) => {
         return
       }
 
-      const newId = randomUUID()
+      // Use client-provided ID if given — avoids SSE race condition where
+      // server-generated UUID doesn't match optimistic copy, causing position flash.
+      const newId = clientNewId || randomUUID()
       const componentKey = sourceFrame.componentKey
 
       // Non-component frame (image) or no componentKey — simple DB copy

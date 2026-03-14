@@ -204,7 +204,16 @@ export function useFrames(
     async function autoRegisterMissingFrames(project: string, dbFrames: DbFrame[], registry: Record<string, ComponentType<any>>) {
       // Find registry keys that have no matching DB frame
       const dbComponentKeys = new Set(dbFrames.map(f => f.componentKey).filter(Boolean))
-      const missing = Object.keys(registry).filter(key => !dbComponentKeys.has(key))
+
+      // Don't auto-register components the user intentionally deleted
+      let deletedKeys: Set<string> = new Set()
+      try {
+        const res = await fetch(`${SERVER_ENDPOINT}/frames/deleted-keys?project=${encodeURIComponent(project)}`)
+        const data = await res.json()
+        deletedKeys = new Set(data.deletedKeys || [])
+      } catch {}
+
+      const missing = Object.keys(registry).filter(key => !dbComponentKeys.has(key) && !deletedKeys.has(key))
 
       if (missing.length === 0) return false
 
@@ -307,7 +316,16 @@ export function useFrames(
               const merged = resolved.map(f => {
                 const existing = prev.find(p => p.id === f.id)
                 if (existing) {
-                  return { ...f, x: existing.x, y: existing.y, manuallyPositioned: existing.manuallyPositioned }
+                  return {
+                    ...f,
+                    x: existing.x,
+                    y: existing.y,
+                    manuallyPositioned: existing.manuallyPositioned,
+                    // Keep existing component if not yet in registry (Vite HMR pending for new duplicates)
+                    ...(f.componentKey && !registry[f.componentKey] && existing.component
+                      ? { component: existing.component }
+                      : {}),
+                  }
                 }
                 return f
               })
@@ -423,21 +441,24 @@ export function useFrames(
     setFrames(prev => [...prev, copy])
     const config = persistConfigRef.current
     if (config?.project) {
-      // Call /frames/duplicate for independent component copy
+      // Call /frames/duplicate for independent component copy.
+      // Send newId so server uses the same UUID — prevents SSE race condition where
+      // server-generated UUID doesn't match the optimistic copy, causing a position flash.
       fetch(`${SERVER_ENDPOINT}/frames/duplicate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           project: config.project,
           sourceId: source.id,
+          newId,
           x,
           y,
         }),
       }).then(r => r.json()).then(result => {
-        // Update the in-memory frame with the server-assigned ID and componentKey
-        if (result?.id && result.id !== newId) {
+        // Sync componentKey from server (server assigns the new component key)
+        if (result?.newComponentKey) {
           setFrames(prev => prev.map(f =>
-            f.id === newId ? { ...f, id: result.id, componentKey: result.newComponentKey } : f
+            f.id === newId ? { ...f, componentKey: result.newComponentKey } : f
           ))
         }
       }).catch(() => {})

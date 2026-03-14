@@ -456,6 +456,14 @@ export function updateFrame(project, id, updates) {
   return getFrame(project, id)
 }
 
+export function getDeletedComponentKeys(project) {
+  return getDb().prepare(`
+    SELECT DISTINCT component_key
+    FROM frames
+    WHERE project = ? AND deleted_at IS NOT NULL AND component_key IS NOT NULL
+  `).all(project).map(r => r.component_key)
+}
+
 export function softDeleteFrame(project, id) {
   const now = Math.floor(Date.now() / 1000)
   getDb().prepare(`
