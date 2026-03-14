@@ -73,7 +73,7 @@ function readMigrationFiles(cwd, migration) {
         fileContents[rel] = readFileSync(abs, 'utf-8')
       }
 
-      // Discover token pages in each iteration (v1/, v2/, etc.)
+      // Discover iteration directories and their contents (v1/, v2/, etc.)
       const projDir = join(projectsDir, d.name)
       for (const v of readdirSync(projDir, { withFileTypes: true })) {
         if (!v.isDirectory() || !/^v\d+$/.test(v.name)) continue
@@ -87,6 +87,19 @@ function readMigrationFiles(cwd, migration) {
         const cssAbs = join(cwd, cssRel)
         if (existsSync(cssAbs) && !fileContents[cssRel]) {
           fileContents[cssRel] = readFileSync(cssAbs, 'utf-8')
+        }
+
+        // Discover all page files for repair migrations
+        const pagesDir = join(projDir, v.name, 'pages')
+        if (existsSync(pagesDir)) {
+          for (const pf of readdirSync(pagesDir, { withFileTypes: true })) {
+            if (!pf.isFile() || !pf.name.endsWith('.tsx')) continue
+            const pageRel = `src/projects/${d.name}/${v.name}/pages/${pf.name}`
+            const pageAbs = join(cwd, pageRel)
+            if (!fileContents[pageRel]) {
+              fileContents[pageRel] = readFileSync(pageAbs, 'utf-8')
+            }
+          }
         }
       }
     }

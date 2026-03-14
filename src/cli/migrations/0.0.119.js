@@ -24,10 +24,10 @@ export function applies(fileContents) {
     if (!filepath.endsWith('/manifest.ts')) continue
     if (!content) continue
 
-    // Has ProjectManifest type + empty frames array + no components key yet
+    // Has ProjectManifest type + empty frames array (possibly with comments) + no components key yet
     if (
       content.includes('ProjectManifest') &&
-      /frames:\s*\[\s*\]/.test(content) &&
+      /frames:\s*\[\s*(?:\/\/[^\n]*\s*)*\]/.test(content) &&
       !content.includes('components:')
     ) {
       return true
@@ -46,8 +46,8 @@ export function migrate(fileContents) {
     if (!filepath.endsWith('/manifest.ts')) continue
     if (!content) continue
 
-    // Skip if doesn't have the empty frames pattern
-    if (!content.includes('ProjectManifest') || !/frames:\s*\[\s*\]/.test(content)) {
+    // Skip if doesn't have the empty frames pattern (possibly with comments inside)
+    if (!content.includes('ProjectManifest') || !/frames:\s*\[\s*(?:\/\/[^\n]*\s*)*\]/.test(content)) {
       continue
     }
 
@@ -56,16 +56,15 @@ export function migrate(fileContents) {
 
     let migrated = content
 
-    // Remove empty frames array and grid block that follows it
-    // Pattern: frames: [],\n  grid: {\n    ...\n  },\n
+    // Remove empty frames array (possibly with comments) and grid block that follows it
     migrated = migrated.replace(
-      /\s*frames:\s*\[\s*\],\s*\n(\s*grid:\s*\{[^}]*\},?\s*\n)?/s,
+      /\s*frames:\s*\[\s*(?:\/\/[^\n]*\s*)*\],?\s*\n(\s*grid:\s*\{[^}]*\},?\s*\n)?/s,
       '\n  components: {},\n'
     )
 
-    // Fallback: if regex above didn't match, just replace frames: [] with components: {}
+    // Fallback: if regex above didn't match, just replace frames array with components
     if (migrated === content) {
-      migrated = migrated.replace(/frames:\s*\[\s*\]/, 'components: {}')
+      migrated = migrated.replace(/frames:\s*\[\s*(?:\/\/[^\n]*\s*)*\]/, 'components: {}')
     }
 
     if (migrated !== content) {
