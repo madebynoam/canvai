@@ -1105,11 +1105,32 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
   useEffect(() => {
     canvasBgLoadedRef.current = false
     loadCanvasBgAsync(projectKey).then(color => {
-      if (color) setCanvasBg(color)
-      else setCanvasBg(DEFAULT_CANVAS_COLOR)
+      let bg = color || DEFAULT_CANVAS_COLOR
+      // If stored color doesn't match current theme, map to equivalent preset
+      const match = bg.match(/oklch\(\s*([\d.]+)/)
+      if (match) {
+        const lightness = parseFloat(match[1])
+        const isLightColor = lightness > 0.5
+        if ((currentTheme === 'dark' && isLightColor) || (currentTheme === 'light' && !isLightColor)) {
+          const fromPresets = isLightColor ? lightPresets : darkPresets
+          const toPresets = isLightColor ? darkPresets : lightPresets
+          let closestIdx = 0
+          let closestDist = Infinity
+          for (let i = 0; i < fromPresets.length; i++) {
+            const presetL = parseFloat(fromPresets[i].value.match(/oklch\(\s*([\d.]+)/)?.[1] ?? '0')
+            const dist = Math.abs(presetL - lightness)
+            if (dist < closestDist) {
+              closestDist = dist
+              closestIdx = i
+            }
+          }
+          bg = toPresets[closestIdx].value
+        }
+      }
+      setCanvasBg(bg)
       canvasBgLoadedRef.current = true
     })
-  }, [projectKey])
+  }, [projectKey, currentTheme])
   useEffect(() => {
     // Don't save on initial mount — wait until load completes
     if (!canvasBgLoadedRef.current) return
