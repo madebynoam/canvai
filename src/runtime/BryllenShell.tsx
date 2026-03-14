@@ -483,7 +483,7 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
 
   const handleNewProject = useCallback(async (payload: { name: string; description: string; prompt: string; images?: Array<{ id: string; dataUrl: string; filename: string }> }) => {
     try {
-      // Upload inspiration images to context folder
+      // Upload inspiration images to context/canvas so they appear on the canvas
       if (payload.images && payload.images.length > 0) {
         for (const img of payload.images) {
           await fetch(`${annotationEndpoint}/context`, {
@@ -492,6 +492,7 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
             body: JSON.stringify({
               project: payload.name,
               iteration: 'v1',
+              page: 'canvas',
               dataUrl: img.dataUrl,
               filename: img.filename,
             }),
@@ -523,7 +524,7 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
     if (!promptRequest) return
 
     try {
-      // Upload inspiration images to context folder
+      // Upload inspiration images to context/canvas so they appear on the canvas
       if (payload.images && payload.images.length > 0) {
         for (const img of payload.images) {
           await fetch(`${annotationEndpoint}/context`, {
@@ -532,6 +533,7 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
             body: JSON.stringify({
               project: payload.name,
               iteration: 'v1',
+              page: 'canvas',
               dataUrl: img.dataUrl,
               filename: img.filename,
             }),
