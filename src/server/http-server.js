@@ -1245,10 +1245,23 @@ const httpServer = createServer(async (req, res) => {
       }
 
       const frame = createFrame(project, { id, title, componentKey, src, props, width, height, sortOrder })
+
+      // Auto-create a sticky note for the frame
+      const stickyId = `${id}-sticky`
+      const frameWidth = width || 1440
+      const sticky = createSticky(project, {
+        id: stickyId,
+        parentFrameId: id,
+        content: title,
+        offsetX: frameWidth - 216,
+        offsetY: 16,
+      })
+
       // Notify SSE clients so canvas re-fetches
       for (const client of sseClients) {
         if (!client.projectName || client.projectName === project) {
           client.res.write(`data: ${JSON.stringify({ type: 'frame-created', frameId: id })}\n\n`)
+          client.res.write(`data: ${JSON.stringify({ type: 'sticky-created', stickyId })}\n\n`)
         }
       }
       sendJson(res, 201, frame)
