@@ -274,7 +274,7 @@ Any time you generate a landing page, marketing site, web app, or any webpage la
 1. **Always generate mobile (390px) alongside desktop (1440px)** — minimum two frames per direction
 2. **Optional tablet (768px)** when the design has complex responsive behavior (sidebars, multi-column, etc.)
 3. **Group frames by direction, then viewport:** for N directions, layout is N columns × 3 rows (desktop / tablet / mobile) OR for single direction, horizontal: [desktop] [mobile]
-4. **The component IS responsive** — use CSS media queries or flexible layout inside the component so that both frames use the same component file rendered at different widths
+4. **The component IS responsive AND fluid** — use CSS media queries or flexible layout inside the component so that both frames use the same component file rendered at different widths. **Components must use `width: 100%` (not fixed pixel widths)** so they fill whatever container they're in — both the canvas frame and the full-browser preview ("Open in new tab"). Use `max-width` for content sections if needed (e.g. `max-width: 1200px; margin: 0 auto` for text blocks), but the outermost wrapper must be `width: 100%`.
 5. Frame IDs include viewport suffix: `dir-a-desktop`, `dir-a-mobile`, `dir-a-tablet`
 
 Example layout for 3 directions × 2 viewports:
