@@ -29,6 +29,68 @@ interface BryllenShellProps {
   annotationEndpoint?: string
 }
 
+const SERVER_ENDPOINT = `http://localhost:${typeof __BRYLLEN_HTTP_PORT__ !== 'undefined' ? __BRYLLEN_HTTP_PORT__ : 4748}`
+
+/** Lightweight preview mode — fetches one frame directly, bypasses full canvas machinery */
+function PreviewMode({ manifest }: { manifest: ProjectManifest }) {
+  const previewId = useMemo(() => new URLSearchParams(window.location.search).get('preview'), [])
+  const [frame, setFrame] = useState<{ component: React.ComponentType<any>; props: Record<string, unknown>; title: string; width: number } | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const components = manifest.components ?? {}
+
+  useEffect(() => {
+    if (!previewId) return
+    fetch(`${SERVER_ENDPOINT}/frames?project=${encodeURIComponent(manifest.project)}`)
+      .then(r => r.json())
+      .then((dbFrames: Array<{ id: string; componentKey: string | null; props: string | Record<string, unknown>; title: string; width: number | null }>) => {
+        const match = dbFrames.find((f: { id: string }) => f.id === previewId)
+        if (!match) {
+          setError(`Frame "${previewId}" not found. Available: ${dbFrames.map((f: { id: string }) => f.id).join(', ')}`)
+          return
+        }
+        const comp = match.componentKey ? components[match.componentKey] : null
+        if (!comp) {
+          setError(`Component "${match.componentKey}" not in manifest.components`)
+          return
+        }
+        const props = typeof match.props === 'string' ? JSON.parse(match.props) : (match.props ?? {})
+        setFrame({ component: comp, props, title: match.title, width: match.width ?? 1440 })
+      })
+      .catch(err => setError(`Failed to load: ${err.message}`))
+  }, [previewId, manifest.project])
+
+  if (error) {
+    return (
+      <div style={{ padding: 40, fontFamily: 'monospace', fontSize: 13, color: '#c00' }}>
+        <strong>Preview error</strong><br />{error}
+      </div>
+    )
+  }
+
+  if (!frame) {
+    return (
+      <div style={{ width: '100vw', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: FONT, color: '#999' }}>
+        Loading…
+      </div>
+    )
+  }
+
+  const isWide = frame.width >= 1200
+  return (
+    <div style={{
+      width: '100vw', height: '100vh', display: 'flex',
+      alignItems: isWide ? 'flex-start' : 'center',
+      justifyContent: isWide ? 'flex-start' : 'center',
+      background: isWide ? 'transparent' : 'oklch(94% 0.003 80)',
+      overflow: 'auto',
+    }}>
+      <FrameErrorBoundary frameId={previewId!} title={frame.title}>
+        <frame.component {...frame.props} />
+      </FrameErrorBoundary>
+    </div>
+  )
+}
+
 const PROJECT_KEY = 'bryllen:active-project'
 
 function filtersKey(project: string) { return `bryllen:filters:${project}` }
@@ -382,10 +444,15 @@ const ContextImageContent = memo(function ContextImageContent({
 })
 
 export function BryllenShell({ manifests, annotationEndpoint = 'http://localhost:4748' }: BryllenShellProps) {
-  // URL routing takes precedence, then localStorage fallback
+  // Preview mode: render one frame in isolation, skip all canvas machinery
+  const previewId = useMemo(() => new URLSearchParams(window.location.search).get('preview'), [])
   const urlState = parseUrl(manifests)
   const initialProjectIndex = urlState?.projectIdx ?? loadProjectIndex(manifests.length)
   const initialProject = manifests[initialProjectIndex]?.project ?? ''
+
+  if (previewId && manifests[initialProjectIndex]) {
+    return <PreviewMode manifest={manifests[initialProjectIndex]} />
+  }
 
   return (
     <ThemeProvider project={initialProject} endpoint={annotationEndpoint}>
@@ -660,9 +727,6 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
       }
     }
   }, [activeProject?.project])
-
-  // Preview mode: detect ?preview=<id> on mount
-  const previewFrameId = useMemo(() => new URLSearchParams(window.location.search).get('preview'), [])
 
   // Token panel state
   const [tokenPanelOpen, setTokenPanelOpen] = useState(false)
@@ -1275,46 +1339,6 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
           onSubmit={handleNewProject}
         />
         {toast && <Toast message={toast} onDone={() => setToast(null)} />}
-      </div>
-    )
-  }
-
-  // Preview mode: render frame in isolation (after all hooks)
-  if (previewFrameId) {
-    const previewFrame = frames.find(f => f.id === previewFrameId)
-    if (!previewFrame) {
-      return (
-        <div style={{
-          width: '100vw',
-          height: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontFamily: FONT,
-          color: V.txtSec,
-          fontSize: T.ui,
-        }}>
-          Loading…
-        </div>
-      )
-    }
-
-    const isWide = (previewFrame.width ?? 0) >= 1200
-    return (
-      <div style={{
-        width: '100vw',
-        height: '100vh',
-        display: 'flex',
-        alignItems: isWide ? 'flex-start' : 'center',
-        justifyContent: isWide ? 'flex-start' : 'center',
-        background: isWide ? 'transparent' : 'oklch(94% 0.003 80)',
-        overflow: 'auto',
-      }}>
-        <FrameErrorBoundary frameId={previewFrame.id} title={previewFrame.title}>
-          {'component' in previewFrame && (
-            <previewFrame.component {...(previewFrame.props ?? {})} />
-          )}
-        </FrameErrorBoundary>
       </div>
     )
   }
