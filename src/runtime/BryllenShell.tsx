@@ -31,43 +31,62 @@ interface BryllenShellProps {
 
 const SERVER_ENDPOINT = `http://localhost:${typeof __BRYLLEN_HTTP_PORT__ !== 'undefined' ? __BRYLLEN_HTTP_PORT__ : 4748}`
 
-/** Lightweight preview mode — fetches one frame directly, bypasses full canvas machinery */
+/** Lightweight preview mode — resolves component from manifest, optionally enriches from DB */
 function PreviewMode({ manifest }: { manifest: ProjectManifest }) {
   const previewId = useMemo(() => new URLSearchParams(window.location.search).get('preview'), [])
-  const [frame, setFrame] = useState<{ component: React.ComponentType<any>; props: Record<string, unknown>; title: string; width: number } | null>(null)
-  const [error, setError] = useState<string | null>(null)
   const components = manifest.components ?? {}
+
+  // Resolve component: try DB first for props/title, fall back to manifest.components directly
+  const [resolved, setResolved] = useState<{ component: React.ComponentType<any>; props: Record<string, unknown>; title: string; width: number } | null>(null)
 
   useEffect(() => {
     if (!previewId) return
+
+    // Try to find the component in the manifest by matching against:
+    // 1. componentKey in DB frame matching the previewId
+    // 2. previewId as a direct component key
+    // 3. previewId as a DB frame id whose componentKey maps to a manifest component
     fetch(`${SERVER_ENDPOINT}/frames?project=${encodeURIComponent(manifest.project)}`)
       .then(r => r.json())
       .then((dbFrames: Array<{ id: string; componentKey: string | null; props: string | Record<string, unknown>; title: string; width: number | null }>) => {
-        const match = dbFrames.find((f: { id: string }) => f.id === previewId)
-        if (!match) {
-          setError(`Frame "${previewId}" not found. Available: ${dbFrames.map((f: { id: string }) => f.id).join(', ')}`)
+        const dbMatch = dbFrames.find(f => f.id === previewId)
+        if (dbMatch?.componentKey && components[dbMatch.componentKey]) {
+          const props = typeof dbMatch.props === 'string' ? JSON.parse(dbMatch.props) : (dbMatch.props ?? {})
+          setResolved({ component: components[dbMatch.componentKey], props, title: dbMatch.title, width: dbMatch.width ?? 1440 })
           return
         }
-        const comp = match.componentKey ? components[match.componentKey] : null
-        if (!comp) {
-          setError(`Component "${match.componentKey}" not in manifest.components`)
-          return
-        }
-        const props = typeof match.props === 'string' ? JSON.parse(match.props) : (match.props ?? {})
-        setFrame({ component: comp, props, title: match.title, width: match.width ?? 1440 })
+        // Fall back: use previewId as component key directly
+        fallbackToManifest()
       })
-      .catch(err => setError(`Failed to load: ${err.message}`))
+      .catch(() => fallbackToManifest())
+
+    function fallbackToManifest() {
+      // Try previewId as a component key
+      if (components[previewId!]) {
+        const title = previewId!.replace(/([A-Z])/g, ' $1').replace(/-/g, ' ').trim()
+        setResolved({ component: components[previewId!], props: {}, title, width: 1440 })
+        return
+      }
+      // Try matching by normalized key (the way autoRegister creates IDs: lowercase, non-alnum → hyphen)
+      const normalized = previewId!.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+      for (const key of Object.keys(components)) {
+        const keyNormalized = key.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+        if (keyNormalized === normalized || keyNormalized === previewId) {
+          const title = key.replace(/([A-Z])/g, ' $1').replace(/-/g, ' ').trim()
+          setResolved({ component: components[key], props: {}, title, width: 1440 })
+          return
+        }
+      }
+      // Nothing found
+      const available = Object.keys(components).join(', ')
+      setResolved(null)
+      console.error(`[bryllen preview] "${previewId}" not found. Available components: ${available}`)
+    }
   }, [previewId, manifest.project])
 
-  if (error) {
-    return (
-      <div style={{ padding: 40, fontFamily: 'monospace', fontSize: 13, color: '#c00' }}>
-        <strong>Preview error</strong><br />{error}
-      </div>
-    )
-  }
+  if (!previewId) return null
 
-  if (!frame) {
+  if (!resolved) {
     return (
       <div style={{ width: '100vw', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: FONT, color: '#999' }}>
         Loading…
@@ -75,7 +94,7 @@ function PreviewMode({ manifest }: { manifest: ProjectManifest }) {
     )
   }
 
-  const isWide = frame.width >= 1200
+  const isWide = resolved.width >= 1200
   return (
     <div style={{
       width: '100vw', height: '100vh', display: 'flex',
@@ -84,8 +103,8 @@ function PreviewMode({ manifest }: { manifest: ProjectManifest }) {
       background: isWide ? 'transparent' : 'oklch(94% 0.003 80)',
       overflow: 'auto',
     }}>
-      <FrameErrorBoundary frameId={previewId!} title={frame.title}>
-        <frame.component {...frame.props} />
+      <FrameErrorBoundary frameId={previewId} title={resolved.title}>
+        <resolved.component {...resolved.props} />
       </FrameErrorBoundary>
     </div>
   )
