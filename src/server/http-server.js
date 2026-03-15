@@ -93,9 +93,27 @@ function closeBrowser() {
 function cleanup() {
   closeBrowser()
   closeProjectDbs()
+  try { rmSync(join(process.cwd(), '.bryllen-ports.json'), { force: true }) } catch {}
 }
 process.on('SIGTERM', cleanup)
+process.on('SIGHUP', cleanup)
 process.on('exit', cleanup)
+
+// Auto-shutdown when parent process dies (e.g. Claude Code exits)
+// When a parent dies on Unix, child gets reparented to PID 1.
+const _parentPid = process.ppid
+const _orphanCheck = setInterval(() => {
+  try {
+    // process.kill(pid, 0) checks if process exists without sending a signal
+    process.kill(_parentPid, 0)
+  } catch {
+    // Parent process is gone — shut down gracefully
+    console.log('[bryllen] Parent process exited, shutting down server...')
+    clearInterval(_orphanCheck)
+    cleanup()
+    process.exit(0)
+  }
+}, 5000)
 
 // --- Persistence ---
 

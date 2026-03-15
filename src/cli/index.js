@@ -783,6 +783,7 @@ async function startDev() {
 
   process.on('SIGINT', cleanup)
   process.on('SIGTERM', cleanup)
+  process.on('SIGHUP', cleanup)
 
   vite.on('exit', (code) => {
     try { rmSync(join(cwd, '.bryllen-ports.json'), { force: true }) } catch {}
