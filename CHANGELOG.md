@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.159 — Full-width fluid preview in new tab
+
+- Preview mode ("Open in new tab") now renders components full-width and fluid instead of centered in a narrow box
+- Removed centering/flexbox wrapper that constrained landing pages and web layouts
+- Updated plugin generation instructions: components must use `width: 100%` on outermost wrapper, `max-width` for content sections only
+
 ## 0.0.155 — Fix option-drag: copy no longer disappears on HMR
 
 - Root cause 1: server wrote `manifest.ts` (triggering Vite HMR) before creating the DB frame record — `softUpdate` loaded frames before the record existed, dropped the optimistic copy from state

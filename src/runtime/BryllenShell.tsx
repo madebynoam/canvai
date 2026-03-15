@@ -64,9 +64,8 @@ function PreviewMode({ manifest }: { manifest: ProjectManifest }) {
 
   return (
     <div style={{
-      width: '100vw', height: '100vh', display: 'flex',
-      alignItems: 'center', justifyContent: 'center',
-      background: 'oklch(94% 0.003 80)', overflow: 'auto',
+      width: '100%', minHeight: '100vh',
+      overflow: 'auto',
     }}>
       <FrameErrorBoundary frameId={previewId} title={title}>
         <Comp />
