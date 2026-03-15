@@ -80,11 +80,12 @@ const manifest: ProjectManifest = {
 
 **Frames are auto-registered.** When the manifest reloads, the runtime detects any component in the registry that has no DB frame record and auto-creates one. No `POST /frames` needed.
 
-You CAN still use `POST /frames` for fine-tuned control (custom title, width, sortOrder), but it's optional:
+You CAN still use `POST /frames` for fine-tuned control (custom title, width, sortOrder), but it's optional. For direction frames, pass `stickyContent` to attach a note describing the design rationale:
 ```bash
 curl -X POST http://localhost:4748/frames -H 'Content-Type: application/json' \
-  -d '{"project":"my-project","id":"dir-a","title":"Direction A","componentKey":"DirA","width":1440,"height":900}'
+  -d '{"project":"my-project","id":"dir-a","title":"Direction A","componentKey":"DirA","width":1440,"height":900,"stickyContent":"Bold hero with full-bleed imagery and minimal nav"}'
 ```
+**Sticky notes are only created when `stickyContent` is provided.** Tokens and Components frames should NOT have sticky notes — omit `stickyContent` for those.
 
 **CRUD operations (zero file edits):**
 - Delete: `DELETE http://localhost:4748/frames/dir-a?project=my-project`
@@ -404,14 +405,16 @@ Every annotation has a `mode` field: `'refine'`, `'ideate'`, or `'pick'`.
 - Each frame should be a distinct design bet, not a tweak of the same idea
 - The designer chose ideate because they WANT options to compare side-by-side
 - **For EACH new frame:** (1) create component file, (2) add to `manifest.components` — frames are auto-registered in DB on reload, no POST needed
-- **After creating each variation frame, attach a sticky note** with the direction rationale. Position it in the top-right corner inside the frame using `offsetX = frameWidth - 216` and `offsetY = 16`:
+- **After creating each variation frame, attach a sticky note** describing WHAT makes this direction different. Create it via POST /stickies:
   ```bash
   curl -s -X POST http://localhost:4748/stickies -H 'Content-Type: application/json' \
-    -d '{"project":"<project>","id":"<frameId>-sticky","parentFrameId":"<frameId>","content":"Direction A — Brief rationale for this direction...","offsetX":<frameWidth-216>,"offsetY":16}'
+    -d '{"project":"<project>","id":"<frameId>-sticky","parentFrameId":"<frameId>","content":"Bold hero with full-bleed imagery, minimal nav, high contrast CTAs","offsetX":<frameWidth-216>,"offsetY":16}'
   ```
   - `offsetX` = frame width − 216 (places the 200px sticky 16px from the right edge)
   - `offsetY` = 16 (16px below the frame top, sitting inside the frame)
-  - Content: direction name + 1 sentence max. No markdown bold.
+  - Content must describe the design approach — what layout, visual style, or interaction makes this direction unique. **NOT just the direction name.** Bad: "Direction A". Good: "Card grid with warm palette, rounded corners, playful micro-interactions".
+  - 1-2 sentences max. No markdown bold. No direction labels — the designer can SEE the frame.
+  - **Do NOT create sticky notes for Tokens or Components frames** — only for direction/page frames.
   - **CRITICAL: NEVER create a separate frame as a description card.** The sticky note IS the description. Extra description frames clutter the canvas and confuse the designer.
 
 **Pick mode** (CRITICAL — designer chose this direction):
