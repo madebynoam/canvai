@@ -644,6 +644,9 @@ function BryllenShellInner({ manifests, annotationEndpoint, urlState }: BryllenS
         if (data.type === 'applied' && data.id) {
           showPanel(String(data.id))
         }
+        if (data.type === 'applied-all' && data.ids?.length) {
+          showPanel(String(data.ids[0]))
+        }
         if (data.type === 'prompt-requested' && data.id) {
           // Fetch the annotation to get the project name
           const pid = activeProjectId
