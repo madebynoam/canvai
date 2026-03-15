@@ -35,15 +35,11 @@ function PreviewMode({ manifest }: { manifest: ProjectManifest }) {
 
   // Override root overflow:hidden so the preview can scroll
   useEffect(() => {
-    const root = document.getElementById('root')
-    if (root) root.style.overflow = 'auto'
-    document.body.style.overflow = 'auto'
-    document.documentElement.style.overflow = 'auto'
-    return () => {
-      if (root) root.style.overflow = ''
-      document.body.style.overflow = ''
-      document.documentElement.style.overflow = ''
-    }
+    const style = document.createElement('style')
+    style.setAttribute('data-bryllen-preview', '')
+    style.textContent = 'html, body, #root { overflow: auto !important; height: auto !important; }'
+    document.head.appendChild(style)
+    return () => { style.remove() }
   }, [])
 
   if (!previewId) return null
