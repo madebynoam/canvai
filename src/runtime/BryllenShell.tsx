@@ -33,12 +33,13 @@ interface BryllenShellProps {
 function PreviewMode({ manifest }: { manifest: ProjectManifest }) {
   const previewId = new URLSearchParams(window.location.search).get('preview')
 
-  // Override root overflow:hidden so the preview can scroll
+  // Override root overflow:hidden so the preview can scroll.
+  // Appended to document.body so it always comes after <head> stylesheets in cascade order.
   useEffect(() => {
     const style = document.createElement('style')
     style.setAttribute('data-bryllen-preview', '')
-    style.textContent = 'html, body, #root { overflow: auto !important; height: auto !important; }'
-    document.head.appendChild(style)
+    style.textContent = 'html, body, #root { overflow: visible !important; height: auto !important; min-height: 0 !important; }'
+    document.body.appendChild(style)
     return () => { style.remove() }
   }, [])
 
